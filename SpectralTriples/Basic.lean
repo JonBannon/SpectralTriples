@@ -42,4 +42,4 @@ structure IsEvenSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semir
   unitary_grading : γ ∈ unitary (H →L[𝕜] H)
   grading_comm (a : A) : γ.comp (π a) = (π a).comp γ
   grading_dom (x : D.domain) : γ x ∈ D.domain
-  grading (x : D.domain) : D ⟨γ x, grading_dom x⟩ = - γ (D x)
+  grading_anticomm (x : D.domain) : D ⟨γ x, grading_dom x⟩ = - γ (D x)
