@@ -37,8 +37,9 @@ open ContinuousLinearMap LinearMap in
 structure IsEvenSpectralTriple (A : Type*) {H : Type*} {𝕜 : Type*} [RCLike 𝕜] [Semiring A]
     [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     (D : H →ₗ.[𝕜] H) (π : StarAlgHom 𝕜 A (H →L[𝕜] H)) (γ : H →L[𝕜] H)
-    (hγS : IsSelfAdjoint γ) (hγU : γ ∈ unitary (H →L[𝕜] H))
     extends IsOddSpectralTriple A D π where
+  self_adjoint_grading : IsSelfAdjoint γ
+  unitary_grading : γ ∈ unitary (H →L[𝕜] H)
   grading_comm (a : A) : γ.comp (π a) = (π a).comp γ
   grading_dom (x : D.domain) : γ x ∈ D.domain
   grading (x : D.domain) : D ⟨γ x, grading_dom x⟩ = - γ (D x)
