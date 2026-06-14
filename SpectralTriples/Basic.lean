@@ -25,7 +25,7 @@ In this file we formalize spectral triples.
 open LinearPMap StarAlgebra ENNReal
 
 open ContinuousLinearMap LinearMap in
-structure IsOddSpectralTriple (A : Type*) {H : Type*} {𝕜 : Type*} [RCLike 𝕜] [Semiring A]
+structure IsOddSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiring A]
     [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     (D : H →ₗ.[𝕜] H) (π : StarAlgHom 𝕜 A (H →L[𝕜] H)) where
   self_adjoint : IsSelfAdjoint D
@@ -34,7 +34,7 @@ structure IsOddSpectralTriple (A : Type*) {H : Type*} {𝕜 : Type*} [RCLike �
     ‖(π a) (D x) - (D ⟨(π a x), dom_comp a x⟩)‖ₑ < ∞
 
 open ContinuousLinearMap LinearMap in
-structure IsEvenSpectralTriple (A : Type*) {H : Type*} {𝕜 : Type*} [RCLike 𝕜] [Semiring A]
+structure IsEvenSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiring A]
     [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     (D : H →ₗ.[𝕜] H) (π : StarAlgHom 𝕜 A (H →L[𝕜] H)) (γ : H →L[𝕜] H)
     extends IsOddSpectralTriple A D π where
