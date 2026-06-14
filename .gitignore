@@ -1,1 +1,8 @@
 /.lake
+
+# Generated blueprint outputs
+/blueprint/print
+/blueprint/web
+/blueprint/lean_decls
+/blueprint/src/web.paux
+/blueprint/src/*.bbl

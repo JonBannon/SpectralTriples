@@ -1,0 +1,119 @@
+% In this file you should put the actual content of the blueprint.
+% It will be used both by the web and the print version.
+% It should *not* include the \begin{document}
+%
+% If you want to split the blueprint content into several files then
+% the current file can be a simple sequence of \input. Otherwise It
+% can start with a \section or \chapter for instance.
+
+\chapter{Spectral triples}
+\label{cha:spectral-triples}
+
+This chapter records the basic definitions of (odd and even) spectral triples
+and the first consequences of the axioms. It corresponds to Phase~1 of the
+project plan.
+
+\section{Odd spectral triples}
+\label{sec:odd-spectral-triples}
+
+\begin{definition}[Odd spectral triple]
+  \label{def:odd-spectral-triple}
+  \lean{IsOddSpectralTriple}
+  \leanok
+  Let $\Hil$ be a Hilbert space over $\Bbbk \in \{\mathbb{R}, \mathbb{C}\}$, let $A$ be a
+  $*$-algebra over $\Bbbk$, and let $\pi \colon A \to \mathcal{B}(\Hil)$ be a
+  $*$-algebra homomorphism. A possibly unbounded linear operator
+  $D \colon \dom{D} \to \Hil$, with $\dom{D} \subseteq \Hil$ a linear subspace,
+  together with the data $(A, \Hil, \pi, D)$, is an \emph{odd spectral triple} if:
+  \begin{itemize}
+    \item $D$ is self-adjoint (in particular, $\dom{D}$ is dense and $D$ is closed);
+    \item for every $a \in A$, $\pi(a)$ maps $\dom{D}$ into $\dom{D}$;
+    \item for every $a \in A$, the commutator $[D, \pi(a)]$, viewed as an operator on
+      $\dom{D}$, is bounded on the closed unit ball of $\dom{D}$.
+  \end{itemize}
+\end{definition}
+
+\begin{lemma}[Density of the domain of the Dirac operator]
+  \label{lem:dense-domain-dirac}
+  \lean{IsOddSpectralTriple.dense_domain_dirac}
+  \leanok
+  \uses{def:odd-spectral-triple}
+  If $(A, \Hil, \pi, D)$ is an odd spectral triple, then $\dom{D}$ is dense in $\Hil$.
+\end{lemma}
+
+\begin{lemma}[Closedness of the Dirac operator]
+  \label{lem:isClosed-dirac}
+  \lean{IsOddSpectralTriple.isClosed_dirac}
+  \leanok
+  \uses{def:odd-spectral-triple}
+  If $(A, \Hil, \pi, D)$ is an odd spectral triple, then $D$ is a closed operator.
+\end{lemma}
+
+\begin{lemma}[A uniform commutator bound]
+  \label{lem:exists-comm-bound}
+  \lean{IsOddSpectralTriple.exists_comm_bound}
+  \leanok
+  \uses{def:odd-spectral-triple}
+  If $(A, \Hil, \pi, D)$ is an odd spectral triple, then for every $a \in A$ there is a
+  real constant $C \geq 0$ such that
+  \[
+    \big\| \pi(a) D \xi - D \pi(a) \xi \big\| \leq C
+  \]
+  for every $\xi \in \dom{D}$ with $\|\xi\| \leq 1$.
+\end{lemma}
+
+\section{Even spectral triples}
+\label{sec:even-spectral-triples}
+
+\begin{definition}[Even spectral triple]
+  \label{def:even-spectral-triple}
+  \lean{IsEvenSpectralTriple}
+  \leanok
+  \uses{def:odd-spectral-triple}
+  An \emph{even spectral triple} $(A, \Hil, \pi, D, \gamma)$ consists of an odd
+  spectral triple $(A, \Hil, \pi, D)$ together with a bounded operator
+  $\gamma \in \mathcal{B}(\Hil)$ (the \emph{grading operator}) such that:
+  \begin{itemize}
+    \item $\gamma$ is self-adjoint and unitary;
+    \item $\gamma$ commutes with $\pi(a)$ for every $a \in A$;
+    \item $\gamma$ maps $\dom{D}$ into $\dom{D}$;
+    \item $D \gamma \xi = -\gamma D \xi$ for every $\xi \in \dom{D}$.
+  \end{itemize}
+\end{definition}
+
+\begin{lemma}[The grading operator squares to the identity]
+  \label{lem:grading-sq}
+  \lean{IsEvenSpectralTriple.grading_sq}
+  \leanok
+  \uses{def:even-spectral-triple}
+  If $(A, \Hil, \pi, D, \gamma)$ is an even spectral triple, then $\gamma^2 = 1$.
+\end{lemma}
+
+\chapter{The Fredholm index pairing}
+\label{cha:index-pairing}
+
+This chapter is not yet formalized; it corresponds to Phase~2 of the project plan.
+It is included here to record the intended statements and their dependencies on
+Chapter~\ref{cha:spectral-triples}.
+
+\begin{definition}[Index pairing]
+  \label{def:index-pairing}
+  \uses{def:even-spectral-triple}
+  Let $(A, \Hil, \pi, D, \gamma)$ be an even spectral triple and let
+  $p \in M_n(A)$ be a self-adjoint idempotent (a projection representing a class
+  in $K_0(A)$). The \emph{index pairing} of $p$ with $(A, \Hil, \pi, D, \gamma)$ is
+  the Fredholm index
+  \[
+    \langle [p], (\Hil, \pi, D, \gamma) \rangle
+      \;=\; \operatorname{ind}\big( \pi(p) D^{+} \pi(p) \big),
+  \]
+  where $D^{+}$ denotes the restriction of $D$ to the $(+1)$-eigenspace of $\gamma$.
+\end{definition}
+
+\begin{theorem}[The index pairing is well defined]
+  \label{thm:index-pairing-well-defined}
+  \uses{def:index-pairing}
+  In the situation of Definition~\ref{def:index-pairing}, the operator
+  $\pi(p) D^{+} \pi(p)$, restricted to $\pi(p)\Hil \cap \dom{D}$, is Fredholm, so that
+  $\langle [p], (\Hil, \pi, D, \gamma) \rangle \in \mathbb{Z}$ is well defined.
+\end{theorem}

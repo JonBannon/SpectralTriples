@@ -1,0 +1,64 @@
+name: Compile blueprint
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Cancel previous runs if a new commit is pushed to the same branch
+concurrency:
+  group: blueprint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_blueprint:
+    runs-on: ubuntu-latest
+    name: Build blueprint
+    env:
+      # Opt in to Node.js 24 early, since some actions used here are still
+      # pinned to Node.js 20 actions. See lean_action_ci.yml for context.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
+
+      - name: Install elan
+        run: curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+
+      - name: Get Mathlib cache
+        run: ~/.elan/bin/lake exe cache get || true
+
+      - name: Build project
+        run: ~/.elan/bin/lake build SpectralTriples
+
+      - name: Build blueprint
+        uses: xu-cheng/texlive-action@v2
+        with:
+          docker_image: ghcr.io/xu-cheng/texlive-full:20250101
+          run: |
+            apk update
+            apk add --update make py3-pip git pkgconfig graphviz graphviz-dev gcc musl-dev
+            git config --global --add safe.directory $GITHUB_WORKSPACE
+            git config --global --add safe.directory `pwd`
+            python3 -m venv env
+            source env/bin/activate
+            pip install --upgrade pip requests wheel
+            pip install pygraphviz --global-option=build_ext --global-option="-L/usr/lib/graphviz/" --global-option="-R/usr/lib/graphviz/"
+            pip install leanblueprint
+            leanblueprint pdf
+            leanblueprint web
+
+      - name: Check declarations mentioned in the blueprint exist in Lean code
+        run: ~/.elan/bin/lake exe checkdecls blueprint/lean_decls
+
+      - name: Upload blueprint artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: blueprint
+          path: |
+            blueprint/print/print.pdf
+            blueprint/web
