@@ -1,3 +1,5 @@
+https://JonBannon.github.io/SpectralTriples/blueprint/
+
 # SpectralTriples
 
 ## GitHub configuration
