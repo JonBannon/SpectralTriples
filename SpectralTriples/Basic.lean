@@ -51,11 +51,11 @@ variable {A H 𝕜 : Type*} [RCLike 𝕜] [Semiring A] [StarRing A] [Algebra �
     {D : H →ₗ.[𝕜] H} {π : StarAlgHom 𝕜 A (H →L[𝕜] H)}
 
 /-- The domain of the Dirac operator of a spectral triple is dense. -/
-theorem dense_domain (hT : IsOddSpectralTriple A D π) : Dense (D.domain : Set H) :=
+theorem dense_domain_dirac (hT : IsOddSpectralTriple A D π) : Dense (D.domain : Set H) :=
   hT.self_adjoint.dense_domain
 
 /-- The Dirac operator of a spectral triple is a closed operator. -/
-theorem isClosed (hT : IsOddSpectralTriple A D π) : D.IsClosed :=
+theorem isClosed_dirac (hT : IsOddSpectralTriple A D π) : D.IsClosed :=
   hT.self_adjoint.isClosed
 
 open ContinuousLinearMap LinearMap in
