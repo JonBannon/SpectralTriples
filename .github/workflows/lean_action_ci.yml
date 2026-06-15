@@ -22,53 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
-      - uses: leanprover-community/docgen-action@v1
+
+      # Pinned to a commit on `main` rather than `@v1`: the `v1` branch's
+      # `blueprint: true` support still uses a pip invocation
+      # (`--global-option=...`) that current pip rejects, has no `deploy`
+      # input, and always uploads/deploys `docs/` itself. This commit fixes
+      # the pip invocation and builds the blueprint, runs checkdecls, builds
+      # the API docs, and deploys everything as a single Pages artifact.
+      - uses: leanprover-community/docgen-action@10db47458f91456d87804787d3dfcd914b9a19e3
         with:
-          # We build and deploy the blueprint ourselves below (docgen-action's own
-          # `blueprint: true` option uses a pip invocation that is incompatible with
-          # current pip), so let it only build the API docs and leave deployment to us
-          # to avoid two competing "github-pages" artifact uploads.
-          deploy: false
-
-      - name: Build blueprint
-        uses: xu-cheng/texlive-action@v2
-        with:
-          docker_image: ghcr.io/xu-cheng/texlive-full:20250101
-          run: |
-            apk update
-            apk add --update make py3-pip git pkgconfig graphviz graphviz-dev gcc musl-dev
-            git config --global --add safe.directory $GITHUB_WORKSPACE
-            git config --global --add safe.directory `pwd`
-            python3 -m venv env
-            source env/bin/activate
-            pip install --upgrade pip requests wheel
-            pip install pygraphviz \
-              --config-settings="--global-option=build_ext" \
-              --config-settings="--global-option=-L/usr/lib/graphviz/" \
-              --config-settings="--global-option=-R/usr/lib/graphviz/"
-            pip install leanblueprint
-            leanblueprint pdf
-            leanblueprint web
-
-      - name: Check declarations mentioned in the blueprint exist in Lean code
-        run: lake exe checkdecls blueprint/lean_decls
-
-      # docgen-action has already built `docs/` (containing the API docs) above,
-      # but with `deploy: false` it leaves deployment to us. Splice the blueprint
-      # into the same `docs/` tree before we upload and deploy it.
-      - name: Add blueprint to the deployed site
-        if: github.event_name == 'push'
-        run: |
-          mkdir -p docs
-          cp -r blueprint/web docs/blueprint
-          cp blueprint/print/print.pdf docs/blueprint.pdf
-
-      - name: Upload site with blueprint
-        if: github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/
-
-      - name: Deploy to GitHub Pages
-        if: github.event_name == 'push'
-        uses: actions/deploy-pages@v4
+          blueprint: true

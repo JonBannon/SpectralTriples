@@ -24,6 +24,12 @@ In this file we formalize spectral triples.
 
 open LinearPMap StarAlgebra ENNReal
 
+
+/-
+Now that the following are `Prop`-valued, it may be possible to make them classes, since the data
+are provided in each instance and we have proof-irrelevance.
+-/
+
 open ContinuousLinearMap LinearMap in
 structure IsOddSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiring A]
     [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
