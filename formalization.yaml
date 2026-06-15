@@ -1,0 +1,87 @@
+# formalization.yaml — https://github.com/mathlib-initiative/formalization.yaml (v0.3)
+# Describes the `main` branch state. Forward-chaining: formalizing the spectral-triple
+# corpus bottom-up from Mathlib; sorry-free and axiom-free (standard-3 only).
+# Machine facts (axioms/sorries) are kernel-checked via scripts/axiom_report.lean ->
+# docs/axiom-report.txt (CI-diffed); do not hand-edit counts.
+version: "v0.3"
+
+project:
+  name: "SpectralTriples"
+  authors: ["Jon Bannon", "Michael R. Douglas"]
+  license: "Apache-2.0"
+
+sources:
+  - title: "Noncommutative Geometry"
+    authors: ["Alain Connes"]
+    id: "ISBN:978-0-12-185860-5"
+    type: "textbook"
+    license: "proprietary"
+    note: "Academic Press (1994), Ch. VI; the spectral-triple (K-cycle) definition, grading, and index pairing."
+  - title: "Elements of Noncommutative Geometry"
+    authors: ["José M. Gracia-Bondía", "Joseph C. Várilly", "Héctor Figueroa"]
+    id: "ISBN:978-0-8176-4124-5"
+    type: "textbook"
+    license: "proprietary"
+    note: "Birkhäuser (2001), Ch. 9-11; Dirac operator, canonical triple, bounded transform F = D(1+D²)^{-1/2}."
+  - title: "Analytic K-Homology"
+    authors: ["Nigel Higson", "John Roe"]
+    id: "ISBN:978-0-19-851176-5"
+    type: "textbook"
+    license: "proprietary"
+    note: "Oxford (2000), Ch. 8, 10; Fredholm modules and the index pairing (bounded picture)."
+  - title: "mathlib4 PR #29624 (resolvent of a LinearPMap)"
+    authors: ["Moritz Doll"]
+    id: "https://github.com/leanprover-community/mathlib4/pull/29624"
+    type: "formalization"
+    license: "Apache-2.0"
+    note: "Unmerged; adapted (specialized to endomorphisms) as SpectralTriples/Resolvent.lean."
+
+status:
+  scope: >
+    A Lean 4 / Mathlib formalization of spectral triples (noncommutative geometry),
+    encoded with the unbounded Dirac operator as the spine (D : H →ₗ.[𝕜] H, a
+    LinearPMap). Done: odd and even (Z₂-graded) spectral triples and their basic
+    API (dense and closed domain, the real commutator bound, γ² = 1, the ±1
+    eigenspace decomposition); the resolvent set / resolvent of a LinearPMap; and
+    finitely-summable triples (compact resolvent) with the self-adjoint resolvent
+    estimates |Im z|·‖x‖ ≤ ‖(z−D)x‖ and injectivity of z−D off the real axis.
+    Planned (see PLAN.md): close the basic self-adjointness criterion
+    (Im z ≠ 0 ⇒ z ∈ ρ(D)); then the Fredholm index pairing in a bounded
+    Fredholm-module layer (Phase 2).
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: []   # standard-3 only (propext, Classical.choice, Quot.sound); no project axioms.
+  main_results:
+    - name: "IsOddSpectralTriple"
+      file: "SpectralTriples/Basic.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Connes 1994 Ch. VI", "GBF 2001 Ch. 9"]
+    - name: "IsEvenSpectralTriple"
+      file: "SpectralTriples/Basic.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Connes 1994 Ch. VI"]
+    - name: "IsFinitelySummableSpectralTriple"
+      file: "SpectralTriples/FinitelySummable.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Connes 1994 Ch. VI (compact resolvent)"]
+
+automation:
+  ai_authorship: >
+    Portions of the API and the project documentation were drafted with AI
+    assistance (Claude) under author review; all Lean is kernel-checked.
+
+fidelity:
+  divergences:
+    - "Bounded-commutator axiom is encoded as an ℝ≥0∞ supremum over the unit ball being < ∞ (IsOddSpectralTriple.comm), with the genuine finite real bound recovered as IsOddSpectralTriple.exists_comm_bound; the literature states it directly as a bounded operator on H."
+    - "Self-adjointness of D uses Mathlib's IsSelfAdjoint on LinearPMap (D† = D), which packages dense domain and closedness."
+    - "resolventSet uses bijectivity of z•1 − D as a LinearPMap on D.domain; for non-closed D this differs from the conventional (empty) resolvent set — see the Resolvent.lean docstring."
+
+review:
+  status: "in-progress; pre-review (author + AI), awaiting collaborator review (J. Bannon)"
+
+acknowledgements: >
+  Resolvent groundwork adapted from Moritz Doll's mathlib4 PR #29624. Assurance
+  conventions per math-commons/formalization-assurance.

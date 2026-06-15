@@ -39,6 +39,29 @@ Connes, *Noncommutative Geometry* (1994); Gracia-Bondía–Várilly–Figueroa,
 K-Homology* (2000). Reference notes live in
 [`SpectralTriples/refs/`](SpectralTriples/refs/).
 
+## Assurance
+
+This project follows the assurance conventions of
+[`math-commons/formalization-assurance`](https://github.com/math-commons/formalization-assurance)
+(verification / validation / faithfulness, axiom vetting, `formalization.yaml`,
+comparator). Local settings:
+
+| Setting | Where |
+|---|---|
+| Project card | [`formalization.yaml`](formalization.yaml) |
+| Faithfulness map (informal ↔ formal) | [`docs/FAITHFULNESS.md`](docs/FAITHFULNESS.md) |
+| Kernel axiom certificate (generated, CI-diffed) | [`docs/axiom-report.txt`](docs/axiom-report.txt) |
+| Axiom audit | [`AXIOM_AUDIT.md`](AXIOM_AUDIT.md) — **0 project axioms** |
+| Vetting strictness | [`docs/vetting/policy.yml`](docs/vetting/policy.yml) — `L1` |
+
+All tracked headlines are `sorry`-free and **axiom-clean** (standard-three only:
+`propext`, `Classical.choice`, `Quot.sound`); CI regenerates `docs/axiom-report.txt`
+from `#print axioms` and fails on drift. Regenerate locally with:
+
+```sh
+lake env lean scripts/axiom_report.lean > docs/axiom-report.txt
+```
+
 ## Authors & license
 
 Jon Bannon, Michael R. Douglas. Released under the Apache 2.0 license.
