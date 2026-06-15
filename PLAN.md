@@ -72,11 +72,13 @@ Other code facts: the algebra is `[Semiring A] [StarRing A] [Algebra 𝕜 A]`
 (no `[StarModule 𝕜 A]`, `Semiring` not `Ring`), and the even triple takes `γ`
 as a structure *parameter*, not a bundled field.
 
-**Open Phase-2 question.** `IsOddFredholmModule` adopts the predicate style
-(data as parameters) for consistency with the spectral triples. But a Fredholm
-module is often a *constructed* object (e.g. `canonical M : …`), for which a
-bundled Type `FredholmModule` carrying `F` as a field may be more idiomatic
-for upstreaming. Revisit when Phase 2 starts.
+**Open Phase-2 question (leaning predicate/unbundled).** `IsOddFredholmModule`
+adopts the predicate style (data as parameters) for consistency with the
+spectral triples. The bundled-Type alternative — `FredholmModule` carrying `F`
+as a field — can look cleaner for a *constructed* object (e.g. `canonical M : …`),
+but bundling tends to be more trouble than it's worth downstream (coercions,
+threading, defeq). Default to the predicate style; only bundle if a concrete
+construction need forces it. Revisit when Phase 2 starts.
 
 ## Immediate next step — close Chapter 1
 
