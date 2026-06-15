@@ -12,7 +12,7 @@ discharge plan* — a staging point, not a fundamental assumption. Format + conv
 
 **Active project axioms in build: 0.** The tracked headlines depend only on the
 standard three (`propext`, `Classical.choice`, `Quot.sound`) and no `sorryAx`.
-*(Source of truth: the generated [`axiom-report.txt`](axiom-report.txt),
+*(Source of truth: the generated [`audit/axiom-report.txt`](audit/axiom-report.txt),
 CI-diffed against the kernel — do not hand-edit.)*
 
 ---
@@ -27,5 +27,5 @@ The only planned axiom is **Rellich–Kondrachov** compactness of the Sobolev
 inclusion `H¹(M, E) ↪ L²(M, E)`, to be introduced as an explicit hypothesis for
 the Phase-4 manifold construction (DESIGN.md §3.7) rather than proved (a separate
 multi-year PDE effort). When introduced it will get a vetting record under
-`vetting/` and a row here, and the vetting strictness in
-`vetting/policy.yml` will be raised to L2.
+`audit/vetting/` and a row here, and the vetting strictness in
+`audit/vetting/policy.yml` will be raised to L2.
