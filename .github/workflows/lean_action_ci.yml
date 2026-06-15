@@ -37,3 +37,13 @@ jobs:
           # (often incomplete) docs/blueprint build, even though the build itself
           # still runs everywhere as a CI check.
           deploy: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+          # The shared "Docs-<hash>" GitHub Actions cache used to speed up Mathlib's
+          # doc-gen4 build is keyed only on lake-manifest.json, so it's shared across
+          # all branches. When another branch's build (with a different local module
+          # set) saves this cache, restoring it on `main` causes Lake to treat the
+          # `SpectralTriples:docs` facet as already up to date (a stale doc-manifest)
+          # and skip regenerating navbar/index/per-module HTML for this package.
+          # Disabling the cache here makes `main`'s deployment self-contained and
+          # correct regardless of what other branches do, at the cost of a slower
+          # (~35-40 min) docs build.
+          use-github-cache: "false"
