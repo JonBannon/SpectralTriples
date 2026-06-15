@@ -89,6 +89,80 @@ project plan.
   If $(A, \Hil, \pi, D, \gamma)$ is an even spectral triple, then $\gamma^2 = 1$.
 \end{lemma}
 
+\section{Resolvents and finitely summable spectral triples}
+\label{sec:resolvents}
+
+This section introduces the resolvent set and resolvent of the (partially defined) Dirac
+operator $D$, and uses them to define finitely summable spectral triples: those whose Dirac
+operator has compact resolvent.
+
+\begin{definition}[Resolvent set]
+  \label{def:resolvent-set}
+  \lean{LinearPMap.resolventSet}
+  \leanok
+  Let $D \colon \dom{D} \to \Hil$ be a (partially defined) linear operator, where
+  $\dom{D} \subseteq \Hil$ is a linear subspace. For $z \in \Bbbk$, write $z - D$ for the
+  partially defined linear map $\xi \mapsto z\xi - D\xi$ with domain $\dom{D}$. The
+  \emph{resolvent set} $\rho(D) \subseteq \Bbbk$ of $D$ is the set of $z \in \Bbbk$ for which
+  $z - D \colon \dom{D} \to \Hil$ is bijective.
+\end{definition}
+
+\begin{definition}[Resolvent]
+  \label{def:resolvent}
+  \lean{LinearPMap.resolvent}
+  \leanok
+  \uses{def:resolvent-set}
+  For $z \in \rho(D)$, the \emph{resolvent} $R(z, D) \colon \Hil \to \Hil$ is the
+  (everywhere-defined, linear) inverse of $z - D$.
+\end{definition}
+
+\begin{lemma}[Range of the resolvent]
+  \label{lem:range-resolvent}
+  \lean{LinearPMap.range_resolvent}
+  \leanok
+  \uses{def:resolvent}
+  For $z \in \rho(D)$, the range of $R(z, D)$ equals $\dom{D}$.
+\end{lemma}
+
+\begin{lemma}[Norm bound for self-adjoint operators]
+  \label{lem:norm-resolvent-apply-ge}
+  \lean{IsSelfAdjoint.norm_resolvent_apply_ge}
+  \leanok
+  If $D$ is self-adjoint and $z \in \Bbbk$, then for every $\xi \in \dom{D}$,
+  \[
+    |\operatorname{Im}(z)| \cdot \|\xi\| \leq \|z\xi - D\xi\|.
+  \]
+\end{lemma}
+
+\begin{lemma}[Injectivity of $z - D$ off the real axis]
+  \label{lem:injective-resolvent-apply}
+  \lean{IsSelfAdjoint.injective_resolvent_apply}
+  \leanok
+  \uses{lem:norm-resolvent-apply-ge}
+  If $D$ is self-adjoint and $\operatorname{Im}(z) \neq 0$, then $z - D \colon \dom{D} \to \Hil$
+  is injective.
+\end{lemma}
+
+\begin{theorem}[Basic criterion of self-adjointness]
+  \label{thm:basic-criterion-self-adjoint}
+  \uses{lem:injective-resolvent-apply}
+  If $D$ is self-adjoint and $\operatorname{Im}(z) \neq 0$, then $z - D$ is in fact bijective,
+  i.e.\ $z \in \rho(D)$.
+
+  This strengthens Lemma~\ref{lem:injective-resolvent-apply} from injectivity to bijectivity,
+  via a closed-range argument for closed operators with bounded-below restrictions. It is not
+  yet formalized.
+\end{theorem}
+
+\begin{definition}[Finitely summable spectral triple]
+  \label{def:finitely-summable-spectral-triple}
+  \lean{IsFinitelySummableSpectralTriple}
+  \leanok
+  \uses{def:odd-spectral-triple, def:resolvent-set, def:resolvent}
+  An odd spectral triple $(A, \Hil, \pi, D)$ is \emph{finitely summable} at
+  $z \in \rho(D)$ if the resolvent $R(z, D)$ is a compact operator on $\Hil$.
+\end{definition}
+
 \chapter{The Fredholm index pairing}
 \label{cha:index-pairing}
 
