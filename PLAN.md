@@ -118,7 +118,6 @@ Then: closed range + dense range ⇒ surjective; with injectivity ⇒ bijective
 
 ## Repo hygiene TODO
 
-* `README.md` is still GitHub-template boilerplate — replace with a real
-  project description and a "Current Status" section.
+* ~~`README.md` boilerplate~~ — done (real description, status, doc links).
 * No `AXIOM_AUDIT.md` yet (currently moot: zero axioms). Add a stub if/when
   an axiom is introduced.
