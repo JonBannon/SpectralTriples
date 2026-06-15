@@ -23,7 +23,7 @@ pairing only.
   with no unbounded-native route in current Mathlib: the bounded transform
   `F = D (1 + D²)^(-1/2)` needs Borel functional calculus for *unbounded*
   self-adjoint operators, which Mathlib lacks (only bounded `cfc` exists).
-  At Phase 2 we introduce a bounded `FredholmModule`/`GradedFredholmModule`
+  At Phase 2 we introduce a bounded `IsOddFredholmModule`/`IsEvenFredholmModule`
   and prove the index pairing there; the bounded-transform bridge back to
   `D` is deferred until the unbounded functional calculus exists.
 
@@ -42,11 +42,41 @@ All files below are `sorry`-free and `axiom`-free.
 | `SpectralTriples/Resolvent.lean` | `LinearPMap.inverseAsLinearMap`, `resolventSet`, `resolvent` + API (vendored from Mathlib PR #29624, Moritz Doll) | **Done** |
 | `SpectralTriples/FinitelySummable.lean` | `IsSelfAdjoint.norm_resolvent_apply_ge`, `IsSelfAdjoint.injective_resolvent_apply`, `IsFinitelySummableSpectralTriple` | **Done** |
 
-Naming note: the implemented structures are `Is`-prefixed Prop classes
-(`IsOddSpectralTriple` …), **not** the `FredholmModule` / `SpectralTriple`
-names used throughout DESIGN.md. The algebra is `[Semiring A] [StarRing A]
-[Algebra 𝕜 A]` (no `[StarModule 𝕜 A]`, `Semiring` not `Ring`), and the even
-triple takes `γ` as a structure *parameter*, not a bundled field.
+## Naming conventions (Jon's, applied throughout the docs)
+
+We follow the convention established in the code: **odd/even** (not
+ungraded/"graded"), an **`Is`-prefix** for the axiom-bundling predicates, and
+the operator data (`D`/`F`, `π`, `γ`) passed as **parameters** while the
+structure bundles only the `Prop` fields. DESIGN.md was renamed to match:
+
+| Object | Name | Status |
+|--------|------|--------|
+| Unbounded triple, ungraded | `IsOddSpectralTriple` | in code |
+| Unbounded triple, graded | `IsEvenSpectralTriple` (`extends IsOddSpectralTriple`) | in code |
+| Bounded Fredholm module, ungraded | `IsOddFredholmModule` | Phase 2 |
+| Bounded Fredholm module, graded | `IsEvenFredholmModule` (`extends IsOddFredholmModule`) | Phase 2 |
+
+Two deliberate exceptions, where forcing the convention would be a *real*
+conflict:
+
+* **Data-bundling mixins keep their plain names** (no `Is`-prefix):
+  `EquivariantFredholmModule`, `BakryEmeryFredholmModule`,
+  `pSummableFredholmModule`, `KasparovModule`. These carry genuine *data* as
+  fields (a unitary rep, the carré-du-champ forms, …), and Mathlib reserves
+  `Is` for `Prop`-valued predicates. They `extend` the renamed `IsOdd…`/`IsEven…`
+  bases.
+* **References to `graphops-qft`'s own `SpectralTriple` type are left
+  untouched** — they name another project's structure, not ours.
+
+Other code facts: the algebra is `[Semiring A] [StarRing A] [Algebra 𝕜 A]`
+(no `[StarModule 𝕜 A]`, `Semiring` not `Ring`), and the even triple takes `γ`
+as a structure *parameter*, not a bundled field.
+
+**Open Phase-2 question.** `IsOddFredholmModule` adopts the predicate style
+(data as parameters) for consistency with the spectral triples. But a Fredholm
+module is often a *constructed* object (e.g. `canonical M : …`), for which a
+bundled Type `FredholmModule` carrying `F` as a field may be more idiomatic
+for upstreaming. Revisit when Phase 2 starts.
 
 ## Immediate next step — close Chapter 1
 
@@ -72,7 +102,7 @@ Then: closed range + dense range ⇒ surjective; with injectivity ⇒ bijective
 
 * **Phase 1 / 1.5 — definitions + finitely-summable.** Done, modulo the
   open node above.
-* **Phase 2 — index pairing.** Introduce bounded `FredholmModule`; this is
+* **Phase 2 — index pairing.** Introduce bounded `IsOddFredholmModule`; this is
   where the bounded tool enters. The only phase blocked on a *large* Mathlib
   gap (unbounded functional calculus) if attempted unbounded-native.
 * **Phase 2.5 — Connes' spectral distance.** Natural fit for the unbounded

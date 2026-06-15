@@ -439,7 +439,7 @@ relative-K-homology setting of Forsyth--Mesland--Rennie 2019,
 Goffeng--Mesland 2015, and the relative-K-homology / "spectral
 triples with boundary" literature). We therefore *deliberately exclude*
 manifolds with boundary from this project — the axiom
-`F²-1 ∈ 𝒦(H)` of `FredholmModule` enforces it. The closed-manifold
+`F²-1 ∈ 𝒦(H)` of `IsOddFredholmModule` enforces it. The closed-manifold
 case is enough to formalize the index pairing and the canonical
 construction; the APS framework is a separate project of comparable
 scope.
@@ -522,8 +522,9 @@ $\|[F, \pi(a)]\|$ does **not** define the same Lipschitz seminorm; the
 metric built from it generally differs from $d_D$. Encoding the
 spectral distance therefore requires either:
 
-* the full unbounded `SpectralTriple` of §3.1 (currently a stub
-  pending unbounded-operator API in Mathlib); or
+* the unbounded `IsOddSpectralTriple` of §3.1 (which stores the commutator
+  bound as an `ℝ≥0∞` supremum, not as a bounded operator, so the distance
+  still needs the commutator exposed as explicit data); or
 * a parallel structure carrying the bounded operator $[D, \pi(a)]$
   explicitly as data — e.g.,
   `dCommutator : A → H →L[K] H` with the axiom that this is the
@@ -577,7 +578,7 @@ $HP^*(\A)$.
   and its class $[\tau_p] \in HC^p(\A)$ represents $\mathrm{ch}(D)$.
   Summability — $[F, \pi(a)]$ lies in the Schatten ideal
   $\mathcal{L}^{p+1}(\H)$ for every $a$ — replaces the dimension axiom of
-  a smooth manifold. *Lives entirely on the bounded `FredholmModule`;
+  a smooth manifold. *Lives entirely on the bounded `IsOddFredholmModule`;
   no unbounded $D$ or heat semigroup needed.*
 * **JLO cocycle** (Jaffe--Lesniewski--Osterwalder 1988; entire,
   unbounded). For an unbounded $D$,
@@ -628,7 +629,7 @@ cyclic-cohomology picture is the framework-level answer, computing
 manifold cohomology as a derived invariant of $\A$ alone.
 
 **Formalization route.** The algebraic $(b, B)$-cocycle is the natural
-target: it lives entirely on `FredholmModule` and requires no
+target: it lives entirely on `IsOddFredholmModule` and requires no
 unbounded-operator API, only Schatten-class membership of the
 commutators. Cyclic cohomology of $\A$ itself is a purely algebraic
 Hochschild-style construction. The JLO presentation and the HKR /
@@ -640,8 +641,8 @@ for the encoding plan.
 
 The framework's axioms (§2.1) are stated for an arbitrary unital
 $*$-algebra $\A$; they do not require commutativity. Several classes of
-genuinely noncommutative examples fit `FredholmModule` and
-`GradedFredholmModule` directly, with no change to the typeclass setup
+genuinely noncommutative examples fit `IsOddFredholmModule` and
+`IsEvenFredholmModule` directly, with no change to the typeclass setup
 of §3.2.
 
 **Matrix algebras and finite triples.** $\A = M_n(\C)$ acting on
@@ -706,7 +707,7 @@ triples of compact Lie groups / homogeneous spaces, and exhibit the
 cyclic-cohomology refinement explicitly via twisted traces.
 
 **Crossed products $\A \rtimes G$.** A $G$-equivariant graded
-`FredholmModule` (§3.8) induces a non-equivariant spectral triple on
+`IsOddFredholmModule` (§3.8) induces a non-equivariant spectral triple on
 the crossed product $\A \rtimes G$, and conversely. This is the
 algebraic mechanism by which equivariance is absorbed into a larger
 noncommutative algebra; foliation $C^*$-algebras and mapping-torus
@@ -763,7 +764,7 @@ is a **tool introduced at Phase 2** for the index pairing only.
 | Unbounded (spectral triple) | `IsOddSpectralTriple` / `IsEvenSpectralTriple` in `Basic.lean` | Done        |
 | Unbounded resolvent         | `LinearPMap.resolventSet` / `resolvent` in `Resolvent.lean`   | Done        |
 | Finitely summable           | `IsFinitelySummableSpectralTriple` in `FinitelySummable.lean` | Done        |
-| Bounded (Fredholm module)   | `FredholmModule` (planned, `Index.lean`)                      | Phase 2     |
+| Bounded (Fredholm module)   | `IsOddFredholmModule` (planned, `Index.lean`)                      | Phase 2     |
 
 The earlier draft of this section decided the opposite ("stay bounded; the
 unbounded structure is a stub") on the premise that Mathlib lacks an
@@ -774,7 +775,7 @@ definition/finitely-summable layer**: Mathlib's `LinearPMap` adjoint /
 now done. The premise remains correct **only for the index pairing**: the
 bounded transform $F = D(1+D^2)^{-1/2}$ needs Borel functional calculus for
 *unbounded* self-adjoint operators, which Mathlib does not have (only bounded
-`cfc`). So Phase 2 introduces a bounded `FredholmModule` and proves the index
+`cfc`). So Phase 2 introduces a bounded `IsOddFredholmModule` and proves the index
 pairing there, deferring the bounded-transform bridge back to $D$.
 
 This is not a mathematical compromise: the bounded transform
@@ -813,20 +814,20 @@ commutes with $\pi(A)$. The anti-commutation with $\D$ (or $F$) is the
 analytic interaction: in the bounded form,
 $\gamma F + F \gamma = 0$, a clean algebraic identity in $\B(\H)$.
 
-We **bundle** the grading: `GradedFredholmModule extends FredholmModule`
+We **bundle** the grading: `IsEvenFredholmModule extends IsOddFredholmModule`
 with `γ : H →L[K] H` as a structure field, together with the four
 algebraic axioms ($\gamma^* = \gamma$, $\gamma^2 = 1$, $\gamma\pi(a) =
 \pi(a)\gamma$ for all $a$, $\gamma F + F \gamma = 0$). The bundled form
 keeps `γ` together with the data it depends on; downstream theorems
-take a single `GradedFredholmModule` argument rather than threading `γ`
+take a single `IsEvenFredholmModule` argument rather than threading `γ`
 and its axioms separately, and the `extends` mechanism gives direct
-access to the underlying `FredholmModule` fields when needed.
+access to the underlying `IsOddFredholmModule` fields when needed.
 
 ## 3.5 File structure
 
 *Legend: `[DONE]` = implemented and `sorry`-free; unmarked = planned. The
 unbounded spine (`Basic`, `Resolvent`, `FinitelySummable`) exists; the
-bounded `FredholmModule` layer begins at `Index.lean` (Phase 2).*
+bounded `IsOddFredholmModule` layer begins at `Index.lean` (Phase 2).*
 
 ```
 SpectralTriples.lean                       -- root re-export
@@ -834,11 +835,11 @@ SpectralTriples/
 ├── Basic.lean                             -- IsOdd/IsEvenSpectralTriple (unbounded) [DONE]
 ├── Resolvent.lean                         -- LinearPMap resolventSet/resolvent (Moritz PR) [DONE]
 ├── FinitelySummable.lean                  -- IsFinitelySummableSpectralTriple [DONE]
-├── Index.lean                             -- Fredholm index pairing (bounded FredholmModule)
+├── Index.lean                             -- Fredholm index pairing (bounded IsOddFredholmModule)
 ├── BoundedTransform.lean                  -- D ↦ F (when unbounded API arrives)
 ├── Distance.lean                          -- Connes' spectral distance (Phase 2.5)
 ├── Cyclic.lean                            -- HH*, HC*, HP* of A (Phase 2.75)
-├── ChernCharacter.lean                    -- (b,B)-cocycle τ_p on FredholmModule (Phase 2.75)
+├── ChernCharacter.lean                    -- (b,B)-cocycle τ_p on IsOddFredholmModule (Phase 2.75)
 ├── Equivariant.lean                       -- G-equivariant Fredholm module (Phase 4.5)
 ├── Curvature.lean                         -- super-Bakry–Émery CD(ρ,∞) (Phase 4.75)
 ├── KK.lean                                -- Kasparov module / families (Phase 6)
@@ -851,7 +852,7 @@ SpectralTriples/
 │   ├── DiracOperator.lean                 -- D = c ∘ ∇^S
 │   ├── L2Sections.lean                    -- L²(M, S) Hilbert space
 │   ├── Chirality.lean                     -- γ in even dimension
-│   └── Canonical.lean                     -- assemble GradedFredholmModule
+│   └── Canonical.lean                     -- assemble IsEvenFredholmModule
 └── Examples/
     ├── Circle.lean                        -- S¹ Dirac via Fourier (Phase 3)
     ├── Torus.lean                         -- T² Dirac on ℓ²(ℤ²) (Phase 3.5)
@@ -866,7 +867,7 @@ SpectralTriples/
 the unbounded `IsOddSpectralTriple` / `IsEvenSpectralTriple` (not stubs:
 full proved API — dense domain, closedness, the real commutator bound,
 $\gamma^2 = 1$, the $\pm 1$-eigenspace decomposition). The bounded
-`FredholmModule` / `GradedFredholmModule` of the rest of this section are
+`IsOddFredholmModule` / `IsEvenFredholmModule` of the rest of this section are
 **deferred to Phase 2** (see §3.1). A further **Phase 1.5** is also done:
 the resolvent set / resolvent of a `LinearPMap` (`Resolvent.lean`) and
 `IsFinitelySummableSpectralTriple` (`FinitelySummable.lean`), including the
@@ -874,7 +875,7 @@ self-adjoint bound $|\operatorname{Im} z|\,\|x\| \le \|(z - D)x\|$ and
 injectivity of $z - D$ off the real axis. The one **open** node is
 `basic-criterion-self-adjoint` (Im $z \ne 0 \Rightarrow z \in \rho(D)$); see
 `PLAN.md` for the two closed-range lemmas it needs. The bounded-picture
-API lemmas below apply to the Phase-2 `FredholmModule`:
+API lemmas below apply to the Phase-2 `IsOddFredholmModule`:
 
 * Docstrings on each field of the structures, citing Connes / GBF /
   Higson--Roe page references.
@@ -928,7 +929,7 @@ API lemmas below apply to the Phase-2 `FredholmModule`:
   Alternative formulations (compress only on one side, polar
   decomposition) are equivalent.
 
-* Prove Fredholmness from the compactness axioms of `FredholmModule`
+* Prove Fredholmness from the compactness axioms of `IsOddFredholmModule`
   via `IsCompactOperator` lemmas in Mathlib (compact perturbations of
   invertibles are Fredholm of index zero plus correction terms; here
   the correction is the projection-compressed operator).
@@ -942,9 +943,9 @@ API lemmas below apply to the Phase-2 `FredholmModule`:
 
 **Phase 2.5 — Connes' spectral distance (see §2.7).** A
 parallel invariant to the index pairing, requiring an extension of
-`FredholmModule` with explicit bounded-commutator data.
+`IsOddFredholmModule` with explicit bounded-commutator data.
 
-* Extend (or wrap) `FredholmModule` with a field
+* Extend (or wrap) `IsOddFredholmModule` with a field
   `dCommutator : A → H →L[K] H` representing the bounded extension of
   the original Dirac commutator $[D, \pi(a)]$. (In the unbounded
   picture this is axiomatic; in the bounded $F$ picture it is
@@ -972,7 +973,7 @@ side that the index pairing factors through.
   algebraic — Mathlib's cochain-complex and tensor-power infrastructure
   suffices.
 * `ChernCharacter.lean`: on a *finitely-summable* graded
-  `FredholmModule` (parametrized by $p$ via an added Schatten-class
+  `IsOddFredholmModule` (parametrized by $p$ via an added Schatten-class
   axiom on $[F, \pi(a)]$), define the Connes $(b, B)$-cocycle $\tau_p$
   and prove it is a cyclic $p$-cocycle on $\A$. Define the K-theory
   Chern character $\mathrm{ch}(p) \in HC_*(\A)$ for a projection $p \in \A$.
@@ -1134,7 +1135,7 @@ $T_d^+ \leftrightarrow D_{L_d}^+$.
 
 * `Examples/Torus.lean`: build the (untwisted) $T^2$ graded Fredholm
   module on $\H = \ell^2(\Z^2; \C^2)$ with $D$ diagonal on Fourier
-  modes; verify the axioms of `GradedFredholmModule`; verify
+  modes; verify the axioms of `IsEvenFredholmModule`; verify
   $\mathrm{ind}\langle F, [1] \rangle = 0$.
 * `Examples/TorusLineBundle.lean`: construct, for each $d \in \Z$, the
   Serre--Swan projection $p_d \in M_n(C^\infty(T^2))$ representing a
@@ -1179,7 +1180,7 @@ The chirality is $\gamma = 1 \otimes \sigma_3$.
 
 * `Examples/NoncommutativeTorus.lean`: construct $A_\theta^\infty$ on
   rapid-decay $\Z^2$-sequences, the GNS representation on $\H$, the
-  Dirac $D$, the chirality $\gamma$. Verify the `GradedFredholmModule`
+  Dirac $D$, the chirality $\gamma$. Verify the `IsEvenFredholmModule`
   axioms via the bounded transform $F = D(1 + D^2)^{-1/2}$. Compactness
   of $F^2 - 1$ and of $[F, \pi(a)]$ for $a \in A_\theta^\infty$ reduces
   to rapid decay of the Fourier coefficients (the NC analogue of
@@ -1284,9 +1285,9 @@ from this phase.
 
 *Phase 4b — assembly.* Tie the pieces together in
 `Manifold/Canonical.lean`: produce
-`canonical (M : SpinManifold) : GradedFredholmModule ℂ C^∞(M) (L²(S))`
+`canonical (M : SpinManifold) : IsEvenFredholmModule ℂ C^∞(M) (L²(S))`
 by taking the bounded transform $F = D_M (1 + D_M^2)^{-1/2}$ of the
-Dirac operator and verifying each `FredholmModule` and grading axiom
+Dirac operator and verifying each `IsOddFredholmModule` and grading axiom
 against the Phase 4a lemmas. The Phase 3 circle case becomes a
 specialization (`SpinManifold` on $S^1$ recovers the Fourier-series
 Fredholm module).
@@ -1328,7 +1329,7 @@ spectral triple over the **crossed-product algebra** $\A \rtimes G$.
 This is the NCG mechanism by which an algebra "knows" it carries a
 group action — the equivariance is absorbed into a larger algebra.
 Thus `EquivariantFredholmModule G σ` could equivalently be reformulated
-as `FredholmModule ℂ (A ⋊[σ] G) H`; we choose the mixin form for
+as `IsOddFredholmModule ℂ (A ⋊[σ] G) H`; we choose the mixin form for
 practical Lean ergonomics, but a `crossedProduct_equivalence` theorem
 witnessing the two formulations as the same data is a natural Phase 4.5
 deliverable.
@@ -1361,7 +1362,7 @@ unification (§3.9 bridge) is itself a goal, or (ii) Phase 5
 (heat-kernel route to the local index formula) becomes in-scope. Three
 concrete deliverables once started:
 
-* `BakryEmeryFredholmModule (ρ : ℝ) extends GradedFredholmModule`
+* `BakryEmeryFredholmModule (ρ : ℝ) extends IsEvenFredholmModule`
   carrying the operator-ordering inequality $\Gamma_2(a, a) \geq \rho\,\Gamma(a, a)$,
   with $\Gamma, \Gamma_2$ defined via $\delta(a) = [F, \pi(a)]$ and
   $L = F^2$ in the bounded picture (or via $D$ once unbounded API
@@ -1370,7 +1371,7 @@ concrete deliverables once started:
   $\Leftrightarrow$ the gradient-decay form $\|\nabla P_t a\|^2 \leq
   e^{-2\rho t} P_t\|\nabla a\|^2$.
 * Bridge `Bridge/SusyGraphop.lean`: a constructor
-  `ofSusyGraphop : SusyGraphop → FredholmModule ℝ A H` exhibiting the
+  `ofSusyGraphop : SusyGraphop → IsOddFredholmModule ℝ A H` exhibiting the
   finite graph case (`graphops-qft`) as an instance, with
   $\mathrm{Witten\,index} = \langle [F], [1] \rangle$.
 
@@ -1391,7 +1392,7 @@ Bochner formula.
 **Phase 6 — families / Kasparov modules.** Generalize from Hilbert
 spaces to Hilbert $C^*$-modules over a coefficient $C^*$-algebra $B$ (see
 §3.8). Define `KasparovModule A B` in the bounded form, verify it
-specializes to `FredholmModule` when $B = \C$, and lift the index pairing
+specializes to `IsOddFredholmModule` when $B = \C$, and lift the index pairing
 to a homomorphism $K_0(\A) \to K_0(B)$. The Atiyah--Singer index theorem
 for families (with $B = C(X)$) is the target. Prerequisite: Mathlib
 support for Hilbert $C^*$-modules and the $\mathcal{K}_B(\mathcal{E})$
@@ -1401,7 +1402,7 @@ ideal is sufficient.
 
 | Risk                                            | Mitigation                                                              |
 |-------------------------------------------------|-------------------------------------------------------------------------|
-| Mathlib unbounded-operator API (revised)        | **Sufficient** for definitions + finitely-summable (used in `Basic`/`Resolvent`/`FinitelySummable`). Two narrower residual gaps: (a) closed-range-of-bounded-below for *closed* operators — small, proved locally, upstream candidate; (b) functional calculus for unbounded self-adjoint $D$ (the $D \mapsto F$ transform) — large, blocks an unbounded-native index pairing, so Phase 2 uses the bounded `FredholmModule` instead |
+| Mathlib unbounded-operator API (revised)        | **Sufficient** for definitions + finitely-summable (used in `Basic`/`Resolvent`/`FinitelySummable`). Two narrower residual gaps: (a) closed-range-of-bounded-below for *closed* operators — small, proved locally, upstream candidate; (b) functional calculus for unbounded self-adjoint $D$ (the $D \mapsto F$ transform) — large, blocks an unbounded-native index pairing, so Phase 2 uses the bounded `IsOddFredholmModule` instead |
 | Spinor bundle / Dirac operator not in Mathlib   | Build a self-contained `Manifold/` sub-library; upstream candidates     |
 | Rellich--Kondrachov in the required form        | **Axiomatize** as an explicit hypothesis or local `sorry` lemma; proving compactness of the Sobolev inclusion in Mathlib is a separate multi-year project and must not block algebraic assembly |
 | Sign / phase conventions diverge between GBF, Connes, Higson–Roe (e.g. orientation of $\gamma$, choice of $i$ in $D \mapsto F$) | Fix a single convention in `Basic.lean` docstrings; record translation tables to the other two references when relevant |
@@ -1420,7 +1421,7 @@ with a continuous action on `A`:
 structure EquivariantFredholmModule
     (G : Type*) [Group G] [TopologicalSpace G] [TopologicalGroup G]
     (σ : G →* (A ≃⋆ₐ[K] A))
-    extends FredholmModule K A H where
+    extends IsOddFredholmModule K A H where
   U : G →* (H ≃ₗᵢ[K] H)        -- unitary representation
   /-  Strong-operator-topology (SOT) continuity: g ↦ U(g) x is continuous
       for every x ∈ H. Operator-norm continuity is far too strong here —
@@ -1486,7 +1487,7 @@ The mathematical definitions are in §2.5; the encoding follows the
 same mixin pattern as §3.8.
 
 ```
-structure BakryEmeryFredholmModule (ρ : K) extends GradedFredholmModule K A H where
+structure BakryEmeryFredholmModule (ρ : K) extends IsEvenFredholmModule K A H where
   /-  The carré du champ Γ(a, b) := ½ (δ(a)* δ(b) + δ(b*) δ(a*)*)
       with δ(a) := F * π a - π a * F. Returned as a bounded operator
       on H. -/
@@ -1527,7 +1528,7 @@ graded Fredholm module after complexification:
 
 ```
 def SusyGraphop.toFredholmModule (S : SusyGraphop) :
-    FredholmModule ℂ (Matrix (Fin S.n_plus) (Fin S.n_plus) ℂ)
+    IsOddFredholmModule ℂ (Matrix (Fin S.n_plus) (Fin S.n_plus) ℂ)
                    ((Fin S.n_plus → ℂ) × (Fin S.n_minus → ℂ)) where
   π := Matrix.toLin'   -- diagonal-matrix action on the first factor
   F := blockMatrix 0 S.Q_minus.cmap S.Q_plus.cmap 0
@@ -1573,7 +1574,7 @@ The five questions in the original draft are answered below.
    transform $D \mapsto F = D(1+D^2)^{-1/2}$ still needs functional
    calculus for unbounded self-adjoint operators (a multi-month Mathlib
    gap), so **the index pairing of Phase 2 lives on a bounded
-   `FredholmModule`**; everything upstream of it stays unbounded. See §3.1
+   `IsOddFredholmModule`**; everything upstream of it stays unbounded. See §3.1
    and `PLAN.md`.
 2. **Algebra category — `StarRing ℂ A` + `Algebra ℂ A`, not
    `CStarAlgebra`.** Demanding $C^*$-completeness would exclude
@@ -1714,7 +1715,7 @@ $$
 makes "the lattice graphop converges to the smooth manifold" into a
 precise mathematical statement. For our Phase 3.5 $T^2$ test: the
 square-lattice `SusyGraphop` at mesh $\varepsilon$ converges in
-quantum Gromov--Hausdorff to the smooth Dirac `GradedFredholmModule`
+quantum Gromov--Hausdorff to the smooth Dirac `IsEvenFredholmModule`
 of $T^2$ as $\varepsilon \to 0$. This is the rigorous form of the
 **continuum-limit thesis** that underwrites both this project and
 [`graphops-qft`].
@@ -1782,7 +1783,7 @@ results without re-proof.
    `graphops-qft` bridge.
 10. **`graphops-qft`** (internal project), `~/Documents/Github/graphops-qft/`.
     The finite-dimensional / graph-theoretic instantiation of the same
-    `SusyGraphop = GradedFredholmModule` structure, with super-BE
+    `SusyGraphop = IsEvenFredholmModule` structure, with super-BE
     curvature flows and the spectral-triple connection worked out at
     the discrete level.
 11. **Witten**, "Supersymmetry and Morse theory", *J. Differential
