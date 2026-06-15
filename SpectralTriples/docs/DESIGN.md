@@ -1,6 +1,6 @@
 ---
 title: "Spectral Triples and the Index Pairing"
-subtitle: "Formalization design — `~/Desktop/work/spectral-triples/`"
+subtitle: "Formalization design — see PLAN.md for current implementation status"
 author: "Project notes"
 date: "2026-05-11"
 geometry: margin=1in
@@ -754,24 +754,35 @@ provides the pieces of the bounded side but not the unbounded one:
   self-adjoint type with a meaningful resolvent. Until that type
   exists, the axiom cannot be stated formally.
 
-**Decision.** Develop two parallel encodings:
+**Decision (revised 2026-06-15; see `PLAN.md`).** The unbounded
+`LinearPMap` picture is the **spine**; the bounded Fredholm-module picture
+is a **tool introduced at Phase 2** for the index pairing only.
 
-| Layer                       | Type / file                                | Status      |
-|-----------------------------|--------------------------------------------|-------------|
-| Bounded (Fredholm module)   | `FredholmModule` in `SpectralTriples.Basic`| Fully formal|
-| Unbounded (spectral triple) | `SpectralTriple`  in `SpectralTriples.Basic`| Stub        |
+| Layer                       | Type / file                                                  | Status      |
+|-----------------------------|--------------------------------------------------------------|-------------|
+| Unbounded (spectral triple) | `IsOddSpectralTriple` / `IsEvenSpectralTriple` in `Basic.lean` | Done        |
+| Unbounded resolvent         | `LinearPMap.resolventSet` / `resolvent` in `Resolvent.lean`   | Done        |
+| Finitely summable           | `IsFinitelySummableSpectralTriple` in `FinitelySummable.lean` | Done        |
+| Bounded (Fredholm module)   | `FredholmModule` (planned, `Index.lean`)                      | Phase 2     |
 
-Phase 1–2 (abstract definition and index pairing) will be carried out
-**primarily in the bounded picture**. The unbounded structure carries the
-representation field and a documentation stub for $D$; once Mathlib (or
-this project) provides the unbounded API, the missing fields will be
-added.
+The earlier draft of this section decided the opposite ("stay bounded; the
+unbounded structure is a stub") on the premise that Mathlib lacks an
+unbounded self-adjoint API. That premise is **false for the
+definition/finitely-summable layer**: Mathlib's `LinearPMap` adjoint /
+`IsSelfAdjoint` API plus Moritz Doll's resolvent PR (#29624, vendored as
+`Resolvent.lean`) are sufficient to state and prove it, and that layer is
+now done. The premise remains correct **only for the index pairing**: the
+bounded transform $F = D(1+D^2)^{-1/2}$ needs Borel functional calculus for
+*unbounded* self-adjoint operators, which Mathlib does not have (only bounded
+`cfc`). So Phase 2 introduces a bounded `FredholmModule` and proves the index
+pairing there, deferring the bounded-transform bridge back to $D$.
 
 This is not a mathematical compromise: the bounded transform
 $F = D(1+D^2)^{-1/2}$ gives a canonical equivalence
 $\{\text{spectral triples}\} \to \{\text{Fredholm modules}\}$
 preserving the index pairing (GBF §9.4). For the index theorem the two
-pictures are interchangeable.
+pictures are interchangeable; the spectral distance (§2.7), by contrast,
+is intrinsically unbounded and stays on the spine.
 
 ## 3.2 Algebra category
 
@@ -813,11 +824,17 @@ access to the underlying `FredholmModule` fields when needed.
 
 ## 3.5 File structure
 
+*Legend: `[DONE]` = implemented and `sorry`-free; unmarked = planned. The
+unbounded spine (`Basic`, `Resolvent`, `FinitelySummable`) exists; the
+bounded `FredholmModule` layer begins at `Index.lean` (Phase 2).*
+
 ```
 SpectralTriples.lean                       -- root re-export
 SpectralTriples/
-├── Basic.lean                             -- abstract definitions [start here]
-├── Index.lean                             -- Fredholm index pairing
+├── Basic.lean                             -- IsOdd/IsEvenSpectralTriple (unbounded) [DONE]
+├── Resolvent.lean                         -- LinearPMap resolventSet/resolvent (Moritz PR) [DONE]
+├── FinitelySummable.lean                  -- IsFinitelySummableSpectralTriple [DONE]
+├── Index.lean                             -- Fredholm index pairing (bounded FredholmModule)
 ├── BoundedTransform.lean                  -- D ↦ F (when unbounded API arrives)
 ├── Distance.lean                          -- Connes' spectral distance (Phase 2.5)
 ├── Cyclic.lean                            -- HH*, HC*, HP* of A (Phase 2.75)
@@ -845,9 +862,19 @@ SpectralTriples/
 
 ## 3.6 Phases
 
-**Phase 1 — abstract definitions.** Already stubbed in `Basic.lean`
-(`FredholmModule`, `GradedFredholmModule`, plus the placeholder
-unbounded `SpectralTriple` / `GradedSpectralTriple`). Outstanding work:
+**Phase 1 — abstract definitions. [DONE]** Implemented in `Basic.lean` as
+the unbounded `IsOddSpectralTriple` / `IsEvenSpectralTriple` (not stubs:
+full proved API — dense domain, closedness, the real commutator bound,
+$\gamma^2 = 1$, the $\pm 1$-eigenspace decomposition). The bounded
+`FredholmModule` / `GradedFredholmModule` of the rest of this section are
+**deferred to Phase 2** (see §3.1). A further **Phase 1.5** is also done:
+the resolvent set / resolvent of a `LinearPMap` (`Resolvent.lean`) and
+`IsFinitelySummableSpectralTriple` (`FinitelySummable.lean`), including the
+self-adjoint bound $|\operatorname{Im} z|\,\|x\| \le \|(z - D)x\|$ and
+injectivity of $z - D$ off the real axis. The one **open** node is
+`basic-criterion-self-adjoint` (Im $z \ne 0 \Rightarrow z \in \rho(D)$); see
+`PLAN.md` for the two closed-range lemmas it needs. The bounded-picture
+API lemmas below apply to the Phase-2 `FredholmModule`:
 
 * Docstrings on each field of the structures, citing Connes / GBF /
   Higson--Roe page references.
@@ -1374,7 +1401,7 @@ ideal is sufficient.
 
 | Risk                                            | Mitigation                                                              |
 |-------------------------------------------------|-------------------------------------------------------------------------|
-| Mathlib lacks unbounded self-adjoint API        | Work in bounded picture; contribute upstream if needed                  |
+| Mathlib unbounded-operator API (revised)        | **Sufficient** for definitions + finitely-summable (used in `Basic`/`Resolvent`/`FinitelySummable`). Two narrower residual gaps: (a) closed-range-of-bounded-below for *closed* operators — small, proved locally, upstream candidate; (b) functional calculus for unbounded self-adjoint $D$ (the $D \mapsto F$ transform) — large, blocks an unbounded-native index pairing, so Phase 2 uses the bounded `FredholmModule` instead |
 | Spinor bundle / Dirac operator not in Mathlib   | Build a self-contained `Manifold/` sub-library; upstream candidates     |
 | Rellich--Kondrachov in the required form        | **Axiomatize** as an explicit hypothesis or local `sorry` lemma; proving compactness of the Sobolev inclusion in Mathlib is a separate multi-year project and must not block algebraic assembly |
 | Sign / phase conventions diverge between GBF, Connes, Higson–Roe (e.g. orientation of $\gamma$, choice of $i$ in $D \mapsto F$) | Fix a single convention in `Basic.lean` docstrings; record translation tables to the other two references when relevant |
@@ -1538,12 +1565,16 @@ For manifold-specific objects we add a subscript `M`:
 
 The five questions in the original draft are answered below.
 
-1. **Unbounded operators — no, stay in the bounded picture.** Building
-   a robust Mathlib API for essentially-self-adjoint operators, the
-   spectral theorem, and the functional calculus needed for
-   $D \mapsto F = D(1+D^2)^{-1/2}$ is a multi-month project on its own.
-   The `SpectralTriple` stub stays as documentation; **all real theorems
-   live on `FredholmModule`**.
+1. **Unbounded operators — yes for the spine, bounded only at Phase 2
+   (revised 2026-06-15).** The definitions, resolvent theory, and
+   finitely-summable triples are carried out directly on the unbounded
+   `LinearPMap` $D$ — Mathlib's adjoint / self-adjoint API plus Moritz
+   Doll's resolvent PR suffice, and this layer is done. The bounded
+   transform $D \mapsto F = D(1+D^2)^{-1/2}$ still needs functional
+   calculus for unbounded self-adjoint operators (a multi-month Mathlib
+   gap), so **the index pairing of Phase 2 lives on a bounded
+   `FredholmModule`**; everything upstream of it stays unbounded. See §3.1
+   and `PLAN.md`.
 2. **Algebra category — `StarRing ℂ A` + `Algebra ℂ A`, not
    `CStarAlgebra`.** Demanding $C^*$-completeness would exclude
    $C^\infty(M)$ (which is Fréchet, not $C^*$) and break the canonical
