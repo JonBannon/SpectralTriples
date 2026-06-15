@@ -23,5 +23,46 @@ jobs:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
       - uses: leanprover-community/docgen-action@v1
+
+      - name: Build blueprint
+        uses: xu-cheng/texlive-action@v2
         with:
-          blueprint: true
+          docker_image: ghcr.io/xu-cheng/texlive-full:20250101
+          run: |
+            apk update
+            apk add --update make py3-pip git pkgconfig graphviz graphviz-dev gcc musl-dev
+            git config --global --add safe.directory $GITHUB_WORKSPACE
+            git config --global --add safe.directory `pwd`
+            python3 -m venv env
+            source env/bin/activate
+            pip install --upgrade pip requests wheel
+            pip install pygraphviz \
+              --config-settings="--global-option=build_ext" \
+              --config-settings="--global-option=-L/usr/lib/graphviz/" \
+              --config-settings="--global-option=-R/usr/lib/graphviz/"
+            pip install leanblueprint
+            leanblueprint pdf
+            leanblueprint web
+
+      - name: Check declarations mentioned in the blueprint exist in Lean code
+        run: lake exe checkdecls blueprint/lean_decls
+
+      # docgen-action has already deployed `docs/` (containing the API docs) to
+      # GitHub Pages above. Splice the blueprint into the same `docs/` tree and
+      # redeploy so the final site serves both.
+      - name: Add blueprint to the deployed site
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p docs
+          cp -r blueprint/web docs/blueprint
+          cp blueprint/print/print.pdf docs/blueprint.pdf
+
+      - name: Upload site with blueprint
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        uses: actions/deploy-pages@v4
