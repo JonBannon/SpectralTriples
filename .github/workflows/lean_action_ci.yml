@@ -23,6 +23,12 @@ jobs:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
       - uses: leanprover-community/docgen-action@v1
+        with:
+          # We build and deploy the blueprint ourselves below (docgen-action's own
+          # `blueprint: true` option uses a pip invocation that is incompatible with
+          # current pip), so let it only build the API docs and leave deployment to us
+          # to avoid two competing "github-pages" artifact uploads.
+          deploy: false
 
       - name: Build blueprint
         uses: xu-cheng/texlive-action@v2
@@ -47,9 +53,9 @@ jobs:
       - name: Check declarations mentioned in the blueprint exist in Lean code
         run: lake exe checkdecls blueprint/lean_decls
 
-      # docgen-action has already deployed `docs/` (containing the API docs) to
-      # GitHub Pages above. Splice the blueprint into the same `docs/` tree and
-      # redeploy so the final site serves both.
+      # docgen-action has already built `docs/` (containing the API docs) above,
+      # but with `deploy: false` it leaves deployment to us. Splice the blueprint
+      # into the same `docs/` tree before we upload and deploy it.
       - name: Add blueprint to the deployed site
         if: github.event_name == 'push'
         run: |

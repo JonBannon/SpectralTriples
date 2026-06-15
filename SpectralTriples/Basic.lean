@@ -90,4 +90,36 @@ theorem grading_sq (hT : IsEvenSpectralTriple A D π γ) : γ * γ = 1 := by
   have h := Unitary.mul_star_self_of_mem hT.unitary_grading
   rwa [hT.self_adjoint_grading.star_eq] at h
 
+/-- The grading operator commutes with the image of `A` under `π`. -/
+theorem grading_commute (hT : IsEvenSpectralTriple A D π γ) (a : A) :
+    Commute γ (π a) :=
+  hT.grading_comm a
+
+/-- Conjugating the Dirac operator by the grading operator negates it on `D.domain`:
+`γ D γ = -D`. -/
+theorem grading_conj_dirac (hT : IsEvenSpectralTriple A D π γ) (x : D.domain) :
+    γ (D ⟨γ x, hT.grading_dom x⟩) = - D x := by
+  rw [hT.grading_anticomm x, _root_.map_neg, ← ContinuousLinearMap.mul_apply, hT.grading_sq,
+    ContinuousLinearMap.one_apply]
+
+/-- For a self-adjoint operator, being a unitary involution is equivalent to squaring to the
+identity. Thus `unitary_grading` could equivalently be replaced by `γ * γ = 1`, given
+`self_adjoint_grading`. -/
+theorem mem_unitary_iff_sq_eq_one (hγ : IsSelfAdjoint γ) :
+    γ ∈ unitary (H →L[𝕜] H) ↔ γ * γ = 1 := by
+  rw [Unitary.mem_iff, hγ.star_eq, and_self]
+
+/-- Every vector decomposes as a sum of a `+1`-eigenvector and a `-1`-eigenvector of the
+grading operator `γ`. -/
+theorem exists_grading_eigen_decomp (hT : IsEvenSpectralTriple A D π γ) (x : H) :
+    ∃ y z : H, x = y + z ∧ γ y = y ∧ γ z = -z := by
+  have hγγ : γ (γ x) = x := by
+    rw [← ContinuousLinearMap.mul_apply, hT.grading_sq, ContinuousLinearMap.one_apply]
+  refine ⟨(2⁻¹ : 𝕜) • (x + γ x), (2⁻¹ : 𝕜) • (x - γ x), ?_, ?_, ?_⟩
+  · have h2 : (x + γ x) + (x - γ x) = (2 : 𝕜) • x := by
+      rw [two_smul]; abel
+    rw [← smul_add, h2, smul_smul, inv_mul_cancel₀ two_ne_zero, one_smul]
+  · rw [_root_.map_smul, _root_.map_add, hγγ, add_comm]
+  · rw [_root_.map_smul, _root_.map_sub, hγγ, ← smul_neg, neg_sub]
+
 end IsEvenSpectralTriple
