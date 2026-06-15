@@ -1,0 +1,14 @@
+# audit/vetting/policy.yml — per-project assurance settings.
+
+# Axiom-vetting coverage enforcement:
+#   L0 none | L1 warn | L2 gate(coverage) | L3 gate(coverage + statement-hash freshness)
+# Start at L1. There are currently no project axioms (standard-3 only), so there is
+# nothing to vet; raise to L2 if/when an axiom is introduced (e.g. the planned
+# Rellich–Kondrachov axiomatization in Phase 4 — see PLAN.md / DESIGN.md §3.7).
+vetting_strictness: L1
+
+# Kernel-authoritative axiom set + counts (generated; never hand-authored).
+axiom_report: audit/axiom-report.txt
+
+# Where per-axiom vetting records live (none yet).
+vetting_dir: audit/vetting

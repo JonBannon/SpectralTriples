@@ -47,3 +47,22 @@ jobs:
           # correct regardless of what other branches do, at the cost of a slower
           # (~35-40 min) docs build.
           use-github-cache: "false"
+
+  # Kernel-authoritative axiom certificate: regenerate the #print axioms trace for
+  # the tracked headlines and fail if it drifts from the committed golden file.
+  # This guarantees the headlines stay sorry-free and that any change to a
+  # headline's axiom set is a reviewed diff.
+  axiom-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+      - name: Axiom report matches the kernel
+        run: |
+          lake env lean scripts/axiom_report.lean > axiom-report.regenerated.txt
+          if ! diff -u audit/axiom-report.txt axiom-report.regenerated.txt; then
+            echo "::error::audit/axiom-report.txt is out of sync with the kernel #print axioms output."
+            echo "::error::Regenerate and commit:  lake env lean scripts/axiom_report.lean > audit/axiom-report.txt"
+            exit 1
+          fi
+          echo "### ✓ Axiom report matches the kernel (headlines are axiom-clean)" >> "$GITHUB_STEP_SUMMARY"
