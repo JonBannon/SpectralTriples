@@ -32,3 +32,8 @@ jobs:
       - uses: leanprover-community/docgen-action@10db47458f91456d87804787d3dfcd914b9a19e3
         with:
           blueprint: true
+          # Only deploy to GitHub Pages from pushes to `main`. Otherwise, pushes to
+          # feature branches and PRs would overwrite the live site with their own
+          # (often incomplete) docs/blueprint build, even though the build itself
+          # still runs everywhere as a CI check.
+          deploy: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
