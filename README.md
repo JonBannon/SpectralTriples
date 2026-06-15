@@ -49,17 +49,17 @@ comparator). Local settings:
 | Setting | Where |
 |---|---|
 | Project card | [`formalization.yaml`](formalization.yaml) |
-| Faithfulness map (informal ↔ formal) | [`docs/FAITHFULNESS.md`](docs/FAITHFULNESS.md) |
-| Kernel axiom certificate (generated, CI-diffed) | [`docs/axiom-report.txt`](docs/axiom-report.txt) |
+| Faithfulness map (informal ↔ formal) | [`FAITHFULNESS.md`](FAITHFULNESS.md) |
+| Kernel axiom certificate (generated, CI-diffed) | [`axiom-report.txt`](axiom-report.txt) |
 | Axiom audit | [`AXIOM_AUDIT.md`](AXIOM_AUDIT.md) — **0 project axioms** |
-| Vetting strictness | [`docs/vetting/policy.yml`](docs/vetting/policy.yml) — `L1` |
+| Vetting strictness | [`vetting/policy.yml`](vetting/policy.yml) — `L1` |
 
 All tracked headlines are `sorry`-free and **axiom-clean** (standard-three only:
-`propext`, `Classical.choice`, `Quot.sound`); CI regenerates `docs/axiom-report.txt`
+`propext`, `Classical.choice`, `Quot.sound`); CI regenerates `axiom-report.txt`
 from `#print axioms` and fails on drift. Regenerate locally with:
 
 ```sh
-lake env lean scripts/axiom_report.lean > docs/axiom-report.txt
+lake env lean scripts/axiom_report.lean > axiom-report.txt
 ```
 
 ## Authors & license

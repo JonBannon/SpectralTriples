@@ -2,7 +2,7 @@
 # Describes the `main` branch state. Forward-chaining: formalizing the spectral-triple
 # corpus bottom-up from Mathlib; sorry-free and axiom-free (standard-3 only).
 # Machine facts (axioms/sorries) are kernel-checked via scripts/axiom_report.lean ->
-# docs/axiom-report.txt (CI-diffed); do not hand-edit counts.
+# axiom-report.txt (CI-diffed); do not hand-edit counts.
 version: "v0.3"
 
 project:
