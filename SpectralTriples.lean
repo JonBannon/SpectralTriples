@@ -1,1 +1,3 @@
 import SpectralTriples.Basic
+import SpectralTriples.Resolvent
+import SpectralTriples.FinitelySummable
