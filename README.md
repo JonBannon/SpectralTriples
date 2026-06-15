@@ -41,10 +41,9 @@ K-Homology* (2000). Reference notes live in
 
 ## Assurance
 
-This project follows the assurance conventions of
-[`math-commons/formalization-assurance`](https://github.com/math-commons/formalization-assurance)
-(verification / validation / faithfulness, axiom vetting, `formalization.yaml`,
-comparator). Local settings:
+This project follows a lightweight assurance convention — verification /
+validation / faithfulness, axiom vetting, and a standardized `formalization.yaml`
+project card. Local settings:
 
 | Setting | Where |
 |---|---|

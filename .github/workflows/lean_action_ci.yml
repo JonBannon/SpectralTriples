@@ -36,7 +36,7 @@ jobs:
   # Kernel-authoritative axiom certificate: regenerate the #print axioms trace for
   # the tracked headlines and fail if it drifts from the committed golden file.
   # This guarantees the headlines stay sorry-free and that any change to a
-  # headline's axiom set is a reviewed diff. See math-commons/formalization-assurance.
+  # headline's axiom set is a reviewed diff.
   axiom-report:
     runs-on: ubuntu-latest
     steps:

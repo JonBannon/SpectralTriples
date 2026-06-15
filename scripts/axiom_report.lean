@@ -12,7 +12,7 @@ diffing it in CI guarantees, permanently, that:
 This file is NOT part of the build root (`scripts/` is outside the
 `SpectralTriples` lean_lib); it is a standalone checker. Keep the list in
 sync with the headline declarations in README "Current status" and in
-audit/FAITHFULNESS.md. See math-commons/formalization-assurance.
+audit/FAITHFULNESS.md.
 -/
 import SpectralTriples
 

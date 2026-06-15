@@ -5,8 +5,7 @@
 ## Purpose
 
 In this project an **axiom** would be a *vetted, provable theorem with a vetted
-discharge plan* — a staging point, not a fundamental assumption. Format + conventions:
-[`math-commons/formalization-assurance/AXIOM_AUDIT_FORMAT.md`](https://github.com/math-commons/formalization-assurance/blob/main/AXIOM_AUDIT_FORMAT.md).
+discharge plan* — a staging point, not a fundamental assumption.
 
 ---
 

@@ -10,8 +10,7 @@ the mathematics means?"* (note `proved ≠ faithful`). The adjacent concerns liv
 **verification** — *"are the proofs valid relative to explicit assumptions?"* — is the
 kernel check (`lake build`) plus the axiom certificate in
 [`axiom-report.txt`](axiom-report.txt); axiom soundness review (none needed yet — no
-project axioms) would live in `AXIOM_AUDIT.md`. Conventions:
-[`math-commons/formalization-assurance`](https://github.com/math-commons/formalization-assurance).
+project axioms) would live in `AXIOM_AUDIT.md`.
 
 **Status legend:** ✓ = proved and `lake build` succeeds; **axiom-clean** =
 `#print axioms` is `[propext, Classical.choice, Quot.sound]` only (no `sorryAx`,

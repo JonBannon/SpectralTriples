@@ -83,5 +83,4 @@ review:
   status: "in-progress; pre-review (author + AI), awaiting collaborator review (J. Bannon)"
 
 acknowledgements: >
-  Resolvent groundwork adapted from Moritz Doll's mathlib4 PR #29624. Assurance
-  conventions per math-commons/formalization-assurance.
+  Resolvent groundwork adapted from Moritz Doll's mathlib4 PR #29624.
