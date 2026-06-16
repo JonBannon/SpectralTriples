@@ -85,15 +85,15 @@ construction need forces it. Revisit when Phase 2 starts.
 **`basic-criterion-self-adjoint`** (`Im z ≠ 0 ⇒ z ∈ ρ(D)`) is done, in
 `SpectralTriples/SelfAdjoint.lean` (`sorry`-free, axiom-clean):
 
-* `range_subDirac_orthogonal_eq_bot` — range of `z·1 − D` is dense, via the
-  `LinearPMap` adjoint (`D y = z̄·y ⇒ Im z·‖y‖² = 0 ⇒ y = 0`).
-* `isClosed_range_subDirac` — range is closed, via the bounded-below estimate
-  (Cauchy preimage sequence) + closedness of `D`'s graph.
+* `isClosed_range_subDirac` (SelfAdjoint.lean) — range of `z·1 − D` is closed,
+  via the bounded-below estimate (Cauchy preimage sequence) + closedness of
+  `D`'s graph. Density is `IsSelfAdjoint.dense_range_resolvent_apply`
+  (FinitelySummable.lean, Jon's, via the adjoint).
 * `mem_resolventSet` — closed + dense range ⇒ surjective; with injectivity ⇒
   bijective ⇒ `z ∈ ρ(D)`. In particular `i ∈ ρ(D)`.
-
-Follow-up (optional): drop `resolvent_mem` from `IsFinitelySummableSpectralTriple`
-by specializing this criterion at `z = i` (Jon's "z is generally just i").
+* `IsOddSpectralTriple.mem_resolventSet` + `toIsFinitelySummableSpectralTriple` —
+  the `z = i` payoff: `resolvent_mem` is automatic, so a finitely summable triple
+  is built from an odd one + compact resolvent with no resolvent-set hypothesis.
 
 ## Phase outline (see DESIGN.md §3.6 for full detail)
 

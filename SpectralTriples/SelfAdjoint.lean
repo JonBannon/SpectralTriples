@@ -16,10 +16,9 @@ bijective on `D.domain`, i.e. `z ∈ D.resolventSet`. This upgrades the injectiv
 
 ## Main results
 
-* `IsSelfAdjoint.range_subDirac_orthogonal_eq_bot`: the range of `z • 1 - D` is dense
-  (its orthogonal complement is trivial), via the adjoint.
 * `IsSelfAdjoint.isClosed_range_subDirac`: the range of `z • 1 - D` is closed, via the
-  bounded-below estimate and closedness of `D`.
+  bounded-below estimate and closedness of `D`. (Density of the range is
+  `IsSelfAdjoint.dense_range_resolvent_apply`, in `FinitelySummable`.)
 * `IsSelfAdjoint.mem_resolventSet`: consequently `z ∈ D.resolventSet` when `Im z ≠ 0`.
 * `IsOddSpectralTriple.mem_resolventSet`: the same at the level of a spectral triple
   (so `i ∈ ρ(D)`), and `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple`, a smart
@@ -49,50 +48,6 @@ omit [CompleteSpace H] in
 theorem injective_subDirac (hD : IsSelfAdjoint D) {z : 𝕜} (hz : RCLike.im z ≠ 0) :
     Function.Injective (subDirac D z) := by
   simpa only [subDirac_apply] using hD.injective_resolvent_apply hz
-
-/-- The range of `z • 1 - D` is dense (orthogonal complement trivial) when `Im z ≠ 0`:
-if `y ⊥ range(z • 1 - D)` then `D y = conj z • y`, forcing `Im z · ‖y‖² = 0`, hence `y = 0`. -/
-theorem range_subDirac_orthogonal_eq_bot (hD : IsSelfAdjoint D) {z : 𝕜}
-    (hz : RCLike.im z ≠ 0) :
-    (LinearMap.range (subDirac D z))ᗮ = ⊥ := by
-  rw [Submodule.eq_bot_iff]
-  intro y hy
-  have hadj : D† = D := isSelfAdjoint_def.mp hD
-  -- `y ⊥ range` gives `⟪z • x - D x, y⟫ = 0`, i.e. `⟪conj z • y, x⟫ = ⟪y, D x⟫` on `D.domain`.
-  have hortho : ∀ x : D.domain, inner 𝕜 ((starRingEnd 𝕜) z • y) (x : H) = inner 𝕜 y (D x) := by
-    intro x
-    have h0 : (starRingEnd 𝕜) z * inner 𝕜 (x : H) y = inner 𝕜 (D x) y := by
-      have := hy _ (LinearMap.mem_range_self (subDirac D z) x)
-      rwa [subDirac_apply, inner_sub_left, inner_smul_left, sub_eq_zero] at this
-    have h1 := congrArg (starRingEnd 𝕜) h0
-    rw [map_mul, RCLike.conj_conj, inner_conj_symm, inner_conj_symm] at h1
-    rw [inner_smul_left, RCLike.conj_conj]
-    exact h1
-  -- Hence `y ∈ D†.domain = D.domain`.
-  have hmem : y ∈ D†.domain := mem_adjoint_domain_of_exists y ⟨(starRingEnd 𝕜) z • y, hortho⟩
-  have hydom : y ∈ D.domain := by rwa [hadj] at hmem
-  -- `⟪y, D y⟫` is real (self-adjointness), and equals `z · ‖y‖²` via `hortho` at `x = y`.
-  have hsa : D.IsFormalAdjoint D := by
-    have h := adjoint_isFormalAdjoint (𝕜 := 𝕜) hD.dense_domain
-    rwa [hadj] at h
-  have hreal : (starRingEnd 𝕜) (inner 𝕜 y (D ⟨y, hydom⟩)) = inner 𝕜 y (D ⟨y, hydom⟩) := by
-    have h1 : inner 𝕜 (D ⟨y, hydom⟩) y = inner 𝕜 y (D ⟨y, hydom⟩) := hsa ⟨y, hydom⟩ ⟨y, hydom⟩
-    calc (starRingEnd 𝕜) (inner 𝕜 y (D ⟨y, hydom⟩))
-        = (starRingEnd 𝕜) (inner 𝕜 (D ⟨y, hydom⟩) y) := by rw [h1]
-      _ = inner 𝕜 y (D ⟨y, hydom⟩) := inner_conj_symm _ _
-  have him : RCLike.im (inner 𝕜 y (D ⟨y, hydom⟩)) = 0 := RCLike.conj_eq_iff_im.mp hreal
-  have hval : inner 𝕜 y (D ⟨y, hydom⟩) = z * ((‖y‖ ^ 2 : ℝ) : 𝕜) := by
-    have hh := hortho ⟨y, hydom⟩
-    rw [show ((⟨y, hydom⟩ : D.domain) : H) = y from rfl, inner_smul_left, RCLike.conj_conj,
-      inner_self_eq_norm_sq_to_K, ← RCLike.ofReal_pow] at hh
-    exact hh.symm
-  rw [hval, RCLike.im_mul_ofReal] at him
-  -- him : RCLike.im z * ‖y‖ ^ 2 = 0
-  have hy2 : (‖y‖ ^ 2 : ℝ) = 0 := by
-    rcases mul_eq_zero.mp him with h | h
-    · exact absurd h hz
-    · exact h
-  exact norm_eq_zero.mp ((pow_eq_zero_iff (by norm_num)).mp hy2)
 
 /-- The range of `z • 1 - D` is closed when `Im z ≠ 0`.
 
@@ -146,12 +101,14 @@ theorem isClosed_range_subDirac (hD : IsSelfAdjoint D) {z : 𝕜} (hz : RCLike.i
 `z • 1 - D` is bijective on `D.domain`, i.e. `z` lies in the resolvent set of `D`. -/
 theorem mem_resolventSet (hD : IsSelfAdjoint D) {z : 𝕜} (hz : RCLike.im z ≠ 0) :
     z ∈ D.resolventSet := by
-  -- Surjectivity: the range is closed and dense, hence everything.
+  -- Surjectivity: the range is dense (`dense_range_resolvent_apply`) and closed, hence everything.
   have hrange : LinearMap.range (subDirac D z) = ⊤ := by
-    have hcl := (hD.isClosed_range_subDirac hz).submodule_topologicalClosure_eq
-    have hdense := (Submodule.topologicalClosure_eq_top_iff
-      (K := LinearMap.range (subDirac D z))).mpr (hD.range_subDirac_orthogonal_eq_bot hz)
-    rw [← hcl, hdense]
+    have hdense : Dense (LinearMap.range (subDirac D z) : Set H) := by
+      rw [LinearMap.coe_range]; exact hD.dense_range_resolvent_apply hz
+    have hclosed := hD.isClosed_range_subDirac hz
+    apply SetLike.coe_injective
+    rw [Submodule.top_coe, ← hclosed.closure_eq]
+    exact hdense.closure_eq
   have hsurj : Function.Surjective (subDirac D z) := LinearMap.range_eq_top.mp hrange
   have hbij : Function.Bijective (subDirac D z) := ⟨hD.injective_subDirac hz, hsurj⟩
   -- Repackage as bijectivity of `z • 1 +ᵥ (-D)`, the operator used in `resolventSet`.

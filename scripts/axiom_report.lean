@@ -39,10 +39,10 @@ open LinearPMap
 -- FinitelySummable.lean — self-adjoint resolvent estimates + the structure.
 #print axioms IsSelfAdjoint.norm_resolvent_apply_ge
 #print axioms IsSelfAdjoint.injective_resolvent_apply
+#print axioms IsSelfAdjoint.dense_range_resolvent_apply
 #print axioms IsFinitelySummableSpectralTriple
 
 -- SelfAdjoint.lean — the basic self-adjointness criterion (Im z ≠ 0 ⇒ z ∈ ρ(D)).
-#print axioms IsSelfAdjoint.range_subDirac_orthogonal_eq_bot
 #print axioms IsSelfAdjoint.isClosed_range_subDirac
 #print axioms IsSelfAdjoint.mem_resolventSet
 #print axioms IsOddSpectralTriple.mem_resolventSet

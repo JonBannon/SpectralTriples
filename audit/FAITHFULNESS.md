@@ -30,7 +30,7 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 | Object | Informal content | Reference | Lean |
 |---|---|---|---|
 | Odd spectral triple | self-adjoint `D`; `π a` preserves `dom D`; `[D, π a]` bounded | Connes Ch. VI; GBF §9 | `IsOddSpectralTriple` — `Basic.lean:28` |
-| Even (Z₂-graded) triple | odd triple + grading `γ`: self-adjoint, unitary, `[γ, π a] = 0`, `γ D + D γ = 0` | Connes Ch. VI | `IsEvenSpectralTriple` — `Basic.lean:37` |
+| Even (Z₂-graded) triple | odd triple + grading `γ`: self-adjoint, involutive (`γ² = 1`), `[γ, π a] = 0`, `γ D + D γ = 0` | Connes Ch. VI | `IsEvenSpectralTriple` — `Basic.lean:37` |
 | Resolvent set | `{ z : z·1 − D bijective on dom D }` | standard | `LinearPMap.resolventSet` — `Resolvent.lean:117` |
 | Resolvent | `(z·1 − D)⁻¹` as an everywhere-defined `LinearMap`, for `z ∈ ρ(D)` | standard | `LinearPMap.resolvent` — `Resolvent.lean:122` |
 | Finitely summable triple | odd triple whose `D` has **compact resolvent** at some `z` | Connes Ch. VI | `IsFinitelySummableSpectralTriple` — `FinitelySummable.lean:101` |
@@ -42,19 +42,19 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 | `dom D` is dense | `IsOddSpectralTriple.dense_domain_dirac` — `Basic.lean:54` | ✓ axiom-clean |
 | `D` is a closed operator | `IsOddSpectralTriple.isClosed_dirac` — `Basic.lean:58` | ✓ axiom-clean |
 | `[D, π a]` is bounded by a finite real `C` on the unit ball | `IsOddSpectralTriple.exists_comm_bound` — `Basic.lean:65` | ✓ axiom-clean |
-| `γ² = 1` | `IsEvenSpectralTriple.grading_sq` — `Basic.lean:89` | ✓ axiom-clean |
-| `γ` commutes with `π a` | `IsEvenSpectralTriple.grading_commute` — `Basic.lean:94` | ✓ axiom-clean |
-| `γ D γ = −D` on `dom D` | `IsEvenSpectralTriple.grading_conj_dirac` — `Basic.lean:100` | ✓ axiom-clean |
-| self-adjoint unitary involution ⇔ `γ² = 1` | `IsEvenSpectralTriple.mem_unitary_iff_sq_eq_one` — `Basic.lean:108` | ✓ axiom-clean |
-| every vector decomposes into `±1`-eigenvectors of `γ` | `IsEvenSpectralTriple.exists_grading_eigen_decomp` — `Basic.lean:114` | ✓ axiom-clean |
+| `γ² = 1` (defining field of the even triple) | `IsEvenSpectralTriple.grading_sq` — `Basic.lean:42` | ✓ axiom-clean |
+| `γ` commutes with `π a` | `IsEvenSpectralTriple.grading_commute` — `Basic.lean:89` | ✓ axiom-clean |
+| `γ D γ = −D` on `dom D` | `IsEvenSpectralTriple.grading_conj_dirac` — `Basic.lean:95` | ✓ axiom-clean |
+| self-adjoint unitary involution ⇔ `γ² = 1` | `IsEvenSpectralTriple.mem_unitary_iff_sq_eq_one` — `Basic.lean:103` | ✓ axiom-clean |
+| every vector decomposes into `±1`-eigenvectors of `γ` | `IsEvenSpectralTriple.exists_grading_eigen_decomp` — `Basic.lean:109` | ✓ axiom-clean |
 | `range (resolvent z) = dom D` | `LinearPMap.range_resolvent` — `Resolvent.lean:132` | ✓ axiom-clean |
 | `|Im z|·‖x‖ ≤ ‖z·x − D x‖` for self-adjoint `D` | `IsSelfAdjoint.norm_resolvent_apply_ge` — `FinitelySummable.lean:43` | ✓ axiom-clean |
 | `z·1 − D` injective on `dom D` when `Im z ≠ 0` | `IsSelfAdjoint.injective_resolvent_apply` — `FinitelySummable.lean:82` | ✓ axiom-clean |
-| range of `z·1 − D` is dense (orthogonal complement `⊥`) | `IsSelfAdjoint.range_subDirac_orthogonal_eq_bot` — `SelfAdjoint.lean:55` | ✓ axiom-clean |
-| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `SelfAdjoint.lean:102` | ✓ axiom-clean |
-| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `SelfAdjoint.lean:147` | ✓ axiom-clean |
-| odd triple: `Im z ≠ 0 ⇒ z ∈ ρ(D)` (so `i ∈ ρ(D)`) | `IsOddSpectralTriple.mem_resolventSet` — `SelfAdjoint.lean:180` | ✓ axiom-clean |
-| finitely summable triple from odd + compact resolvent (no `resolvent_mem` needed) | `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` — `SelfAdjoint.lean:187` | ✓ axiom-clean |
+| range of `z·1 − D` is dense | `IsSelfAdjoint.dense_range_resolvent_apply` — `FinitelySummable.lean:155` | ✓ axiom-clean |
+| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `SelfAdjoint.lean:57` | ✓ axiom-clean |
+| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `SelfAdjoint.lean:102` | ✓ axiom-clean |
+| odd triple: `Im z ≠ 0 ⇒ z ∈ ρ(D)` (so `i ∈ ρ(D)`) | `IsOddSpectralTriple.mem_resolventSet` — `SelfAdjoint.lean:137` | ✓ axiom-clean |
+| finitely summable triple from odd + compact resolvent (no `resolvent_mem` needed) | `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` — `SelfAdjoint.lean:144` | ✓ axiom-clean |
 
 ## Faithfulness divergences (encoding choices, reviewer attention)
 
@@ -72,7 +72,7 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
    conventional definition is empty. Documented in the `Resolvent.lean` docstring; harmless
    because spectral-triple `D` is closed.
 4. **Grading bundling.** `IsEvenSpectralTriple` takes `γ` as a structure *parameter* (with
-   self-adjointness/unitarity as fields), not a bundled data field — consistent with the
+   self-adjointness and `γ² = 1` as fields), not a bundled data field — consistent with the
    project's predicate-style convention (see `PLAN.md`).
 
 ---
