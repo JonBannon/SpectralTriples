@@ -138,13 +138,17 @@ operator has compact resolvent.
 
 \begin{theorem}[Basic criterion of self-adjointness]
   \label{thm:basic-criterion-self-adjoint}
+  \lean{IsSelfAdjoint.mem_resolventSet}
+  \leanok
   \uses{lem:injective-resolvent-apply}
   If $D$ is self-adjoint and $\operatorname{Im}(z) \neq 0$, then $z - D$ is in fact bijective,
   i.e.\ $z \in \rho(D)$.
 
-  This strengthens Lemma~\ref{lem:injective-resolvent-apply} from injectivity to bijectivity,
-  via a closed-range argument for closed operators with bounded-below restrictions. It is not
-  yet formalized.
+  This strengthens Lemma~\ref{lem:injective-resolvent-apply} from injectivity to bijectivity:
+  the range of $z - D$ is closed (the bounded-below estimate makes preimage sequences Cauchy,
+  and the graph of $D$ is closed) and dense (its orthogonal complement is trivial, via the
+  adjoint), hence all of $\Hil$. In particular $i \in \rho(D)$, so the resolvent-set hypothesis
+  of a finitely summable spectral triple holds automatically at $z = i$.
 \end{theorem}
 
 \begin{definition}[Finitely summable spectral triple]

@@ -80,25 +80,20 @@ but bundling tends to be more trouble than it's worth downstream (coercions,
 threading, defeq). Default to the predicate style; only bundle if a concrete
 construction need forces it. Revisit when Phase 2 starts.
 
-## Immediate next step — close Chapter 1
+## Chapter 1 — closed (basic self-adjointness criterion) ✅
 
-**`basic-criterion-self-adjoint`** (blueprint's one open node):
-`Im z ≠ 0 ⇒ z ∈ ρ(D)` — i.e. upgrade the existing injectivity of `z − D`
-(`injective_resolvent_apply`) to *bijectivity*. This makes `z = i ∈ ρ(D)`
-a theorem and lets `resolvent_mem` drop out of
-`IsFinitelySummableSpectralTriple` (per Jon's "z is generally just i").
+**`basic-criterion-self-adjoint`** (`Im z ≠ 0 ⇒ z ∈ ρ(D)`) is done, in
+`SpectralTriples/SelfAdjoint.lean` (`sorry`-free, axiom-clean):
 
-No deep Mathlib gap — two standard lemmas, proved in-project (~80–120 lines):
+* `range_subDirac_orthogonal_eq_bot` — range of `z·1 − D` is dense, via the
+  `LinearPMap` adjoint (`D y = z̄·y ⇒ Im z·‖y‖² = 0 ⇒ y = 0`).
+* `isClosed_range_subDirac` — range is closed, via the bounded-below estimate
+  (Cauchy preimage sequence) + closedness of `D`'s graph.
+* `mem_resolventSet` — closed + dense range ⇒ surjective; with injectivity ⇒
+  bijective ⇒ `z ∈ ρ(D)`. In particular `i ∈ ρ(D)`.
 
-1. **`range (z − D)ᗮ = ker ((conj z − D)†)`** — density of range from
-   injectivity of the adjoint. ~20 lines via `mem_adjoint_domain_of_exists`.
-2. **Closed (graph-closed) bounded-below operator ⇒ closed range.** Mathlib
-   has `closed_range_of_antilipschitz` only for bounded `ContinuousLinearMap`;
-   the unbounded closed-operator version is missing. Standard
-   Cauchy-preimage-via-closed-graph argument, ~40–60 lines. Upstream candidate.
-
-Then: closed range + dense range ⇒ surjective; with injectivity ⇒ bijective
-⇒ `z ∈ resolventSet`.
+Follow-up (optional): drop `resolvent_mem` from `IsFinitelySummableSpectralTriple`
+by specializing this criterion at `z = i` (Jon's "z is generally just i").
 
 ## Phase outline (see DESIGN.md §3.6 for full detail)
 

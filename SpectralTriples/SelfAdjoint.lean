@@ -98,7 +98,46 @@ sequence Cauchy; its limit `x` together with `D x = z • x - y` follows from cl
 graph of `D` (`hD.isClosed`), so the limit `y` of `(z • 1 - D) xₙ` is again in the range. -/
 theorem isClosed_range_subDirac (hD : IsSelfAdjoint D) {z : 𝕜} (hz : RCLike.im z ≠ 0) :
     IsClosed (LinearMap.range (subDirac D z) : Set H) := by
-  sorry
+  have hpos : (0 : ℝ) < |RCLike.im z| := abs_pos.mpr hz
+  apply IsSeqClosed.isClosed
+  intro Y y hY hYy
+  simp only [SetLike.mem_coe, LinearMap.mem_range] at hY
+  choose X hX using hY
+  -- The bounded-below estimate makes the preimage sequence Cauchy.
+  have hbound : ∀ n m, ‖(X n : H) - (X m : H)‖ ≤ ‖Y n - Y m‖ / |RCLike.im z| := by
+    intro n m
+    have hsub : subDirac D z (X n - X m) = Y n - Y m := by rw [_root_.map_sub, hX, hX]
+    have hb := hD.norm_resolvent_apply_ge z (X n - X m)
+    rw [← subDirac_apply, hsub, Submodule.coe_sub] at hb
+    rw [le_div_iff₀ hpos, mul_comm]
+    exact hb
+  have hCauchyX : CauchySeq (fun n => (X n : H)) := by
+    rw [Metric.cauchySeq_iff]
+    intro ε hε
+    obtain ⟨N, hN⟩ := (Metric.cauchySeq_iff.mp hYy.cauchySeq) (ε * |RCLike.im z|) (by positivity)
+    refine ⟨N, fun m hm n hn => ?_⟩
+    have hY' : ‖Y m - Y n‖ < ε * |RCLike.im z| := by
+      have := hN m hm n hn; rwa [dist_eq_norm] at this
+    rw [dist_eq_norm]
+    calc ‖(X m : H) - (X n : H)‖ ≤ ‖Y m - Y n‖ / |RCLike.im z| := hbound m n
+      _ < (ε * |RCLike.im z|) / |RCLike.im z| := by gcongr
+      _ = ε := by rw [mul_div_assoc, div_self (ne_of_gt hpos), mul_one]
+  obtain ⟨x, hx⟩ := cauchySeq_tendsto_of_complete hCauchyX
+  -- `D (X n) = z • X n - Y n` tends to `z • x - y`; the graph of `D` is closed.
+  have heq : ∀ n, D (X n) = z • (X n : H) - Y n := by
+    intro n
+    have h := hX n; rw [subDirac_apply] at h; rw [← h]; abel
+  have hDX : Filter.Tendsto (fun n => D (X n)) Filter.atTop (nhds (z • x - y)) := by
+    simp only [heq]
+    exact (hx.const_smul z).sub hYy
+  have hmem : ((x, z • x - y) : H × H) ∈ D.graph :=
+    hD.isClosed.mem_of_tendsto (hx.prodMk_nhds hDX)
+      (Filter.Eventually.of_forall (fun n => D.mem_graph (X n)))
+  rw [LinearPMap.mem_graph_iff] at hmem
+  obtain ⟨x₀, hx1, hx2⟩ := hmem
+  dsimp only at hx1 hx2
+  rw [SetLike.mem_coe, LinearMap.mem_range]
+  exact ⟨x₀, by rw [subDirac_apply, hx1, hx2]; abel⟩
 
 /-- **Basic criterion of self-adjointness.** If `D` is self-adjoint and `Im z ≠ 0`, then
 `z • 1 - D` is bijective on `D.domain`, i.e. `z` lies in the resolvent set of `D`. -/
