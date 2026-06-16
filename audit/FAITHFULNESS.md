@@ -50,9 +50,11 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 | `range (resolvent z) = dom D` | `LinearPMap.range_resolvent` — `Resolvent.lean:132` | ✓ axiom-clean |
 | `|Im z|·‖x‖ ≤ ‖z·x − D x‖` for self-adjoint `D` | `IsSelfAdjoint.norm_resolvent_apply_ge` — `FinitelySummable.lean:43` | ✓ axiom-clean |
 | `z·1 − D` injective on `dom D` when `Im z ≠ 0` | `IsSelfAdjoint.injective_resolvent_apply` — `FinitelySummable.lean:82` | ✓ axiom-clean |
-| range of `z·1 − D` is dense (orthogonal complement `⊥`) | `IsSelfAdjoint.range_subDirac_orthogonal_eq_bot` — `SelfAdjoint.lean:52` | ✓ axiom-clean |
-| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `SelfAdjoint.lean:99` | ✓ axiom-clean |
-| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `SelfAdjoint.lean:144` | ✓ axiom-clean |
+| range of `z·1 − D` is dense (orthogonal complement `⊥`) | `IsSelfAdjoint.range_subDirac_orthogonal_eq_bot` — `SelfAdjoint.lean:55` | ✓ axiom-clean |
+| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `SelfAdjoint.lean:102` | ✓ axiom-clean |
+| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `SelfAdjoint.lean:147` | ✓ axiom-clean |
+| odd triple: `Im z ≠ 0 ⇒ z ∈ ρ(D)` (so `i ∈ ρ(D)`) | `IsOddSpectralTriple.mem_resolventSet` — `SelfAdjoint.lean:180` | ✓ axiom-clean |
+| finitely summable triple from odd + compact resolvent (no `resolvent_mem` needed) | `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` — `SelfAdjoint.lean:187` | ✓ axiom-clean |
 
 ## Faithfulness divergences (encoding choices, reviewer attention)
 

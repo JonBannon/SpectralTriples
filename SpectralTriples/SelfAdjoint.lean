@@ -21,6 +21,9 @@ bijective on `D.domain`, i.e. `z ∈ D.resolventSet`. This upgrades the injectiv
 * `IsSelfAdjoint.isClosed_range_subDirac`: the range of `z • 1 - D` is closed, via the
   bounded-below estimate and closedness of `D`.
 * `IsSelfAdjoint.mem_resolventSet`: consequently `z ∈ D.resolventSet` when `Im z ≠ 0`.
+* `IsOddSpectralTriple.mem_resolventSet`: the same at the level of a spectral triple
+  (so `i ∈ ρ(D)`), and `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple`, a smart
+  constructor for finitely summable triples that needs no `resolvent_mem` hypothesis.
 -/
 
 @[expose] public section
@@ -165,3 +168,27 @@ theorem mem_resolventSet (hD : IsSelfAdjoint D) {z : 𝕜} (hz : RCLike.im z ≠
   exact hbij.comp e.bijective
 
 end IsSelfAdjoint
+
+namespace IsOddSpectralTriple
+
+variable {A H 𝕜 : Type*} [RCLike 𝕜] [Semiring A] [StarRing A] [Algebra 𝕜 A]
+    [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
+    {D : H →ₗ.[𝕜] H} {π : StarAlgHom 𝕜 A (H →L[𝕜] H)}
+
+/-- For an odd spectral triple, every `z` off the real axis lies in the resolvent set of the
+(self-adjoint) Dirac operator. In particular `i ∈ ρ(D)`. -/
+theorem mem_resolventSet (hT : IsOddSpectralTriple A D π) {z : 𝕜} (hz : RCLike.im z ≠ 0) :
+    z ∈ D.resolventSet :=
+  hT.self_adjoint.mem_resolventSet hz
+
+/-- Build a finitely summable spectral triple from an odd one with compact resolvent at a point
+`z` off the real axis: the resolvent-set membership `z ∈ ρ(D)` is automatic from
+self-adjointness, so it need not be supplied. The intended case is `z = i`. -/
+def toIsFinitelySummableSpectralTriple (hT : IsOddSpectralTriple A D π) {z : 𝕜}
+    (hz : RCLike.im z ≠ 0) (hc : IsCompactOperator (D.resolvent z)) :
+    IsFinitelySummableSpectralTriple A D π z where
+  toIsOddSpectralTriple := hT
+  resolvent_mem := hT.mem_resolventSet hz
+  compact_resolvent := hc
+
+end IsOddSpectralTriple

@@ -45,3 +45,5 @@ open LinearPMap
 #print axioms IsSelfAdjoint.range_subDirac_orthogonal_eq_bot
 #print axioms IsSelfAdjoint.isClosed_range_subDirac
 #print axioms IsSelfAdjoint.mem_resolventSet
+#print axioms IsOddSpectralTriple.mem_resolventSet
+#print axioms IsOddSpectralTriple.toIsFinitelySummableSpectralTriple
