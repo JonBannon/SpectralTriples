@@ -39,7 +39,7 @@ structure IsEvenSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semir
     (D : H →ₗ.[𝕜] H) (π : StarAlgHom 𝕜 A (H →L[𝕜] H)) (γ : H →L[𝕜] H)
     extends IsOddSpectralTriple A D π where
   self_adjoint_grading : IsSelfAdjoint γ
-  unitary_grading : γ ∈ unitary (H →L[𝕜] H)
+  grading_sq : γ * γ = 1
   grading_comm (a : A) : γ.comp (π a) = (π a).comp γ
   grading_dom (x : D.domain) : γ x ∈ D.domain
   grading_anticomm (x : D.domain) : D ⟨γ x, grading_dom x⟩ = - γ (D x)
@@ -85,11 +85,6 @@ variable {A H 𝕜 : Type*} [RCLike 𝕜] [Semiring A] [StarRing A] [Algebra �
     [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     {D : H →ₗ.[𝕜] H} {π : StarAlgHom 𝕜 A (H →L[𝕜] H)} {γ : H →L[𝕜] H}
 
-/-- The grading operator of an even spectral triple squares to the identity. -/
-theorem grading_sq (hT : IsEvenSpectralTriple A D π γ) : γ * γ = 1 := by
-  have h := Unitary.mul_star_self_of_mem hT.unitary_grading
-  rwa [hT.self_adjoint_grading.star_eq] at h
-
 /-- The grading operator commutes with the image of `A` under `π`. -/
 theorem grading_commute (hT : IsEvenSpectralTriple A D π γ) (a : A) :
     Commute γ (π a) :=
@@ -102,9 +97,9 @@ theorem grading_conj_dirac (hT : IsEvenSpectralTriple A D π γ) (x : D.domain) 
   rw [hT.grading_anticomm x, _root_.map_neg, ← ContinuousLinearMap.mul_apply, hT.grading_sq,
     ContinuousLinearMap.one_apply]
 
-/-- For a self-adjoint operator, being a unitary involution is equivalent to squaring to the
-identity. Thus `unitary_grading` could equivalently be replaced by `γ * γ = 1`, given
-`self_adjoint_grading`. -/
+/-- For a self-adjoint operator, membership in `unitary` is equivalent to squaring to the
+identity. This provides the bridge between `grading_involutive` and the `unitary` API when
+needed. -/
 theorem mem_unitary_iff_sq_eq_one (hγ : IsSelfAdjoint γ) :
     γ ∈ unitary (H →L[𝕜] H) ↔ γ * γ = 1 := by
   rw [Unitary.mem_iff, hγ.star_eq, and_self]

@@ -74,20 +74,13 @@ project plan.
   spectral triple $(A, \Hil, \pi, D)$ together with a bounded operator
   $\gamma \in \mathcal{B}(\Hil)$ (the \emph{grading operator}) such that:
   \begin{itemize}
-    \item $\gamma$ is self-adjoint and unitary;
+    \item $\gamma$ is self-adjoint: $\gamma^* = \gamma$;
+    \item $\gamma$ is an involution: $\gamma^2 = 1$;
     \item $\gamma$ commutes with $\pi(a)$ for every $a \in A$;
     \item $\gamma$ maps $\dom{D}$ into $\dom{D}$;
     \item $D \gamma \xi = -\gamma D \xi$ for every $\xi \in \dom{D}$.
   \end{itemize}
 \end{definition}
-
-\begin{lemma}[The grading operator squares to the identity]
-  \label{lem:grading-sq}
-  \lean{IsEvenSpectralTriple.grading_sq}
-  \leanok
-  \uses{def:even-spectral-triple}
-  If $(A, \Hil, \pi, D, \gamma)$ is an even spectral triple, then $\gamma^2 = 1$.
-\end{lemma}
 
 \section{Resolvents and finitely summable spectral triples}
 \label{sec:resolvents}

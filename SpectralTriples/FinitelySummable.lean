@@ -96,6 +96,87 @@ theorem IsSelfAdjoint.injective_resolvent_apply {D : H →ₗ.[𝕜] H} (hD : Is
   · exact absurd (abs_eq_zero.mp h0) hz
   · exact Subtype.ext (sub_eq_zero.mp (norm_eq_zero.mp h0))
 
+/-- For a self-adjoint operator `D` and `z : 𝕜` with `Im z ≠ 0`, any vector orthogonal to the
+range of `x ↦ z • x - D x` must be zero. Combined with the submodule orthogonality theory, this
+gives density of the range. -/
+private lemma inner_eq_zero_of_mem_ortho_resolvent_range {D : H →ₗ.[𝕜] H}
+    (hD : IsSelfAdjoint D) {z : 𝕜} (hz : RCLike.im z ≠ 0) {y : H}
+    (hy : ∀ x : D.domain, inner 𝕜 (z • (x : H) - D x) y = 0) : y = 0 := by
+  have hdd := hD.dense_domain
+  -- From ⟪z • x - D x, y⟫ = 0, derive star z * ⟪x, y⟫ = ⟪D x, y⟫.
+  have hinner : ∀ x : D.domain,
+      star z * inner 𝕜 (x : H) y = inner 𝕜 (D x) y := by
+    intro x
+    have h := hy x
+    rw [inner_sub_left, inner_smul_left] at h
+    exact sub_eq_zero.mp h
+  -- Derive ⟪star z • y, x⟫ = ⟪y, D x⟫ by taking conjugates.
+  have hadj : ∀ x : D.domain,
+      inner 𝕜 (starRingEnd 𝕜 z • y) (x : H) = inner 𝕜 y (D x) := by
+    intro x
+    have lhs : inner 𝕜 (starRingEnd 𝕜 z • y) (x : H) = z * inner 𝕜 y (x : H) := by
+      simp only [inner_smul_left, starRingEnd_apply, star_star]
+    have rhs : inner 𝕜 y (D x) = z * inner 𝕜 y (x : H) :=
+      calc inner 𝕜 y (D x)
+          = starRingEnd 𝕜 (inner 𝕜 (D x) y)              := (inner_conj_symm y (D x)).symm
+        _ = starRingEnd 𝕜 (star z * inner 𝕜 (x : H) y)   := by rw [← hinner x]
+        _ = starRingEnd 𝕜 (star z) * starRingEnd 𝕜 (inner 𝕜 (x : H) y) := map_mul _ _ _
+        _ = z * starRingEnd 𝕜 (inner 𝕜 (x : H) y)        := by
+              simp only [starRingEnd_apply, star_star]
+        _ = z * inner 𝕜 y (x : H)                        := by
+              rw [inner_conj_symm y (x : H)]
+    exact lhs.trans rhs.symm
+  -- y lies in the adjoint domain: y ∈ D†.domain.
+  have hmem : y ∈ D†.domain :=
+    LinearPMap.mem_adjoint_domain_of_exists y ⟨starRingEnd 𝕜 z • y, hadj⟩
+  -- D† y = star z • y.
+  have happ : D† ⟨y, hmem⟩ = starRingEnd 𝕜 z • y :=
+    LinearPMap.adjoint_apply_eq hdd ⟨y, hmem⟩ hadj
+  -- D† is self-adjoint (since D† = D and D is self-adjoint).
+  have hDA : D† = D := LinearPMap.isSelfAdjoint_def.mp hD
+  have hDsa : IsSelfAdjoint D† := hDA.symm ▸ hD
+  -- Apply the norm bound with w = starRingEnd 𝕜 z using the D† self-adjointness.
+  have hzero : starRingEnd 𝕜 z • y - D† ⟨y, hmem⟩ = 0 := by rw [happ]; simp only [sub_self]
+  have hbound := hDsa.norm_resolvent_apply_ge (starRingEnd 𝕜 z) ⟨y, hmem⟩
+  rw [hzero, norm_zero] at hbound
+  have him : |RCLike.im (starRingEnd 𝕜 z)| = |RCLike.im z| := by
+    rw [RCLike.conj_im, abs_neg]
+  rw [him] at hbound
+  have heq : |RCLike.im z| * ‖y‖ = 0 := le_antisymm hbound (by positivity)
+  rcases mul_eq_zero.mp heq with h | h
+  · exact absurd (abs_eq_zero.mp h) hz
+  · exact norm_eq_zero.mp h
+
+/-- For a self-adjoint operator `D` and `z : 𝕜` with `Im z ≠ 0`, the range of `x ↦ z • x - D x`
+(on `D.domain`) is dense in `H`.
+
+This is the surjectivity half of the basic criterion of self-adjointness: together with
+`IsSelfAdjoint.injective_resolvent_apply`, it shows `z ∈ ρ(D)`. -/
+theorem IsSelfAdjoint.dense_range_resolvent_apply {D : H →ₗ.[𝕜] H} (hD : IsSelfAdjoint D)
+    {z : 𝕜} (hz : RCLike.im z ≠ 0) :
+    Dense (Set.range (fun x : D.domain => z • (x : H) - D x)) := by
+  -- The range is the underlying set of a submodule (image of the linear map z - D).
+  -- We prove density by showing that its orthogonal complement is ⊥.
+  let zD : D.domain →ₗ[𝕜] H :=
+    { toFun    := fun x => z • (x : H) - D x
+      map_add' := fun x y => by simp [smul_add, D.map_add, sub_add_sub_comm]
+      map_smul' := fun c x => by
+        simp only [RingHom.id_apply, smul_sub, Submodule.coe_smul, D.map_smul, smul_comm z c] }
+  have hrange : Set.range (fun x : D.domain => z • (x : H) - D x) = ↑(zD.range) := by
+    ext v; simp [LinearMap.mem_range, zD]
+  rw [hrange, Submodule.dense_iff_topologicalClosure_eq_top,
+      ← Submodule.orthogonal_orthogonal_eq_closure]
+  suffices hbot : zD.rangeᗮ = ⊥ by rw [hbot]; exact Submodule.bot_orthogonal_eq_top
+  ext y
+  simp only [Submodule.mem_orthogonal, LinearMap.mem_range, Submodule.mem_bot]
+  constructor
+  · intro hy
+    apply inner_eq_zero_of_mem_ortho_resolvent_range hD hz
+    intro x
+    exact hy (z • (x : H) - D x) ⟨x, rfl⟩
+  · rintro rfl
+    simp
+
 /-- A spectral triple is finitely summable (with respect to `z`) if it is odd and its Dirac
 operator has a compact resolvent at `z`. -/
 structure IsFinitelySummableSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiring A]
