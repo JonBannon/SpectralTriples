@@ -187,10 +187,20 @@ theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac := by
     le_antisymm diracDirac_le_adjoint.1 hdomle
   exact (LinearPMap.eq_of_le_of_domain_eq diracDirac_le_adjoint heq).symm
 
-/- TODO (final step toward the spectral triple, reusable for the `T²` example over `ℤ²`):
-`IsCompactOperator (diracDirac.resolvent Complex.I)` — the resolvent is the bounded diagonal
-operator `bₙ ↦ bₙ/(n+i)`, a norm limit of finite-rank truncations since `1/(n+i) → 0`. Then
-`IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` assembles the triple at `z = i`,
-using `diracDirac_isSelfAdjoint`. -/
+/-- `i` lies in the resolvent set of the circle Dirac operator: it is self-adjoint and
+`Im i = 1 ≠ 0`, so the basic criterion applies. -/
+theorem mem_resolventSet_I : Complex.I ∈ diracDirac.resolventSet :=
+  diracDirac_isSelfAdjoint.mem_resolventSet (by simp)
+
+/- TODO (final analytic step toward the spectral triple, reusable for `T²` over `ℤ²`):
+`IsCompactOperator (diracDirac.resolvent Complex.I)`. Now de-risked — Mathlib has
+`isCompactOperator_of_tendsto` (compact operators are operator-norm-closed) and
+`isCompactOperator_of_locallyCompactSpace_rng` (finite-dim range ⇒ compact). Plan:
+1. build the bounded diagonal resolvent `R : L2 →L[ℂ] L2`, `(R b)ₙ = bₙ / (i - n)` (‖·‖ ≤ 1);
+2. truncations `R_N` (zero outside `|n| ≤ N`) are finite-rank, hence compact;
+3. `R_N → R` in operator norm since `1/(i - n) → 0`, so `R` is compact by the limit lemma;
+4. identify `diracDirac.resolvent Complex.I = R` (it is the inverse of `i • 1 - D`).
+Then `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` assembles the triple at `z = i`,
+using `diracDirac_isSelfAdjoint` and `mem_resolventSet_I`. -/
 
 end SpectralTriples.Circle
