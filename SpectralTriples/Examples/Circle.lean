@@ -27,15 +27,14 @@ without a separate `resolvent_mem` proof.
 
 ## Construction status and plan
 
-This file is the **scaffold**; the reusable analytic infrastructure below is absent from
-Mathlib and is the multi-step work ahead (shared with the `T²` example, which reuses the same
-diagonal-operator machinery over `ℤ²`).
+The space, the `H¹` domain, and the **diagonal Dirac operator itself** (`diracDirac`) are
+built and `sorry`-free; the remaining analytic core (self-adjointness, compact resolvent,
+representation) is absent from Mathlib and is the multi-step work ahead — shared with the
+`T²` example, which reuses the same diagonal-operator machinery over `ℤ²`.
 
-1. **Diagonal operator** (reusable, parametrize by eigenvalues `μ : ι → ℝ`):
-   `diagonalPMap μ : lp (fun _ : ι => ℂ) 2 →ₗ.[ℂ] lp (fun _ : ι => ℂ) 2` with maximal domain
-   `{ a : Memℓp (fun i => (μ i : ℂ) • a i) 2 }`. Submodule via `Memℓp.add`/`Memℓp.const_smul`;
-   action via `Memℓp.toLp`.
-2. **Self-adjointness** `IsSelfAdjoint (diagonalPMap μ)` when `μ` is real: symmetry from
+1. **Diagonal operator** — done (`diracDirac`, with `diracDirac_apply : (D a)ₙ = n · aₙ`).
+   To reuse for `T²`, generalize to eigenvalues `μ : ι → ℝ` over an arbitrary index `ι`.
+2. **Self-adjointness** `IsSelfAdjoint diracDirac` (eigenvalues real): symmetry from
    `inner_eq_tsum` + reality of `μ`; the adjoint-domain inclusion from testing against
    `lp.single 2 n 1` (`inner_single_left/right`) to read off `(D† b)ₙ = μ n • bₙ`.
 3. **Compact resolvent** `IsCompactOperator ((diagonalPMap μ).resolvent i)` when `|μ| → ∞`
@@ -89,12 +88,40 @@ def diracDomain : Submodule ℂ L2 where
       funext n; simp only [Pi.smul_apply, smul_eq_mul]; ring
     rw [hrw]; exact ha.const_smul c
 
-/- TODO (next step). The diagonal Dirac operator itself,
-`diracDirac : L2 →ₗ.[ℂ] L2` with `domain := diracDomain` and action `(D a)ₙ = n · aₙ`, then:
-* `IsSelfAdjoint diracDirac` (symmetry from `inner_eq_tsum` + reality of `diracEigen`;
-  adjoint-domain inclusion by testing against `lp.single 2 n 1`);
-* `IsCompactOperator (diracDirac.resolvent Complex.I)` (the diagonal resolvent
-  `bₙ ↦ bₙ/(n+i)` is a norm limit of finite-rank truncations since `1/(n+i) → 0`).
-Building `LinearPMap.mk` over `lp` needs care with the `PreLp`/`Memℓp` coercions. -/
+theorem mem_diracDomain_iff (a : L2) :
+    a ∈ diracDomain ↔ Memℓp (fun n => (diracEigen n : ℂ) * a n) 2 := Iff.rfl
+
+/-- Coordinatewise multiplication by the eigenvalue sequence `(n)`, as an element of `ℓ²(ℤ)`,
+given a proof that the result is square-summable. -/
+def applyDirac (a : L2) (h : Memℓp (fun n => (diracEigen n : ℂ) * a n) 2) : L2 :=
+  ⟨fun n => (diracEigen n : ℂ) * a n, h⟩
+
+@[simp] theorem coe_applyDirac (a : L2) (h) (n : ℤ) :
+    (applyDirac a h) n = (diracEigen n : ℂ) * a n := rfl
+
+/-- The circle Dirac operator `D = -i d/dθ` as an unbounded `LinearPMap`: diagonal on the
+Fourier basis, `(D a)ₙ = n · aₙ`, with domain the `H¹` Sobolev space `diracDomain`. -/
+noncomputable def diracDirac : L2 →ₗ.[ℂ] L2 where
+  domain := diracDomain
+  toFun :=
+    { toFun := fun a => applyDirac (a : L2) ((mem_diracDomain_iff _).mp a.2)
+      map_add' := fun a b => by
+        ext n
+        simp only [coe_applyDirac, Submodule.coe_add, lp.coeFn_add, Pi.add_apply, mul_add]
+      map_smul' := fun c a => by
+        ext n
+        simp only [coe_applyDirac, Submodule.coe_smul, lp.coeFn_smul, Pi.smul_apply,
+          smul_eq_mul, RingHom.id_apply, mul_left_comm] }
+
+@[simp] theorem diracDirac_apply (a : diracDomain) (n : ℤ) :
+    (diracDirac a) n = (diracEigen n : ℂ) * (a : L2) n := rfl
+
+/- TODO (next steps), the analytic core (reusable for the `T²` example over `ℤ²`):
+* `IsSelfAdjoint diracDirac` — symmetry from `inner_eq_tsum` + reality of `diracEigen`;
+  the adjoint-domain inclusion by testing against `lp.single 2 n 1` (`inner_single_left/right`)
+  to read off `(D† b)ₙ = n · bₙ`.
+* `IsCompactOperator (diracDirac.resolvent Complex.I)` — the resolvent is the bounded diagonal
+  operator `bₙ ↦ bₙ/(n+i)`, a norm limit of finite-rank truncations since `1/(n+i) → 0`.
+Then assemble via `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple … (z := Complex.I)`. -/
 
 end SpectralTriples.Circle
