@@ -70,4 +70,57 @@ This tends to `∞` as `(m, n) → ∞`, which is what makes the resolvent compa
 noncomputable def diracMagnitude : ℤ × ℤ → ℝ :=
   fun p => 2 * Real.pi * Real.sqrt ((p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2)
 
+/-- The Dirac block on the Fourier mode `(m, n)`: the self-adjoint matrix
+`2π · !![0, m - i·n; m + i·n, 0]`, as a linear endomorphism of the spinor fibre `ℂ²`. -/
+noncomputable def diracBlock (p : ℤ × ℤ) : Spinor →ₗ[ℂ] Spinor :=
+  Matrix.toEuclideanLin <| (2 * Real.pi : ℂ) •
+    !![0, (p.1 : ℂ) - (p.2 : ℂ) * Complex.I;
+       (p.1 : ℂ) + (p.2 : ℂ) * Complex.I, 0]
+
+/-- The maximal domain of the torus Dirac operator: the `H¹` Sobolev space, those `a` for which
+`p ↦ D₍ₚ₎ (aₚ)` is again square-summable (equivalently `Σ (m²+n²) ‖aₚ‖² < ∞`). -/
+def diracDomain : Submodule ℂ H where
+  carrier := {a | Memℓp (fun p => diracBlock p (a p)) 2}
+  zero_mem' := by
+    have : (fun p => diracBlock p ((0 : H) p)) = 0 := by
+      funext p; simp only [lp.coeFn_zero, Pi.zero_apply, _root_.map_zero]
+    simp only [Set.mem_setOf_eq, this]; exact zero_memℓp
+  add_mem' := fun {a b} ha hb => by
+    have heq : (fun p => diracBlock p ((a + b) p))
+        = (fun p => diracBlock p (a p)) + fun p => diracBlock p (b p) := by
+      funext p; simp only [lp.coeFn_add, Pi.add_apply, _root_.map_add]
+    rw [Set.mem_setOf_eq, heq]; exact ha.add hb
+  smul_mem' := fun c a ha => by
+    have heq : (fun p => diracBlock p ((c • a) p)) = c • fun p => diracBlock p (a p) := by
+      funext p; simp only [lp.coeFn_smul, Pi.smul_apply, _root_.map_smul]
+    rw [Set.mem_setOf_eq, heq]; exact ha.const_smul c
+
+theorem mem_diracDomain_iff (a : H) :
+    a ∈ diracDomain ↔ Memℓp (fun p => diracBlock p (a p)) 2 := Iff.rfl
+
+/-- Coordinatewise application of the Dirac blocks, as an element of `ℓ²(ℤ²; ℂ²)`, given a
+proof that the result is square-summable. -/
+noncomputable def applyDirac (a : H) (h : Memℓp (fun p => diracBlock p (a p)) 2) : H :=
+  ⟨fun p => diracBlock p (a p), h⟩
+
+@[simp] theorem coe_applyDirac (a : H) (h) (p : ℤ × ℤ) :
+    (applyDirac a h) p = diracBlock p (a p) := rfl
+
+/-- The torus Dirac operator as an unbounded `LinearPMap`: block-diagonal on the Fourier
+lattice, `(D a)₍ₘ,ₙ₎ = D₍ₘ,ₙ₎ (a₍ₘ,ₙ₎)`, with domain the `H¹` Sobolev space `diracDomain`. -/
+noncomputable def diracDirac : H →ₗ.[ℂ] H where
+  domain := diracDomain
+  toFun :=
+    { toFun := fun a => applyDirac (a : H) ((mem_diracDomain_iff _).mp a.2)
+      map_add' := fun a b => by
+        refine lp.ext (funext fun p => ?_)
+        simp only [coe_applyDirac, Submodule.coe_add, lp.coeFn_add, Pi.add_apply, _root_.map_add]
+      map_smul' := fun c a => by
+        refine lp.ext (funext fun p => ?_)
+        simp only [coe_applyDirac, Submodule.coe_smul, lp.coeFn_smul, Pi.smul_apply,
+          _root_.map_smul, RingHom.id_apply] }
+
+@[simp] theorem diracDirac_apply (a : diracDomain) (p : ℤ × ℤ) :
+    (diracDirac a) p = diracBlock p ((a : H) p) := rfl
+
 end SpectralTriples.Torus
