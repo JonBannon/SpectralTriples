@@ -291,9 +291,13 @@ variable {A H 𝕜 : Type*} [RCLike 𝕜] [Semiring A] [StarRing A] [Algebra �
     [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     {D : H →ₗ.[𝕜] H} {π : StarAlgHom 𝕜 A (H →L[𝕜] H)}
 
-/-- Build a finitely summable spectral triple from an odd one. The caller must supply
-`hI : RCLike.im (RCLike.I : 𝕜) ≠ 0` (automatic for `𝕜 = ℂ`); `resolvent_mem` is then
-derived from `IsSelfAdjoint.mem_resolventSet`. -/
+/-- Smart constructor for `IsFinitelySummableSpectralTriple`.
+
+Compared with building the structure directly, this def does two things:
+* enables dot-notation `hT.toIsFinitelySummableSpectralTriple hI hc`;
+* internalises the proof of `resolvent_mem` via `IsSelfAdjoint.mem_resolventSet`, so the
+  caller only needs to supply `hI : RCLike.im (RCLike.I : 𝕜) ≠ 0` rather than knowing how
+  to derive resolvent-set membership from self-adjointness. -/
 def toIsFinitelySummableSpectralTriple (hT : IsOddSpectralTriple A D π)
     (hI : RCLike.im (RCLike.I : 𝕜) ≠ 0)
     (hc : IsCompactOperator (D.resolvent RCLike.I)) :
