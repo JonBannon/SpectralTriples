@@ -157,12 +157,40 @@ theorem dense_diracDomain : Dense (diracDirac.domain : Set L2) := by
 theorem diracDirac_le_adjoint : diracDirac ≤ diracDirac† :=
   diracDirac_isFormalAdjoint.le_adjoint dense_diracDomain
 
-/- TODO (next steps), the analytic core (reusable for the `T²` example over `ℤ²`):
-* `IsSelfAdjoint diracDirac` — the reverse inclusion `D† ≤ D`: for `y ∈ D†.domain`, testing
-  `⟪D† y, eₙ⟫ = ⟪y, D eₙ⟫` against `eₙ = lp.single 2 n 1` (`inner_single_left/right`) gives
-  `(D† y)ₙ = n · yₙ`, so `n ↦ n·yₙ` is in `ℓ²` and `y ∈ D.domain` with `D y = D† y`.
-* `IsCompactOperator (diracDirac.resolvent Complex.I)` — the resolvent is the bounded diagonal
-  operator `bₙ ↦ bₙ/(n+i)`, a norm limit of finite-rank truncations since `1/(n+i) → 0`.
-Then assemble via `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple … (z := Complex.I)`. -/
+/-- **The circle Dirac operator is self-adjoint.** Since it is symmetric (so `D ≤ D†`), it
+suffices that `D†.domain ⊆ D.domain`: for `y ∈ D†.domain`, testing the adjoint relation against
+each Fourier basis vector `eₙ` gives `(D† y)ₙ = n · yₙ`, so `n ↦ n · yₙ` is square-summable and
+`y` lies in the `H¹` domain. -/
+theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac := by
+  rw [isSelfAdjoint_def]
+  have hfa : diracDirac†.IsFormalAdjoint diracDirac := adjoint_isFormalAdjoint dense_diracDomain
+  have hdomle : diracDirac†.domain ≤ diracDomain := by
+    intro y hy
+    rw [mem_diracDomain_iff]
+    have hcoe : (fun n => (diracEigen n : ℂ) * y n) = ⇑(diracDirac† ⟨y, hy⟩) := by
+      funext n
+      have key := hfa ⟨y, hy⟩ ⟨lp.single 2 n (1 : ℂ), single_mem_diracDomain n⟩
+      have hDe : diracDirac ⟨lp.single 2 n (1 : ℂ), single_mem_diracDomain n⟩
+          = (diracEigen n : ℂ) • (lp.single 2 n (1 : ℂ) : L2) := by
+        refine lp.ext (funext fun m => ?_)
+        simp only [diracDirac_apply, lp.coeFn_smul, Pi.smul_apply, smul_eq_mul]
+        rcases eq_or_ne m n with h | h
+        · subst h; rfl
+        · simp [lp.single_apply, h]
+      rw [lp.inner_single_right, hDe, inner_smul_right, lp.inner_single_right] at key
+      simp only [RCLike.inner_apply, map_one, mul_one, one_mul] at key
+      have key2 := congrArg (starRingEnd ℂ) key
+      simp only [map_mul, RCLike.conj_conj, Complex.conj_ofReal] at key2
+      exact key2.symm
+    rw [hcoe]; exact lp.memℓp _
+  have heq : diracDirac.domain = diracDirac†.domain :=
+    le_antisymm diracDirac_le_adjoint.1 hdomle
+  exact (LinearPMap.eq_of_le_of_domain_eq diracDirac_le_adjoint heq).symm
+
+/- TODO (final step toward the spectral triple, reusable for the `T²` example over `ℤ²`):
+`IsCompactOperator (diracDirac.resolvent Complex.I)` — the resolvent is the bounded diagonal
+operator `bₙ ↦ bₙ/(n+i)`, a norm limit of finite-rank truncations since `1/(n+i) → 0`. Then
+`IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` assembles the triple at `z = i`,
+using `diracDirac_isSelfAdjoint`. -/
 
 end SpectralTriples.Circle
