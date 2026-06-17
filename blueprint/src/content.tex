@@ -155,9 +155,13 @@ operator has compact resolvent.
   \label{def:finitely-summable-spectral-triple}
   \lean{IsFinitelySummableSpectralTriple}
   \leanok
-  \uses{def:odd-spectral-triple, def:resolvent-set, def:resolvent}
-  An odd spectral triple $(A, \Hil, \pi, D)$ is \emph{finitely summable} at
-  $z \in \rho(D)$ if the resolvent $R(z, D)$ is a compact operator on $\Hil$.
+  \uses{def:odd-spectral-triple, def:resolvent-set, def:resolvent,
+        thm:basic-criterion-self-adjoint}
+  An odd spectral triple $(A, \Hil, \pi, D)$ is \emph{finitely summable} if the
+  resolvent $R(i, D)$ at the imaginary unit $i \in \Bbbk$ is a compact operator on
+  $\Hil$. By Theorem~\ref{thm:basic-criterion-self-adjoint}, the hypothesis $i \in
+  \rho(D)$ holds automatically whenever $\operatorname{Im}(i) \neq 0$ (e.g.\ when
+  $\Bbbk = \mathbb{C}$), and is not required as part of the definition.
 \end{definition}
 
 \chapter{The Fredholm index pairing}

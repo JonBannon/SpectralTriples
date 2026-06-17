@@ -20,3 +20,4 @@
 'IsSelfAdjoint.mem_resolventSet' depends on axioms: [propext, Classical.choice, Quot.sound]
 'IsOddSpectralTriple.mem_resolventSet' depends on axioms: [propext, Classical.choice, Quot.sound]
 'IsOddSpectralTriple.toIsFinitelySummableSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IsFinitelySummableSpectralTriple.resolvent_mem' depends on axioms: [propext, Classical.choice, Quot.sound]
