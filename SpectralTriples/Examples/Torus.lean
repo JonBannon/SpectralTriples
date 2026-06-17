@@ -35,8 +35,8 @@ eigenvalues to **self-adjoint 2×2 blocks** on the spinor fibre.
 ## Construction status and plan
 
 The Hilbert space, the block-diagonal Dirac operator, its **self-adjointness** (hence
-`i ∈ ρ(D)`), and **compact resolvent** are done. The grading and the representation are the
-work ahead.
+`i ∈ ρ(D)`), **compact resolvent**, and the **grading** `γ = σ₃` are done. The representation
+and the final assembly are the work ahead.
 
 1. **Hilbert space** `H = ℓ²(ℤ²; ℂ²)` — done.
 2. **Dirac block** `diracBlock (m,n) : ℂ² →L[ℂ] ℂ²`, the self-adjoint matrix above; then the
@@ -49,7 +49,10 @@ work ahead.
    block-diagonal operator with blocks `(i·1 − D₍ₚ₎)⁻¹ = (1+|D₍ₚ₎|²)⁻¹(−i·1 − D₍ₚ₎)`, whose
    norms `→ 0` (since `|D₍ₚ₎| = 2π√(m²+n²) → ∞`); compactness then comes from the finite-rank
    truncation criterion `lpDiag.isCompactOperator_diagL`.
-5. **Grading** `γ : H →L[ℂ] H` (fibrewise `σ₃`): self-adjoint, `γ² = 1`, `γ D + D γ = 0`.
+5. **Grading** `γ : H →L[ℂ] H` (fibrewise `σ₃`) — done: self-adjoint (`isSelfAdjoint_grading`),
+   `γ² = 1` (`grading_mul_self`), domain-preserving (`grading_mem_diracDomain`), and
+   anticommuting `D γ = -γ D` (`grading_anticomm`), since each `σ₃` anticommutes with the
+   off-diagonal Dirac block.
 6. **Representation** `π : C^∞(T²) → 𝓑(H)` by Fourier convolution (scalar, so `[γ, π a] = 0`).
 7. **Assemble** `IsEvenSpectralTriple`, and via
    `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` a finitely summable triple at `i`.
@@ -500,5 +503,128 @@ theorem isCompactOperator_resolvent_I :
     IsCompactOperator (diracDirac.resolvent Complex.I) := by
   rw [resolvent_eq_resolventDiag]
   exact isCompactOperator_resolventDiag
+
+/-! ### The grading `γ = σ₃`
+
+The chirality operator is the block-diagonal operator acting fibrewise by `σ₃ = diag(1, -1)`.
+It is a self-adjoint unitary involution (`γ = γ*`, `γ² = 1`) that anticommutes with the Dirac
+operator (each Dirac block is off-diagonal, `σ₃` is diagonal, so `σ₃ D₍ₚ₎ = -D₍ₚ₎ σ₃`). -/
+
+/-- The chirality matrix `σ₃ = diag(1, -1)` on the spinor fibre. -/
+noncomputable def gradingMatrix : Matrix (Fin 2) (Fin 2) ℂ := !![1, 0; 0, -1]
+
+/-- `σ₃` as an endomorphism of the spinor fibre. -/
+noncomputable def gradingBlock : Spinor →ₗ[ℂ] Spinor :=
+  Matrix.toEuclideanLin gradingMatrix
+
+/-- `σ₃` as a continuous endomorphism of the spinor fibre. -/
+noncomputable def gradingBlockL : Spinor →L[ℂ] Spinor :=
+  Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) gradingMatrix
+
+@[simp] theorem coe_gradingBlockL :
+    (gradingBlockL : Spinor →ₗ[ℂ] Spinor) = gradingBlock := rfl
+
+@[simp] theorem gradingBlockL_apply (v : Spinor) : gradingBlockL v = gradingBlock v := rfl
+
+private lemma gradingMatrix_mul_self : gradingMatrix * gradingMatrix = 1 := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [gradingMatrix, Matrix.mul_apply, Fin.sum_univ_two]
+
+private lemma diracMatrix_mul_gradingMatrix (p : ℤ × ℤ) :
+    diracMatrix p * gradingMatrix = -(gradingMatrix * diracMatrix p) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [diracMatrix, gradingMatrix, Matrix.mul_apply, Fin.sum_univ_two, Matrix.neg_apply]
+
+private lemma gradingBlock_isSymmetric : (gradingBlock).IsSymmetric := by
+  rw [gradingBlock, Matrix.isSymmetric_toEuclideanLin_iff]
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [gradingMatrix, Matrix.conjTranspose_apply]
+
+/-- `σ₃ * σ₃ = 1` as continuous operators (`Matrix.toEuclideanCLM` is a `*`-algebra map). -/
+private lemma gradingBlockL_mul_self : gradingBlockL * gradingBlockL = 1 := by
+  change Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) gradingMatrix *
+      Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) gradingMatrix = 1
+  rw [← _root_.map_mul, gradingMatrix_mul_self, _root_.map_one]
+
+private lemma gradingBlock_apply_self (v : Spinor) : gradingBlock (gradingBlock v) = v := by
+  have h : gradingBlockL (gradingBlockL v) = (1 : Spinor →L[ℂ] Spinor) v := by
+    rw [← ContinuousLinearMap.mul_apply, gradingBlockL_mul_self]
+  simpa using h
+
+/-- `D₍ₚ₎ σ₃ = -σ₃ D₍ₚ₎` as continuous operators. -/
+private lemma diracBlockL_gradingBlockL_anticomm (p : ℤ × ℤ) :
+    diracBlockL p * gradingBlockL = -(gradingBlockL * diracBlockL p) := by
+  change Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) (diracMatrix p) *
+        Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) gradingMatrix =
+      -(Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) gradingMatrix *
+        Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) (diracMatrix p))
+  rw [← _root_.map_mul, ← _root_.map_mul, diracMatrix_mul_gradingMatrix, _root_.map_neg]
+
+private lemma diracBlock_gradingBlock_anticomm (p : ℤ × ℤ) (v : Spinor) :
+    diracBlock p (gradingBlock v) = -gradingBlock (diracBlock p v) := by
+  have h := congrArg (fun T : Spinor →L[ℂ] Spinor => T v) (diracBlockL_gradingBlockL_anticomm p)
+  simpa [ContinuousLinearMap.mul_apply, ContinuousLinearMap.neg_apply, diracBlockL_apply,
+    gradingBlockL_apply] using h
+
+theorem norm_gradingBlockL_le_one : ‖gradingBlockL‖ ≤ 1 := by
+  have hdiag : gradingMatrix = Matrix.diagonal ![1, -1] := by
+    ext i j
+    fin_cases i <;> fin_cases j <;> simp [gradingMatrix, Matrix.diagonal]
+  have hnorm : ‖gradingBlockL‖ = ‖(![1, -1] : Fin 2 → ℂ)‖ := by
+    change ‖Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) gradingMatrix‖ = _
+    rw [Matrix.l2_opNorm_toEuclideanCLM, hdiag, Matrix.l2_opNorm_diagonal]
+  rw [hnorm, pi_norm_le_iff_of_nonneg zero_le_one]
+  intro i
+  fin_cases i <;> simp
+
+/-- The chirality (grading) operator `γ = σ₃` on `ℓ²(ℤ²; ℂ²)`: block-diagonal, acting on each
+Fourier mode by `σ₃ = diag(1, -1)`. -/
+noncomputable def grading : H →L[ℂ] H :=
+  lpDiag.diagL (𝕜 := ℂ) (G := fun _ : ℤ × ℤ => Spinor) (fun _ => gradingBlockL) zero_le_one
+    (fun _ => norm_gradingBlockL_le_one)
+
+@[simp] theorem grading_apply (a : H) (q : ℤ × ℤ) : (grading a) q = gradingBlock (a q) := by
+  rw [grading, lpDiag.diagL_apply, gradingBlockL_apply]
+
+/-- The grading is symmetric: `⟪γ a, b⟫ = ⟪a, γ b⟫`, fibrewise from `σ₃` being Hermitian. -/
+theorem grading_isSymmetric : (grading : H →ₗ[ℂ] H).IsSymmetric := by
+  intro a b
+  rw [ContinuousLinearMap.coe_coe, lp.inner_eq_tsum, lp.inner_eq_tsum]
+  refine tsum_congr fun q => ?_
+  rw [grading_apply, grading_apply]
+  exact gradingBlock_isSymmetric (a q) (b q)
+
+/-- The grading is self-adjoint. -/
+theorem isSelfAdjoint_grading : IsSelfAdjoint grading :=
+  ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mpr grading_isSymmetric
+
+/-- The grading is an involution: `γ² = 1`. -/
+theorem grading_mul_self : grading * grading = 1 := by
+  refine ContinuousLinearMap.ext fun a => ?_
+  rw [ContinuousLinearMap.one_apply]
+  refine lp.ext (funext fun q => ?_)
+  rw [ContinuousLinearMap.mul_apply, grading_apply, grading_apply]
+  exact gradingBlock_apply_self (a q)
+
+/-- The grading preserves the Dirac domain `H¹`. -/
+theorem grading_mem_diracDomain (x : diracDomain) : grading (x : H) ∈ diracDomain := by
+  rw [mem_diracDomain_iff]
+  have hfun : (fun q => diracBlock q ((grading (x : H)) q))
+      = ⇑(-grading (diracDirac x)) := by
+    funext q
+    rw [grading_apply, diracBlock_gradingBlock_anticomm, lp.coeFn_neg, Pi.neg_apply,
+      grading_apply, diracDirac_apply]
+  rw [hfun]
+  exact lp.memℓp _
+
+/-- The grading anticommutes with the Dirac operator: `D (γ x) = - γ (D x)`. -/
+theorem grading_anticomm (x : diracDomain) :
+    diracDirac ⟨grading (x : H), grading_mem_diracDomain x⟩ = -grading (diracDirac x) := by
+  refine lp.ext (funext fun q => ?_)
+  rw [diracDirac_apply, lp.coeFn_neg, Pi.neg_apply, grading_apply, grading_apply,
+    diracDirac_apply, diracBlock_gradingBlock_anticomm]
 
 end SpectralTriples.Torus
