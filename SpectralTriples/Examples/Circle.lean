@@ -6,7 +6,7 @@ Authors: Jon Bannon, Michael R. Douglas
 
 module
 
-public import SpectralTriples.SelfAdjoint
+public import SpectralTriples.FinitelySummable
 public import Mathlib.Analysis.InnerProductSpace.l2Space
 
 /-! # The Dirac spectral triple of the circle `S¹`
