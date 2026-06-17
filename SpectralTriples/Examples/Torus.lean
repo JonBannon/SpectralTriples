@@ -7,8 +7,12 @@ Authors: Jon Bannon, Michael R. Douglas
 module
 
 public import SpectralTriples.FinitelySummable
+public import SpectralTriples.DiagonalOperator
+public import Mathlib.Analysis.CStarAlgebra.Matrix
 public import Mathlib.Analysis.InnerProductSpace.l2Space
 public import Mathlib.Analysis.Matrix.Hermitian
+public import Mathlib.Order.Interval.Finset.Box
+public import Mathlib.Order.Northcott
 
 /-! # The Dirac spectral triple of the 2-torus `T²`
 
@@ -30,9 +34,9 @@ eigenvalues to **self-adjoint 2×2 blocks** on the spinor fibre.
 
 ## Construction status and plan
 
-The Hilbert space, the block-diagonal Dirac operator, and its **self-adjointness** (hence
-`i ∈ ρ(D)`) are done. The remaining analytic core (compact resolvent), the grading, and the
-representation are the work ahead.
+The Hilbert space, the block-diagonal Dirac operator, its **self-adjointness** (hence
+`i ∈ ρ(D)`), and **compact resolvent** are done. The grading and the representation are the
+work ahead.
 
 1. **Hilbert space** `H = ℓ²(ℤ²; ℂ²)` — done.
 2. **Dirac block** `diracBlock (m,n) : ℂ² →L[ℂ] ℂ²`, the self-adjoint matrix above; then the
@@ -41,8 +45,10 @@ representation are the work ahead.
 3. **Self-adjointness** `IsSelfAdjoint D` — done: the block version of the `S¹` argument —
    symmetry from `inner_eq_tsum` + self-adjointness of each block; the adjoint-domain inclusion
    by testing against `lp.single (m,n) v` for single-mode spinors. `i ∈ ρ(D)` follows.
-4. **Compact resolvent** `IsCompactOperator (D.resolvent i)`: finite-rank truncation to
-   `m² + n² ≤ N`, with the tail controlled by `1/(2π√(m²+n²)) → 0`.
+4. **Compact resolvent** `IsCompactOperator (D.resolvent i)` — done: the resolvent is the
+   block-diagonal operator with blocks `(i·1 − D₍ₚ₎)⁻¹ = (1+|D₍ₚ₎|²)⁻¹(−i·1 − D₍ₚ₎)`, whose
+   norms `→ 0` (since `|D₍ₚ₎| = 2π√(m²+n²) → ∞`); compactness then comes from the finite-rank
+   truncation criterion `lpDiag.isCompactOperator_diagL`.
 5. **Grading** `γ : H →L[ℂ] H` (fibrewise `σ₃`): self-adjoint, `γ² = 1`, `γ D + D γ = 0`.
 6. **Representation** `π : C^∞(T²) → 𝓑(H)` by Fourier convolution (scalar, so `[γ, π a] = 0`).
 7. **Assemble** `IsEvenSpectralTriple`, and via
@@ -52,6 +58,8 @@ representation are the work ahead.
 @[expose] public section
 
 open LinearPMap
+open Filter
+open scoped Topology Matrix.Norms.L2Operator
 
 namespace SpectralTriples.Torus
 
@@ -212,5 +220,285 @@ theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac := by
 `Im i = 1 ≠ 0`, so the basic criterion applies. -/
 theorem mem_resolventSet_I : Complex.I ∈ diracDirac.resolventSet :=
   diracDirac_isSelfAdjoint.mem_resolventSet (by simp)
+
+private noncomputable def diracMatrix (p : ℤ × ℤ) : Matrix (Fin 2) (Fin 2) ℂ :=
+  (2 * Real.pi : ℂ) •
+    !![0, (p.1 : ℂ) - (p.2 : ℂ) * Complex.I;
+       (p.1 : ℂ) + (p.2 : ℂ) * Complex.I, 0]
+
+private noncomputable def diracSq (p : ℤ × ℤ) : ℝ :=
+  (2 * Real.pi) ^ 2 * ((p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2)
+
+private lemma diracMagnitude_nonneg (p : ℤ × ℤ) : 0 ≤ diracMagnitude p := by
+  unfold diracMagnitude
+  positivity
+
+private lemma diracMagnitude_sq (p : ℤ × ℤ) :
+    diracMagnitude p ^ 2 = diracSq p := by
+  have hnonneg : 0 ≤ (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by positivity
+  unfold diracMagnitude diracSq
+  rw [mul_pow, Real.sq_sqrt hnonneg]
+
+private lemma diracSq_nonneg (p : ℤ × ℤ) : 0 ≤ diracSq p := by
+  rw [← diracMagnitude_sq]
+  positivity
+
+private lemma diracMatrix_conjTranspose (p : ℤ × ℤ) :
+    (diracMatrix p).conjTranspose = diracMatrix p := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [diracMatrix, Matrix.conjTranspose_apply, Matrix.smul_apply, Complex.conj_ofReal,
+      sub_eq_add_neg]
+
+private lemma diracMatrix_sq (p : ℤ × ℤ) :
+    diracMatrix p * diracMatrix p =
+      ((diracSq p : ℝ) : ℂ) • (1 : Matrix (Fin 2) (Fin 2) ℂ) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [diracMatrix, diracSq, Matrix.mul_apply, Fin.sum_univ_two, Matrix.smul_apply,
+      sub_eq_add_neg]
+    <;> ring_nf
+    <;> rw [Complex.I_sq]
+    <;> ring_nf
+
+private lemma norm_diracMatrix (p : ℤ × ℤ) : ‖diracMatrix p‖ = diracMagnitude p := by
+  have h := Matrix.l2_opNorm_conjTranspose_mul_self (diracMatrix p)
+  rw [diracMatrix_conjTranspose, diracMatrix_sq] at h
+  have hleft :
+      ‖((diracSq p : ℝ) : ℂ) • (1 : Matrix (Fin 2) (Fin 2) ℂ)‖ =
+        diracMagnitude p ^ 2 := by
+    rw [show (((diracSq p : ℝ) : ℂ) • (1 : Matrix (Fin 2) (Fin 2) ℂ)) =
+        Matrix.diagonal (fun _ : Fin 2 => ((diracSq p : ℝ) : ℂ)) by
+      ext i j
+      by_cases hij : i = j <;> simp [hij, Matrix.smul_apply]]
+    rw [Matrix.l2_opNorm_diagonal]
+    simp [Pi.norm_def, Finset.sup_const Finset.univ_nonempty, Real.nnnorm_of_nonneg,
+      diracSq_nonneg, diracMagnitude_sq]
+  have hsq : ‖diracMatrix p‖ ^ 2 = diracMagnitude p ^ 2 := by
+    rw [pow_two]
+    rw [← h, hleft]
+  exact sq_eq_sq₀ (norm_nonneg _) (diracMagnitude_nonneg p) |>.mp hsq
+
+private lemma diracBlock_sq_apply (p : ℤ × ℤ) (v : Spinor) :
+    diracBlock p (diracBlock p v) = ((diracMagnitude p ^ 2 : ℝ) : ℂ) • v := by
+  apply WithLp.ofLp_injective (p := 2)
+  change WithLp.ofLp ((Matrix.toLpLin 2 2 (diracMatrix p))
+      ((Matrix.toLpLin 2 2 (diracMatrix p)) v)) =
+    WithLp.ofLp (((diracMagnitude p ^ 2 : ℝ) : ℂ) • v)
+  rw [Matrix.ofLp_toLpLin, Matrix.ofLp_toLpLin, Matrix.toLin'_apply, Matrix.toLin'_apply,
+    Matrix.mulVec_mulVec, diracMatrix_sq, ← diracMagnitude_sq]
+  simp [Matrix.smul_mulVec]
+
+private noncomputable def diracBlockL (p : ℤ × ℤ) : Spinor →L[ℂ] Spinor :=
+  Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) (diracMatrix p)
+
+@[simp] private lemma coe_diracBlockL (p : ℤ × ℤ) :
+    (diracBlockL p : Spinor →ₗ[ℂ] Spinor) = diracBlock p := rfl
+
+@[simp] private lemma diracBlockL_apply (p : ℤ × ℤ) (v : Spinor) :
+    diracBlockL p v = diracBlock p v := by
+  change (diracBlockL p : Spinor →ₗ[ℂ] Spinor) v = diracBlock p v
+  rw [coe_diracBlockL]
+
+private lemma norm_diracBlockL (p : ℤ × ℤ) : ‖diracBlockL p‖ = diracMagnitude p := by
+  change ‖Matrix.toEuclideanCLM (n := Fin 2) (𝕜 := ℂ) (diracMatrix p)‖ = diracMagnitude p
+  rw [Matrix.l2_opNorm_toEuclideanCLM, norm_diracMatrix]
+
+private noncomputable def resolventBlock (p : ℤ × ℤ) : Spinor →L[ℂ] Spinor :=
+  (((1 / (1 + diracMagnitude p ^ 2) : ℝ) : ℂ)) •
+    (-(Complex.I) • ContinuousLinearMap.id ℂ Spinor - diracBlockL p)
+
+private lemma norm_resolventBlock_le_bound (p : ℤ × ℤ) :
+    ‖resolventBlock p‖ ≤ (1 + diracMagnitude p) / (1 + diracMagnitude p ^ 2) := by
+  let s : ℂ := ((1 / (1 + diracMagnitude p ^ 2) : ℝ) : ℂ)
+  let T : Spinor →L[ℂ] Spinor :=
+    -(Complex.I) • ContinuousLinearMap.id ℂ Spinor - diracBlockL p
+  have hs : ‖s‖ = 1 / (1 + diracMagnitude p ^ 2) := by
+    dsimp [s]
+    rw [show ‖((1 / (1 + diracMagnitude p ^ 2) : ℝ) : ℂ)‖ =
+        |(1 / (1 + diracMagnitude p ^ 2) : ℝ)| from RCLike.norm_ofReal (K := ℂ) _]
+    rw [abs_of_nonneg]
+    positivity
+  have hIid : ‖-(Complex.I) • ContinuousLinearMap.id ℂ Spinor‖ = 1 := by
+    rw [norm_smul, ContinuousLinearMap.norm_id]
+    simp
+  have hT : ‖T‖ ≤ 1 + diracMagnitude p := by
+    dsimp [T]
+    calc
+      ‖-(Complex.I) • ContinuousLinearMap.id ℂ Spinor - diracBlockL p‖
+          ≤ ‖-(Complex.I) • ContinuousLinearMap.id ℂ Spinor‖ + ‖diracBlockL p‖ := norm_sub_le _ _
+      _ = 1 + diracMagnitude p := by
+        rw [hIid, norm_diracBlockL]
+  calc
+    ‖resolventBlock p‖ = ‖s • T‖ := rfl
+    _ = ‖s‖ * ‖T‖ := norm_smul _ _
+    _ ≤ (1 / (1 + diracMagnitude p ^ 2)) * (1 + diracMagnitude p) := by
+      rw [hs]
+      gcongr
+    _ = (1 + diracMagnitude p) / (1 + diracMagnitude p ^ 2) := by ring
+
+private lemma resolventBlock_left_inverse (p : ℤ × ℤ) (v : Spinor) :
+    Complex.I • resolventBlock p v - diracBlock p (resolventBlock p v) = v := by
+  let s : ℂ := ((1 / (1 + diracMagnitude p ^ 2) : ℝ) : ℂ)
+  let d : ℂ := ((diracMagnitude p ^ 2 : ℝ) : ℂ)
+  have hden : (1 + diracMagnitude p ^ 2 : ℝ) ≠ 0 := by positivity
+  have hs : s * (1 + d) = 1 := by
+    have hreal : (1 / (1 + diracMagnitude p ^ 2)) *
+        (1 + diracMagnitude p ^ 2) = (1 : ℝ) := by
+      field_simp [hden]
+    dsimp [s, d]
+    exact_mod_cast hreal
+  have hscalar : -(Complex.I ^ 2 * s) + s * d = 1 := by
+    rw [Complex.I_sq]
+    simpa [mul_add] using hs
+  unfold resolventBlock
+  simp only [ContinuousLinearMap.smul_apply, ContinuousLinearMap.sub_apply,
+    ContinuousLinearMap.id_apply, diracBlockL_apply]
+  rw [_root_.map_smul, _root_.map_sub, _root_.map_smul, diracBlock_sq_apply]
+  change Complex.I • s • (-Complex.I • v - diracBlock p v) -
+      s • (-Complex.I • diracBlock p v - d • v) = v
+  calc
+    Complex.I • s • (-Complex.I • v - diracBlock p v) -
+        s • (-Complex.I • diracBlock p v - d • v)
+        = (-(Complex.I ^ 2 * s) + s * d) • v := by module
+    _ = v := by rw [hscalar, one_smul]
+
+private lemma resolventBlock_dirac_apply (p : ℤ × ℤ) (v : Spinor) :
+    diracBlock p (resolventBlock p v) = Complex.I • resolventBlock p v - v := by
+  have h := sub_eq_iff_eq_add'.mp (resolventBlock_left_inverse p v)
+  rw [eq_sub_iff_add_eq]
+  exact h.symm
+
+private def radius (p : ℤ × ℤ) : ℕ := max p.1.natAbs p.2.natAbs
+
+private lemma radius_northcott : Northcott radius where
+  finite_le n := by
+    classical
+    let s : Finset (ℤ × ℤ) := (Finset.range (n + 1)).biUnion fun k => Finset.box k
+    refine s.finite_toSet.subset ?_
+    intro p hp
+    rw [Finset.mem_coe, Finset.mem_biUnion]
+    refine ⟨radius p, ?_, ?_⟩
+    · rw [Finset.mem_range]
+      exact Nat.lt_succ_of_le hp
+    · exact Int.mem_box.mpr rfl
+
+private lemma radius_tendsto_atTop : Tendsto radius cofinite atTop := by
+  rw [← northcott_iff_tendsto]
+  exact radius_northcott
+
+private lemma radius_le_sqrt (p : ℤ × ℤ) :
+    (radius p : ℝ) ≤ Real.sqrt ((p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2) := by
+  have hsum : 0 ≤ (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by positivity
+  have h1 : ((p.1.natAbs : ℕ) : ℝ) ^ 2 ≤ (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by
+    have habs : ((p.1.natAbs : ℕ) : ℝ) = |(p.1 : ℝ)| := by
+      simpa only [Int.cast_abs] using (Nat.cast_natAbs (α := ℝ) p.1)
+    rw [habs, sq_abs]
+    nlinarith [sq_nonneg (p.2 : ℝ)]
+  have h2 : ((p.2.natAbs : ℕ) : ℝ) ^ 2 ≤ (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by
+    have habs : ((p.2.natAbs : ℕ) : ℝ) = |(p.2 : ℝ)| := by
+      simpa only [Int.cast_abs] using (Nat.cast_natAbs (α := ℝ) p.2)
+    rw [habs, sq_abs]
+    nlinarith [sq_nonneg (p.1 : ℝ)]
+  have hsq : (radius p : ℝ) ^ 2 ≤ (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by
+    unfold radius
+    by_cases hle : p.1.natAbs ≤ p.2.natAbs
+    · rw [max_eq_right hle]
+      exact h2
+    · rw [max_eq_left (le_of_not_ge hle)]
+      exact h1
+  rw [← sq_le_sq₀ (by positivity : 0 ≤ (radius p : ℝ)) (Real.sqrt_nonneg _),
+    Real.sq_sqrt hsum]
+  exact hsq
+
+private lemma diracMagnitude_tendsto_atTop : Tendsto diracMagnitude cofinite atTop := by
+  have hradR : Tendsto (fun p : ℤ × ℤ => (radius p : ℝ)) cofinite atTop :=
+    tendsto_natCast_atTop_atTop.comp radius_tendsto_atTop
+  have hscale : Tendsto (fun p : ℤ × ℤ => (2 * Real.pi) * (radius p : ℝ)) cofinite atTop :=
+    hradR.const_mul_atTop' (by positivity : (0 : ℝ) < 2 * Real.pi)
+  refine tendsto_atTop_mono' _ ?_ hscale
+  filter_upwards with p
+  unfold diracMagnitude
+  exact mul_le_mul_of_nonneg_left (radius_le_sqrt p) (by positivity)
+
+private lemma ratio_le_two_inv (x : ℝ) (hx : 0 ≤ x) :
+    (1 + x) / (1 + x ^ 2) ≤ 2 / (1 + x) := by
+  have hpos1 : 0 < 1 + x := by linarith
+  have hpos2 : 0 < 1 + x ^ 2 := by nlinarith [sq_nonneg x]
+  rw [div_le_div_iff₀ hpos2 hpos1]
+  nlinarith [sq_nonneg (x - 1)]
+
+private lemma norm_resolventBlock_le_two (p : ℤ × ℤ) : ‖resolventBlock p‖ ≤ 2 := by
+  calc
+    ‖resolventBlock p‖ ≤ (1 + diracMagnitude p) / (1 + diracMagnitude p ^ 2) :=
+      norm_resolventBlock_le_bound p
+    _ ≤ 2 / (1 + diracMagnitude p) := ratio_le_two_inv _ (diracMagnitude_nonneg p)
+    _ ≤ 2 := by
+      have hpos : 0 < 1 + diracMagnitude p := by linarith [diracMagnitude_nonneg p]
+      rw [div_le_iff₀ hpos]
+      nlinarith [diracMagnitude_nonneg p]
+
+private lemma norm_resolventBlock_tendsto_zero :
+    Tendsto (fun p : ℤ × ℤ => ‖resolventBlock p‖) cofinite (𝓝 0) := by
+  have hden : Tendsto (fun p : ℤ × ℤ => 1 + diracMagnitude p) cofinite atTop := by
+    refine tendsto_atTop_mono' _ ?_ diracMagnitude_tendsto_atTop
+    filter_upwards with p
+    linarith
+  have hmajor0 : Tendsto (fun p : ℤ × ℤ => 2 / (1 + diracMagnitude p)) cofinite (𝓝 0) :=
+    hden.const_div_atTop 2
+  refine squeeze_zero (fun p => norm_nonneg _) ?_ hmajor0
+  intro p
+  exact (norm_resolventBlock_le_bound p).trans
+    (ratio_le_two_inv _ (diracMagnitude_nonneg p))
+
+private noncomputable def resolventDiag : H →L[ℂ] H :=
+  lpDiag.diagL (𝕜 := ℂ) (G := fun _ : ℤ × ℤ => Spinor) resolventBlock (C := 2)
+    (by norm_num) (fun p => norm_resolventBlock_le_two p)
+
+private lemma isCompactOperator_resolventDiag : IsCompactOperator resolventDiag := by
+  exact lpDiag.isCompactOperator_diagL (𝕜 := ℂ) (G := fun _ : ℤ × ℤ => Spinor)
+    resolventBlock (C := 2) (by norm_num) (fun p => norm_resolventBlock_le_two p)
+    norm_resolventBlock_tendsto_zero
+
+private lemma resolventDiag_mem_diracDomain (x : H) : resolventDiag x ∈ diracDomain := by
+  rw [mem_diracDomain_iff]
+  have hfun : (fun q => diracBlock q ((resolventDiag x) q)) =
+      fun q => (Complex.I • resolventDiag x - x) q := by
+    funext q
+    rw [resolventDiag, lpDiag.diagL_apply, resolventBlock_dirac_apply]
+    rfl
+  rw [hfun]
+  exact lp.memℓp (Complex.I • resolventDiag x - x)
+
+private lemma resolvent_op_resolventDiag (x : H) :
+    (((Complex.I • LinearMap.id (R := ℂ) (M := H)) +ᵥ (-diracDirac) : H →ₗ.[ℂ] H)
+      ⟨resolventDiag x, resolventDiag_mem_diracDomain x⟩) = x := by
+  refine lp.ext (funext fun q => ?_)
+  rw [vadd_apply, LinearMap.smul_apply, LinearMap.id_apply, neg_apply]
+  change (Complex.I • resolventDiag x -
+      diracDirac ⟨resolventDiag x, resolventDiag_mem_diracDomain x⟩) q = x q
+  rw [lp.coeFn_sub, Pi.sub_apply, lp.coeFn_smul, Pi.smul_apply, diracDirac_apply]
+  simpa only [resolventDiag, lpDiag.diagL_apply] using resolventBlock_left_inverse q (x q)
+
+set_option maxHeartbeats 800000 in
+-- This proof asks Lean to compare the unfolded resolvent operator with a named diagonal map.
+private lemma resolvent_eq_resolventDiag :
+    diracDirac.resolvent Complex.I = (resolventDiag : H →ₗ[ℂ] H) := by
+  rw [LinearPMap.resolvent_apply_eq (f := diracDirac) mem_resolventSet_I]
+  apply LinearMap.ext
+  intro x
+  have h := LinearPMap.apply_inverseAsLinearMap_apply_cancel
+      (f := ((Complex.I • LinearMap.id (R := ℂ) (M := H)) +ᵥ (-diracDirac) : H →ₗ.[ℂ] H))
+      mem_resolventSet_I
+      (⟨resolventDiag x, resolventDiag_mem_diracDomain x⟩ :
+        (((Complex.I • LinearMap.id (R := ℂ) (M := H)) +ᵥ (-diracDirac) : H →ₗ.[ℂ] H).domain))
+  rw [resolvent_op_resolventDiag] at h
+  exact h
+
+/-- The resolvent of the torus Dirac operator at `i` is compact. -/
+theorem isCompactOperator_resolvent_I :
+    IsCompactOperator (diracDirac.resolvent Complex.I) := by
+  rw [resolvent_eq_resolventDiag]
+  exact isCompactOperator_resolventDiag
 
 end SpectralTriples.Torus
