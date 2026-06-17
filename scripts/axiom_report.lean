@@ -48,3 +48,24 @@ open LinearPMap
 #print axioms IsOddSpectralTriple.mem_resolventSet
 #print axioms IsOddSpectralTriple.toIsFinitelySummableSpectralTriple
 #print axioms IsFinitelySummableSpectralTriple.resolvent_mem
+
+-- DiagonalOperator.lean — block-diagonal operators on ℓ² and the compactness criterion.
+#print axioms lpDiag.diagL
+#print axioms lpDiag.norm_diagL_le
+#print axioms lpDiag.isCompactOperator_diagL_of_support_finite
+#print axioms lpDiag.isCompactOperator_diagL
+
+-- Examples/Torus.lean — the concrete T² Dirac spectral triple (even, finitely summable).
+#print axioms SpectralTriples.Torus.diracDirac
+#print axioms SpectralTriples.Torus.diracDirac_isSelfAdjoint
+#print axioms SpectralTriples.Torus.mem_resolventSet_I
+#print axioms SpectralTriples.Torus.isCompactOperator_resolvent_I
+#print axioms SpectralTriples.Torus.grading
+#print axioms SpectralTriples.Torus.isSelfAdjoint_grading
+#print axioms SpectralTriples.Torus.grading_mul_self
+#print axioms SpectralTriples.Torus.grading_anticomm
+#print axioms SpectralTriples.Torus.algebra
+#print axioms SpectralTriples.Torus.rep
+#print axioms SpectralTriples.Torus.isOddSpectralTriple
+#print axioms SpectralTriples.Torus.isEvenSpectralTriple
+#print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
