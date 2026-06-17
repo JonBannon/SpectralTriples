@@ -8,6 +8,7 @@ module
 
 public import SpectralTriples.FinitelySummable
 public import Mathlib.Analysis.InnerProductSpace.l2Space
+public import Mathlib.Analysis.Matrix.Hermitian
 
 /-! # The Dirac spectral triple of the 2-torus `T²`
 
@@ -29,16 +30,17 @@ eigenvalues to **self-adjoint 2×2 blocks** on the spinor fibre.
 
 ## Construction status and plan
 
-This file is the **scaffold**: the Hilbert space, the eigenvalue magnitude, and the `H¹`
-domain are set up. The block-diagonal operator and the analytic core are the work ahead.
+The Hilbert space, the block-diagonal Dirac operator, and its **self-adjointness** (hence
+`i ∈ ρ(D)`) are done. The remaining analytic core (compact resolvent), the grading, and the
+representation are the work ahead.
 
 1. **Hilbert space** `H = ℓ²(ℤ²; ℂ²)` — done.
 2. **Dirac block** `diracBlock (m,n) : ℂ² →L[ℂ] ℂ²`, the self-adjoint matrix above; then the
    block-diagonal `D : H →ₗ.[ℂ] H`, `(D a)₍ₘ,ₙ₎ = diracBlock (m,n) (a ₍ₘ,ₙ₎)`, on the `H¹`
-   domain `diracDomain` below.
-3. **Self-adjointness** `IsSelfAdjoint D`: the block version of the `S¹` argument — symmetry
-   from `inner_eq_tsum` + self-adjointness of each block; the adjoint-domain inclusion by
-   testing against `lp.single (m,n) eⱼ` for the fibre basis `eⱼ`.
+   domain `diracDomain` below — done.
+3. **Self-adjointness** `IsSelfAdjoint D` — done: the block version of the `S¹` argument —
+   symmetry from `inner_eq_tsum` + self-adjointness of each block; the adjoint-domain inclusion
+   by testing against `lp.single (m,n) v` for single-mode spinors. `i ∈ ρ(D)` follows.
 4. **Compact resolvent** `IsCompactOperator (D.resolvent i)`: finite-rank truncation to
    `m² + n² ≤ N`, with the tail controlled by `1/(2π√(m²+n²)) → 0`.
 5. **Grading** `γ : H →L[ℂ] H` (fibrewise `σ₃`): self-adjoint, `γ² = 1`, `γ D + D γ = 0`.
@@ -122,5 +124,93 @@ noncomputable def diracDirac : H →ₗ.[ℂ] H where
 
 @[simp] theorem diracDirac_apply (a : diracDomain) (p : ℤ × ℤ) :
     (diracDirac a) p = diracBlock p ((a : H) p) := rfl
+
+/-- Each Dirac block is self-adjoint on the spinor fibre: the matrix
+`2π·!![0, m-in; m+in, 0]` is Hermitian. -/
+theorem diracBlock_isSymmetric (p : ℤ × ℤ) : (diracBlock p).IsSymmetric := by
+  rw [diracBlock, Matrix.isSymmetric_toEuclideanLin_iff]
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [Matrix.conjTranspose_apply, Matrix.smul_apply, Complex.conj_ofReal, sub_eq_add_neg]
+
+/-- The torus Dirac operator is symmetric (formally self-adjoint): `⟪D a, b⟫ = ⟪a, D b⟫` on its
+domain, because each spinor block is self-adjoint. -/
+theorem diracDirac_isFormalAdjoint : diracDirac.IsFormalAdjoint diracDirac := by
+  intro a b
+  rw [lp.inner_eq_tsum, lp.inner_eq_tsum]
+  refine tsum_congr fun p => ?_
+  rw [diracDirac_apply, diracDirac_apply]
+  exact diracBlock_isSymmetric p _ _
+
+/-- Each `lp.single (m, n) v` (a single spinor in one Fourier mode) lies in the `H¹` domain: it
+has finite support, so `q ↦ D₍q₎ (single₍q₎)` is supported on `{(m, n)}` and square-summable. -/
+theorem single_mem_diracDomain (p : ℤ × ℤ) (v : Spinor) :
+    (lp.single 2 p v : H) ∈ diracDomain := by
+  rw [mem_diracDomain_iff]
+  have hfun : (fun q => diracBlock q ((lp.single 2 p v : H) q))
+      = ⇑(lp.single 2 p (diracBlock p v) : H) := by
+    funext q
+    rcases eq_or_ne q p with h | h
+    · subst h; simp [lp.single_apply]
+    · simp [lp.single_apply, h, _root_.map_zero]
+  rw [hfun]
+  exact lp.memℓp _
+
+/-- The image `D (single (m, n) v) = single (m, n) (D₍ₘ,ₙ₎ v)`: the block-diagonal operator acts
+on a single-mode vector by its block in that mode. -/
+theorem diracDirac_single (p : ℤ × ℤ) (v : Spinor) :
+    diracDirac ⟨lp.single 2 p v, single_mem_diracDomain p v⟩
+      = (lp.single 2 p (diracBlock p v) : H) := by
+  refine lp.ext (funext fun q => ?_)
+  rcases eq_or_ne q p with h | h
+  · subst h; simp [diracDirac_apply, lp.single_apply]
+  · simp [diracDirac_apply, lp.single_apply, h, _root_.map_zero]
+
+/-- The `H¹` domain is dense in `ℓ²(ℤ²; ℂ²)`: it contains every single-mode spinor, so its
+orthogonal complement is trivial. -/
+theorem dense_diracDomain : Dense (diracDirac.domain : Set H) := by
+  change Dense (diracDomain : Set H)
+  have horth : (diracDomain : Submodule ℂ H)ᗮ = ⊥ := by
+    rw [Submodule.eq_bot_iff]
+    intro y hy
+    refine lp.ext (funext fun p => ?_)
+    refine ext_inner_left ℂ fun v => ?_
+    have h0 : inner ℂ (lp.single 2 p v : H) y = 0 := hy _ (single_mem_diracDomain p v)
+    rw [lp.inner_single_left] at h0
+    rw [h0, lp.coeFn_zero, Pi.zero_apply, inner_zero_right]
+  have htop : diracDomain.topologicalClosure = ⊤ :=
+    (Submodule.topologicalClosure_eq_top_iff (K := diracDomain)).mpr horth
+  rw [dense_iff_closure_eq, ← Submodule.topologicalClosure_coe, htop, Submodule.top_coe]
+
+/-- The torus Dirac operator is contained in its adjoint (symmetry ⇒ `D ≤ D†`). -/
+theorem diracDirac_le_adjoint : diracDirac ≤ diracDirac† :=
+  diracDirac_isFormalAdjoint.le_adjoint dense_diracDomain
+
+/-- **The torus Dirac operator is self-adjoint.** It is symmetric (so `D ≤ D†`); it remains to
+show `D†.domain ⊆ D.domain`. For `y ∈ D†.domain`, testing the adjoint relation against each
+single-mode spinor `single (m, n) v` and using self-adjointness of the block gives
+`(D† y)₍ₘ,ₙ₎ = D₍ₘ,ₙ₎ (y₍ₘ,ₙ₎)`, so `q ↦ D₍q₎ (y₍q₎)` is square-summable and `y ∈ H¹`. -/
+theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac := by
+  rw [isSelfAdjoint_def]
+  have hfa : diracDirac†.IsFormalAdjoint diracDirac := adjoint_isFormalAdjoint dense_diracDomain
+  have hdomle : diracDirac†.domain ≤ diracDomain := by
+    intro y hy
+    rw [mem_diracDomain_iff]
+    have hcoe : (fun p => diracBlock p (y p)) = ⇑(diracDirac† ⟨y, hy⟩) := by
+      funext p
+      refine (ext_inner_right ℂ fun v => ?_).symm
+      have key := hfa ⟨y, hy⟩ ⟨lp.single 2 p v, single_mem_diracDomain p v⟩
+      rw [lp.inner_single_right, diracDirac_single, lp.inner_single_right] at key
+      rw [key]
+      exact (diracBlock_isSymmetric p (y p) v).symm
+    rw [hcoe]; exact lp.memℓp _
+  have heq : diracDirac.domain = diracDirac†.domain :=
+    le_antisymm diracDirac_le_adjoint.1 hdomle
+  exact (LinearPMap.eq_of_le_of_domain_eq diracDirac_le_adjoint heq).symm
+
+/-- `i` lies in the resolvent set of the torus Dirac operator: it is self-adjoint and
+`Im i = 1 ≠ 0`, so the basic criterion applies. -/
+theorem mem_resolventSet_I : Complex.I ∈ diracDirac.resolventSet :=
+  diracDirac_isSelfAdjoint.mem_resolventSet (by simp)
 
 end SpectralTriples.Torus
