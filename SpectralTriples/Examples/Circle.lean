@@ -116,10 +116,51 @@ noncomputable def diracDirac : L2 →ₗ.[ℂ] L2 where
 @[simp] theorem diracDirac_apply (a : diracDomain) (n : ℤ) :
     (diracDirac a) n = (diracEigen n : ℂ) * (a : L2) n := rfl
 
+/-- The circle Dirac operator is symmetric (formally self-adjoint): `⟪D x, y⟫ = ⟪x, D y⟫`
+on its domain, because its eigenvalues are real. -/
+theorem diracDirac_isFormalAdjoint : diracDirac.IsFormalAdjoint diracDirac := by
+  intro x y
+  rw [lp.inner_eq_tsum, lp.inner_eq_tsum]
+  refine tsum_congr fun n => ?_
+  simp only [diracDirac_apply, RCLike.inner_apply, map_mul, Complex.conj_ofReal]
+  ring
+
+/-- Each Fourier basis vector `eₙ = lp.single 2 n 1` lies in the `H¹` domain (it has finite
+support, so `m ↦ m · (eₙ)ₘ = n · eₙ` is square-summable). -/
+theorem single_mem_diracDomain (n : ℤ) : (lp.single 2 n (1 : ℂ) : L2) ∈ diracDomain := by
+  rw [mem_diracDomain_iff]
+  have hfun : (fun m => (diracEigen m : ℂ) * (lp.single 2 n (1 : ℂ) : L2) m)
+      = (diracEigen n : ℂ) • (⇑(lp.single 2 n (1 : ℂ) : L2) : ℤ → ℂ) := by
+    funext m
+    rcases eq_or_ne m n with h | h
+    · subst h; simp [lp.single_apply]
+    · simp [lp.single_apply, h]
+  rw [hfun]
+  exact (lp.memℓp _).const_smul _
+
+/-- The `H¹` domain is dense in `ℓ²(ℤ)`: it contains every Fourier basis vector, so its
+orthogonal complement is trivial. -/
+theorem dense_diracDomain : Dense (diracDirac.domain : Set L2) := by
+  change Dense (diracDomain : Set L2)
+  have horth : (diracDomain : Submodule ℂ L2)ᗮ = ⊥ := by
+    rw [Submodule.eq_bot_iff]
+    intro y hy
+    refine lp.ext (funext fun n => ?_)
+    have h0 : inner ℂ (lp.single 2 n (1 : ℂ) : L2) y = 0 := hy _ (single_mem_diracDomain n)
+    rw [lp.inner_single_left] at h0
+    simpa [RCLike.inner_apply, lp.coeFn_zero] using h0
+  have htop : diracDomain.topologicalClosure = ⊤ :=
+    (Submodule.topologicalClosure_eq_top_iff (K := diracDomain)).mpr horth
+  rw [dense_iff_closure_eq, ← Submodule.topologicalClosure_coe, htop, Submodule.top_coe]
+
+/-- The circle Dirac operator is contained in its adjoint (symmetry ⇒ `D ≤ D†`). -/
+theorem diracDirac_le_adjoint : diracDirac ≤ diracDirac† :=
+  diracDirac_isFormalAdjoint.le_adjoint dense_diracDomain
+
 /- TODO (next steps), the analytic core (reusable for the `T²` example over `ℤ²`):
-* `IsSelfAdjoint diracDirac` — symmetry from `inner_eq_tsum` + reality of `diracEigen`;
-  the adjoint-domain inclusion by testing against `lp.single 2 n 1` (`inner_single_left/right`)
-  to read off `(D† b)ₙ = n · bₙ`.
+* `IsSelfAdjoint diracDirac` — the reverse inclusion `D† ≤ D`: for `y ∈ D†.domain`, testing
+  `⟪D† y, eₙ⟫ = ⟪y, D eₙ⟫` against `eₙ = lp.single 2 n 1` (`inner_single_left/right`) gives
+  `(D† y)ₙ = n · yₙ`, so `n ↦ n·yₙ` is in `ℓ²` and `y ∈ D.domain` with `D y = D† y`.
 * `IsCompactOperator (diracDirac.resolvent Complex.I)` — the resolvent is the bounded diagonal
   operator `bₙ ↦ bₙ/(n+i)`, a norm limit of finite-rank truncations since `1/(n+i) → 0`.
 Then assemble via `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple … (z := Complex.I)`. -/
