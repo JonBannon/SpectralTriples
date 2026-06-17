@@ -16,7 +16,8 @@
 'IsSelfAdjoint.injective_resolvent_apply' depends on axioms: [propext, Classical.choice, Quot.sound]
 'IsSelfAdjoint.dense_range_resolvent_apply' depends on axioms: [propext, Classical.choice, Quot.sound]
 'IsFinitelySummableSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
-'IsSelfAdjoint.isClosed_range_subDirac' depends on axioms: [propext, Classical.choice, Quot.sound]
-'IsSelfAdjoint.mem_resolventSet' depends on axioms: [propext, Classical.choice, Quot.sound]
-'IsOddSpectralTriple.mem_resolventSet' depends on axioms: [propext, Classical.choice, Quot.sound]
-'IsOddSpectralTriple.toIsFinitelySummableSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
+scripts/axiom_report.lean:46:14: error(lean.unknownIdentifier): Unknown constant `IsSelfAdjoint.isClosed_range_subDirac`
+scripts/axiom_report.lean:47:14: error(lean.unknownIdentifier): Unknown constant `IsSelfAdjoint.mem_resolventSet`
+scripts/axiom_report.lean:48:14: error(lean.unknownIdentifier): Unknown constant `IsOddSpectralTriple.mem_resolventSet`
+scripts/axiom_report.lean:49:14: error(lean.unknownIdentifier): Unknown constant `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple`
+'IsFinitelySummableSpectralTriple.resolvent_mem' depends on axioms: [propext, Classical.choice, Quot.sound]
