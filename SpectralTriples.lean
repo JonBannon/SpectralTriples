@@ -2,3 +2,4 @@ import SpectralTriples.Basic
 import SpectralTriples.Resolvent
 import SpectralTriples.FinitelySummable
 import SpectralTriples.Examples.Circle
+import SpectralTriples.Examples.Torus
