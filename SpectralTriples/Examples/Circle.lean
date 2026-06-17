@@ -27,20 +27,20 @@ without a separate `resolvent_mem` proof.
 
 ## Construction status and plan
 
-The space, the `H¹` domain, and the **diagonal Dirac operator itself** (`diracDirac`) are
-built and `sorry`-free; the remaining analytic core (self-adjointness, compact resolvent,
-representation) is absent from Mathlib and is the multi-step work ahead — shared with the
-`T²` example, which reuses the same diagonal-operator machinery over `ℤ²`.
+The space, the `H¹` domain, the **diagonal Dirac operator** (`diracDirac`), its
+**self-adjointness**, and **`i ∈ ρ(D)`** are built and `sorry`-free. The remaining analytic
+core (compact resolvent, representation) is absent from Mathlib and is the work ahead — shared
+with the `T²` example, which reuses the same diagonal-operator machinery over `ℤ²`.
 
 1. **Diagonal operator** — done (`diracDirac`, with `diracDirac_apply : (D a)ₙ = n · aₙ`).
    To reuse for `T²`, generalize to eigenvalues `μ : ι → ℝ` over an arbitrary index `ι`.
-2. **Self-adjointness** `IsSelfAdjoint diracDirac` (eigenvalues real): symmetry from
-   `inner_eq_tsum` + reality of `μ`; the adjoint-domain inclusion from testing against
-   `lp.single 2 n 1` (`inner_single_left/right`) to read off `(D† b)ₙ = μ n • bₙ`.
-3. **Compact resolvent** `IsCompactOperator ((diagonalPMap μ).resolvent i)` when `|μ| → ∞`
-   (proper level sets): the resolvent is the bounded diagonal operator `bₙ ↦ bₙ/(μ n + i)`,
-   a norm limit of finite-rank truncations since `1/(μ n + i) → 0`.
-4. **Representation** `π : C^∞(S¹) → (ℓ²(ℤ) →L[ℂ] ℓ²(ℤ))` by convolution with Fourier
+2. **Self-adjointness** — done (`diracDirac_isSelfAdjoint`): symmetry from `inner_eq_tsum` +
+   reality of the eigenvalues, then the adjoint-domain inclusion by testing against
+   `lp.single 2 n 1` to read off `(D† b)ₙ = n · bₙ`. Gives `i ∈ ρ(D)` (`mem_resolventSet_I`).
+3. **Compact resolvent** (ahead) `IsCompactOperator (diracDirac.resolvent Complex.I)`: the
+   resolvent is the bounded diagonal operator `bₙ ↦ bₙ/(i − n)`, a norm limit of finite-rank
+   truncations since `1/(i − n) → 0`.
+4. **Representation** (ahead) `π : C^∞(S¹) → (ℓ²(ℤ) →L[ℂ] ℓ²(ℤ))` by convolution with Fourier
    coefficients; `dom_comp` and the commutator bound `[D, π f] = π(f')` from rapid decay.
 5. **Assemble** via `IsOddSpectralTriple` and
    `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple … (z := Complex.I)`.
@@ -178,9 +178,8 @@ theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac := by
         · subst h; rfl
         · simp [lp.single_apply, h]
       rw [lp.inner_single_right, hDe, inner_smul_right, lp.inner_single_right] at key
-      simp only [RCLike.inner_apply, map_one, mul_one, one_mul] at key
       have key2 := congrArg (starRingEnd ℂ) key
-      simp only [map_mul, RCLike.conj_conj, Complex.conj_ofReal] at key2
+      simp [RCLike.inner_apply, map_mul, Complex.conj_ofReal] at key2
       exact key2.symm
     rw [hcoe]; exact lp.memℓp _
   have heq : diracDirac.domain = diracDirac†.domain :=
