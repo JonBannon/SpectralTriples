@@ -42,8 +42,9 @@ open LinearPMap
 #print axioms IsSelfAdjoint.dense_range_resolvent_apply
 #print axioms IsFinitelySummableSpectralTriple
 
--- SelfAdjoint.lean — the basic self-adjointness criterion (Im z ≠ 0 ⇒ z ∈ ρ(D)).
+-- FinitelySummable.lean (continued) — the basic self-adjointness criterion (Im z ≠ 0 ⇒ z ∈ ρ(D)).
 #print axioms IsSelfAdjoint.isClosed_range_subDirac
 #print axioms IsSelfAdjoint.mem_resolventSet
 #print axioms IsOddSpectralTriple.mem_resolventSet
 #print axioms IsOddSpectralTriple.toIsFinitelySummableSpectralTriple
+#print axioms IsFinitelySummableSpectralTriple.resolvent_mem
