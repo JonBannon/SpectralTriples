@@ -93,3 +93,8 @@ open LinearPMap
 #print axioms SpectralTriples.Torus.isEvenSpectralTriple
 #print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
 #print axioms SpectralTriples.Torus.index_eq_zero
+
+-- Examples/Shift.lean — the unilateral shift on ℓ²(ℕ): a Fredholm operator of index −1.
+#print axioms SpectralTriples.Shift.shift
+#print axioms SpectralTriples.Shift.fredholmIndex
+#print axioms SpectralTriples.Shift.fredholmIndex_shift
