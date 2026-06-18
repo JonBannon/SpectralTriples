@@ -68,6 +68,26 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 | its operator-norm bound | `‖diagL T‖ ≤ C` when `‖Tᵢ‖ ≤ C` | `lpDiag.norm_diagL_le` — `DiagonalOperator.lean:97` | ✓ axiom-clean |
 | **compactness criterion** | block norms `→ 0` (cofinite) + finite-dim fibres ⇒ `diagL T` compact (finite-rank truncations converge in operator norm) | `lpDiag.isCompactOperator_diagL` — `DiagonalOperator.lean:185` | ✓ axiom-clean |
 
+## Index of an even spectral triple (Phase 2 foundations)
+
+The **(super)index** `dim (ker D)⁺ − dim (ker D)⁻`, the Fredholm index of the chiral operator
+`D⁺ : H⁺ → H⁻`. By Atiyah–Singer / McKean–Singer this computes `∫ Â(M)·ch(E)`; for `T²` coupled
+to a degree-`k` line bundle it is `k`. Reference: Connes Ch. IV/VI; Higson–Roe Ch. 10.
+
+| Object / Claim | Lean | Status |
+|---|---|---|
+| `ker D` as a subspace of `H` | `SpectralTriples.Dkernel` — `Index.lean:51` | ✓ axiom-clean |
+| graded-kernel index `dim(ker D)⁺ − dim(ker D)⁻` | `SpectralTriples.index` — `Index.lean:67` | ✓ axiom-clean |
+| **`ker D` is finite-dimensional under a compact resolvent** (so the index is genuine — the Fredholm property) | `SpectralTriples.finiteDimensional_Dkernel` — `Index.lean:75` | ✓ axiom-clean |
+| `γ` preserves `ker D` (kernel is `Z₂`-graded) | `SpectralTriples.grading_mem_Dkernel` — `Index.lean:115` | ✓ axiom-clean |
+| index of an even spectral triple | `IsEvenSpectralTriple.index` — `Index.lean:127` | ✓ axiom-clean |
+
+*Faithfulness note.* `index D γ` is `(finrank (ker D ⊓ H⁺) : ℤ) − finrank (ker D ⊓ H⁻)` with
+`H^± = eigenspace γ (±1)`. Each `finrank` is the Mathlib `Module.finrank` (which is `0` on
+infinite-dimensional spaces); `finiteDimensional_Dkernel` is what guarantees the two ranks count
+genuine dimensions, via `ker D ⊆` the `i⁻¹`-eigenspace of the compact resolvent (finite-dim by
+Riesz, `ContinuousLinearMap.finite_dimensional_eigenspace`).
+
 ## Concrete example: the Dirac spectral triple of the 2-torus `T²`
 
 A worked, fully assembled **even, finitely-summable** spectral triple, on the Fourier side
