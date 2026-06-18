@@ -51,10 +51,51 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 | `|Im z|·‖x‖ ≤ ‖z·x − D x‖` for self-adjoint `D` | `IsSelfAdjoint.norm_resolvent_apply_ge` — `FinitelySummable.lean:43` | ✓ axiom-clean |
 | `z·1 − D` injective on `dom D` when `Im z ≠ 0` | `IsSelfAdjoint.injective_resolvent_apply` — `FinitelySummable.lean:82` | ✓ axiom-clean |
 | range of `z·1 − D` is dense | `IsSelfAdjoint.dense_range_resolvent_apply` — `FinitelySummable.lean:155` | ✓ axiom-clean |
-| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `SelfAdjoint.lean:57` | ✓ axiom-clean |
-| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `SelfAdjoint.lean:102` | ✓ axiom-clean |
-| odd triple: `Im z ≠ 0 ⇒ z ∈ ρ(D)` (so `i ∈ ρ(D)`) | `IsOddSpectralTriple.mem_resolventSet` — `SelfAdjoint.lean:137` | ✓ axiom-clean |
-| finitely summable triple from odd + compact resolvent (no `resolvent_mem` needed) | `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` — `SelfAdjoint.lean:144` | ✓ axiom-clean |
+| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `FinitelySummable.lean:191` | ✓ axiom-clean |
+| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `FinitelySummable.lean:231` | ✓ axiom-clean |
+| odd triple: `Im z ≠ 0 ⇒ z ∈ ρ(D)` (so `i ∈ ρ(D)`) | `IsOddSpectralTriple.mem_resolventSet` — `FinitelySummable.lean:265` | ✓ axiom-clean |
+| finitely summable triple from odd + compact resolvent (no `resolvent_mem` needed) | `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` — `FinitelySummable.lean:301` | ✓ axiom-clean |
+
+> The basic-criterion lemmas moved from a former `SelfAdjoint.lean` into
+> `FinitelySummable.lean` when PR #4 hard-coded `i` into the finitely-summable definition;
+> the file `SelfAdjoint.lean` no longer exists.
+
+## Reusable analytic infrastructure
+
+| Object / Claim | Informal content | Lean | Status |
+|---|---|---|---|
+| Block-diagonal operator on `ℓ²` | `(diagL T) a = (i ↦ Tᵢ aᵢ)` for a uniformly bounded block family | `lpDiag.diagL` — `DiagonalOperator.lean:69` | ✓ axiom-clean |
+| its operator-norm bound | `‖diagL T‖ ≤ C` when `‖Tᵢ‖ ≤ C` | `lpDiag.norm_diagL_le` — `DiagonalOperator.lean:97` | ✓ axiom-clean |
+| **compactness criterion** | block norms `→ 0` (cofinite) + finite-dim fibres ⇒ `diagL T` compact (finite-rank truncations converge in operator norm) | `lpDiag.isCompactOperator_diagL` — `DiagonalOperator.lean:185` | ✓ axiom-clean |
+
+## Concrete example: the Dirac spectral triple of the 2-torus `T²`
+
+A worked, fully assembled **even, finitely-summable** spectral triple, on the Fourier side
+`H = ℓ²(ℤ²; ℂ²)`, `D₍ₘ,ₙ₎ = 2π(σ₁ m + σ₂ n)`, chirality `γ = σ₃`, algebra = the Fourier
+image of the trigonometric polynomials `ℂ[ℤ²]` (the dense `*`-subalgebra of `C(T²)`).
+Reference: Connes Ch. VI; GBF §9–12 (canonical triple of a spin manifold, here `T²`).
+
+| Object / Claim | Lean | Status |
+|---|---|---|
+| Dirac operator `D` (block-diagonal, unbounded) | `SpectralTriples.Torus.diracDirac` — `Examples/Torus.lean:131` | ✓ axiom-clean |
+| `D` self-adjoint | `SpectralTriples.Torus.diracDirac_isSelfAdjoint` — `Examples/Torus.lean:211` | ✓ axiom-clean |
+| `i ∈ ρ(D)` | `SpectralTriples.Torus.mem_resolventSet_I` — `Examples/Torus.lean:231` | ✓ axiom-clean |
+| `(D − i·1)⁻¹` is compact | `SpectralTriples.Torus.isCompactOperator_resolvent_I` — `Examples/Torus.lean:509` | ✓ axiom-clean |
+| grading `γ = σ₃` (CLM) | `SpectralTriples.Torus.grading` — `Examples/Torus.lean:592` | ✓ axiom-clean |
+| `γ` self-adjoint | `SpectralTriples.Torus.isSelfAdjoint_grading` — `Examples/Torus.lean:608` | ✓ axiom-clean |
+| `γ² = 1` | `SpectralTriples.Torus.grading_mul_self` — `Examples/Torus.lean:612` | ✓ axiom-clean |
+| `D γ = −γ D` on `dom D` | `SpectralTriples.Torus.grading_anticomm` — `Examples/Torus.lean:631` | ✓ axiom-clean |
+| algebra `ℂ[ℤ²]` (shift `*`-subalgebra) | `SpectralTriples.Torus.algebra` — `Examples/Torus.lean:871` | ✓ axiom-clean |
+| representation (inclusion `StarAlgHom`) | `SpectralTriples.Torus.rep` — `Examples/Torus.lean:876` | ✓ axiom-clean |
+| **`(A, H, D)` is an odd spectral triple** | `SpectralTriples.Torus.isOddSpectralTriple` — `Examples/Torus.lean:931` | ✓ axiom-clean |
+| **`(A, H, D, γ)` is an even spectral triple** | `SpectralTriples.Torus.isEvenSpectralTriple` — `Examples/Torus.lean:984` | ✓ axiom-clean |
+| **finitely summable at `i`** | `SpectralTriples.Torus.isFinitelySummableSpectralTriple` — `Examples/Torus.lean:994` | ✓ axiom-clean |
+
+*Faithfulness note for the example.* The chosen algebra is the trigonometric polynomials
+`ℂ[ℤ²]` (Fourier dual of `C(T²)`), represented by the coordinate shift unitaries — the
+standard *smooth/pre-`C*`* algebra of the noncommutative-geometry torus, not the full `C(T²)`.
+This is the genuine spectral triple of `T²` at the level of its dense smooth subalgebra; the
+bounded commutator `[D, π a]` is exact (`[D, Wg] = −(σ·g) Wg`, the Clifford action of `g`).
 
 ## Faithfulness divergences (encoding choices, reviewer attention)
 
