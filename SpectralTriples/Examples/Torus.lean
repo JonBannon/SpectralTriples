@@ -7,6 +7,7 @@ Authors: Jon Bannon, Michael R. Douglas
 module
 
 public import SpectralTriples.FinitelySummable
+public import SpectralTriples.Index
 public import SpectralTriples.DiagonalOperator
 public import Mathlib.Algebra.Star.Subalgebra
 public import Mathlib.Analysis.CStarAlgebra.Matrix
@@ -994,5 +995,269 @@ basic compact-resolvent sense used in this development. -/
 theorem isFinitelySummableSpectralTriple :
     IsFinitelySummableSpectralTriple algebra diracDirac rep :=
   isOddSpectralTriple.toIsFinitelySummableSpectralTriple (by simp) isCompactOperator_resolvent_I
+
+/-- The zero Fourier-mode Dirac block vanishes. -/
+private lemma diracBlock_zero : diracBlock (0 : ℤ × ℤ) = 0 := by
+  ext v i
+  fin_cases i <;> simp [diracBlock, Matrix.toEuclideanLin, Matrix.toLpLin_apply]
+
+private lemma sum_sq_pos_of_prod_ne_zero {p : ℤ × ℤ} (hp : p ≠ 0) :
+    0 < (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by
+  have hnonneg : 0 ≤ (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 := by positivity
+  refine lt_of_le_of_ne hnonneg ?_
+  intro hzero
+  have hsumzero : (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 = 0 := hzero.symm
+  have hp1sq : (p.1 : ℝ) ^ 2 = 0 := by nlinarith [sq_nonneg (p.2 : ℝ)]
+  have hp2sq : (p.2 : ℝ) ^ 2 = 0 := by nlinarith [sq_nonneg (p.1 : ℝ)]
+  have hp1 : p.1 = 0 := by exact_mod_cast (sq_eq_zero_iff.mp hp1sq)
+  have hp2 : p.2 = 0 := by exact_mod_cast (sq_eq_zero_iff.mp hp2sq)
+  exact hp (Prod.ext hp1 hp2)
+
+private lemma diracMagnitude_ne_zero {p : ℤ × ℤ} (hp : p ≠ 0) :
+    diracMagnitude p ≠ 0 := by
+  have hsum : 0 < (p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2 :=
+    sum_sq_pos_of_prod_ne_zero hp
+  have hsqrt : 0 < Real.sqrt ((p.1 : ℝ) ^ 2 + (p.2 : ℝ) ^ 2) :=
+    Real.sqrt_pos.2 hsum
+  have hscale : 0 < 2 * Real.pi := by positivity
+  unfold diracMagnitude
+  exact ne_of_gt (mul_pos hscale hsqrt)
+
+/-- Away from the zero Fourier mode, the Dirac block is injective. -/
+private lemma diracBlock_injective {p : ℤ × ℤ} (hp : p ≠ 0) :
+    Function.Injective (diracBlock p) := by
+  rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
+  intro v hv
+  have hsq := diracBlock_sq_apply p v
+  rw [hv, _root_.map_zero] at hsq
+  have hscalar : (((diracMagnitude p ^ 2 : ℝ) : ℂ)) ≠ 0 := by
+    exact_mod_cast (pow_ne_zero 2 (diracMagnitude_ne_zero hp))
+  exact (smul_eq_zero.mp hsq.symm).resolve_left hscalar
+
+/-- The kernel of the torus Dirac operator consists exactly of vectors supported at the
+zero Fourier mode. -/
+private lemma mem_Dkernel_diracDirac_iff {x : H} :
+    x ∈ Dkernel diracDirac ↔ ∀ p : ℤ × ℤ, p ≠ 0 → x p = 0 := by
+  constructor
+  · intro hx p hp
+    rw [mem_Dkernel_iff] at hx
+    obtain ⟨hxdom, hxzero⟩ := hx
+    have hcoord := congrArg (fun y : H => y p) hxzero
+    apply diracBlock_injective hp
+    simpa [diracDirac_apply] using hcoord
+  · intro hsupp
+    rw [mem_Dkernel_iff]
+    have hxdom : x ∈ diracDomain := by
+      rw [mem_diracDomain_iff]
+      have hfun : (fun p : ℤ × ℤ => diracBlock p (x p)) = 0 := by
+        funext p
+        change diracBlock p (x p) = (0 : Spinor)
+        by_cases hp : p = 0
+        · subst p
+          rw [diracBlock_zero, LinearMap.zero_apply]
+        · rw [hsupp p hp, _root_.map_zero]
+      rw [hfun]
+      exact zero_memℓp
+    refine ⟨hxdom, ?_⟩
+    refine lp.ext (funext fun p => ?_)
+    change (diracDirac ⟨x, hxdom⟩) p = (0 : Spinor)
+    by_cases hp : p = 0
+    · subst p
+      simp [diracDirac_apply, diracBlock_zero]
+    · simp [diracDirac_apply, hsupp p hp]
+
+private noncomputable def spinorPlus : Spinor :=
+  EuclideanSpace.single (0 : Fin 2) (1 : ℂ)
+
+private noncomputable def spinorMinus : Spinor :=
+  EuclideanSpace.single (1 : Fin 2) (1 : ℂ)
+
+private noncomputable def plusKernelVector : H :=
+  lp.single 2 (0 : ℤ × ℤ) spinorPlus
+
+private noncomputable def minusKernelVector : H :=
+  lp.single 2 (0 : ℤ × ℤ) spinorMinus
+
+private lemma gradingBlock_apply_zero (v : Spinor) :
+    (gradingBlock v) (0 : Fin 2) = v (0 : Fin 2) := by
+  simp [gradingBlock, gradingMatrix, Matrix.toEuclideanLin, Matrix.toLpLin_apply,
+    Matrix.vecHead]
+
+private lemma gradingBlock_apply_one (v : Spinor) :
+    (gradingBlock v) (1 : Fin 2) = -v (1 : Fin 2) := by
+  simp [gradingBlock, gradingMatrix, Matrix.toEuclideanLin, Matrix.toLpLin_apply,
+    Matrix.vecHead, Matrix.vecTail]
+
+private lemma gradingBlock_single_plus :
+    gradingBlock spinorPlus = spinorPlus := by
+  ext i
+  fin_cases i <;> simp [spinorPlus, gradingBlock, gradingMatrix, Matrix.toEuclideanLin,
+    Matrix.toLpLin_apply]
+
+private lemma gradingBlock_single_minus :
+    gradingBlock spinorMinus = (-1 : ℂ) • spinorMinus := by
+  ext i
+  fin_cases i <;> simp [spinorMinus, gradingBlock, gradingMatrix, Matrix.toEuclideanLin,
+    Matrix.toLpLin_apply]
+
+private lemma spinor_eq_plus_smul {v : Spinor} (hv : gradingBlock v = v) :
+    v = (v (0 : Fin 2)) • spinorPlus := by
+  ext i
+  fin_cases i
+  · simp [spinorPlus]
+  · have h1 := congrArg (fun w : Spinor => w (1 : Fin 2)) hv
+    have hv1 : v (1 : Fin 2) = 0 := by
+      simpa [gradingBlock, gradingMatrix, Matrix.toEuclideanLin, Matrix.toLpLin_apply,
+        Matrix.vecHead, Matrix.vecTail, CharZero.neg_eq_self_iff] using h1
+    simp [spinorPlus, hv1]
+
+private lemma spinor_eq_minus_smul {v : Spinor} (hv : gradingBlock v = (-1 : ℂ) • v) :
+    v = (v (1 : Fin 2)) • spinorMinus := by
+  ext i
+  fin_cases i
+  · have h0 := congrArg (fun w : Spinor => w (0 : Fin 2)) hv
+    have hv0 : v (0 : Fin 2) = 0 := by
+      simpa [gradingBlock, gradingMatrix, Matrix.toEuclideanLin, Matrix.toLpLin_apply,
+        Matrix.vecHead, CharZero.eq_neg_self_iff] using h0
+    simp [spinorMinus, hv0]
+  · simp [spinorMinus]
+
+private lemma plusKernelVector_ne_zero : plusKernelVector ≠ 0 := by
+  intro h
+  have hmode := congrArg (fun x : H => x (0 : ℤ × ℤ)) h
+  have hspin : spinorPlus = 0 := by
+    simpa [plusKernelVector] using hmode
+  have hcoord := congrArg (fun v : Spinor => v (0 : Fin 2)) hspin
+  norm_num [spinorPlus] at hcoord
+
+private lemma minusKernelVector_ne_zero : minusKernelVector ≠ 0 := by
+  intro h
+  have hmode := congrArg (fun x : H => x (0 : ℤ × ℤ)) h
+  have hspin : spinorMinus = 0 := by
+    simpa [minusKernelVector] using hmode
+  have hcoord := congrArg (fun v : Spinor => v (1 : Fin 2)) hspin
+  norm_num [spinorMinus] at hcoord
+
+private lemma plusKernelVector_apply_zero :
+    plusKernelVector (0 : ℤ × ℤ) = spinorPlus := by
+  change (lp.single 2 (0 : ℤ × ℤ) spinorPlus : H) (0 : ℤ × ℤ) = spinorPlus
+  exact lp.single_apply_self (E := fun _ : ℤ × ℤ => Spinor) 2 (0 : ℤ × ℤ) spinorPlus
+
+private lemma plusKernelVector_apply_ne {p : ℤ × ℤ} (hp : p ≠ 0) :
+    plusKernelVector p = 0 := by
+  change (lp.single 2 (0 : ℤ × ℤ) spinorPlus : H) p = 0
+  exact lp.single_apply_ne (E := fun _ : ℤ × ℤ => Spinor) 2 (0 : ℤ × ℤ) spinorPlus hp
+
+private lemma minusKernelVector_apply_zero :
+    minusKernelVector (0 : ℤ × ℤ) = spinorMinus := by
+  change (lp.single 2 (0 : ℤ × ℤ) spinorMinus : H) (0 : ℤ × ℤ) = spinorMinus
+  exact lp.single_apply_self (E := fun _ : ℤ × ℤ => Spinor) 2 (0 : ℤ × ℤ) spinorMinus
+
+private lemma minusKernelVector_apply_ne {p : ℤ × ℤ} (hp : p ≠ 0) :
+    minusKernelVector p = 0 := by
+  change (lp.single 2 (0 : ℤ × ℤ) spinorMinus : H) p = 0
+  exact lp.single_apply_ne (E := fun _ : ℤ × ℤ => Spinor) 2 (0 : ℤ × ℤ) spinorMinus hp
+
+/-- The `+1` graded part of the Dirac kernel is the zero-mode upper spinor line. -/
+private lemma positive_gradedKernel_eq_span :
+    Dkernel diracDirac ⊓ Module.End.eigenspace (grading : Module.End ℂ H) (1 : ℂ) =
+      ℂ ∙ plusKernelVector := by
+  apply le_antisymm
+  · intro x hx
+    rw [Submodule.mem_span_singleton]
+    refine ⟨x (0 : ℤ × ℤ) (0 : Fin 2), ?_⟩
+    refine lp.ext (funext fun p => ?_)
+    by_cases hp : p = 0
+    · subst p
+      have heig : grading (x : H) = (1 : ℂ) • x :=
+        Module.End.mem_eigenspace_iff.mp hx.2
+      have hfibre :
+          x (0 : ℤ × ℤ) =
+            (x (0 : ℤ × ℤ) (0 : Fin 2)) • spinorPlus := by
+        apply spinor_eq_plus_smul
+        have hmode := congrArg (fun y : H => y (0 : ℤ × ℤ)) heig
+        simpa [grading_apply] using hmode
+      simp only [lp.coeFn_smul, Pi.smul_apply, plusKernelVector_apply_zero]
+      exact hfibre.symm
+    · have hsupp := (mem_Dkernel_diracDirac_iff.mp hx.1) p hp
+      simp only [lp.coeFn_smul, Pi.smul_apply, plusKernelVector_apply_ne hp, smul_zero]
+      exact hsupp.symm
+  · intro x hx
+    rw [Submodule.mem_span_singleton] at hx
+    obtain ⟨c, rfl⟩ := hx
+    refine ⟨?_, ?_⟩
+    · exact mem_Dkernel_diracDirac_iff.mpr fun p hp => by
+        simp only [lp.coeFn_smul, Pi.smul_apply, plusKernelVector_apply_ne hp, smul_zero]
+    · apply Module.End.mem_eigenspace_iff.mpr
+      change grading (c • plusKernelVector) = (1 : ℂ) • (c • plusKernelVector)
+      refine lp.ext (funext fun p => ?_)
+      by_cases hp : p = 0
+      · subst p
+        simp only [grading_apply, lp.coeFn_smul, Pi.smul_apply, plusKernelVector_apply_zero,
+          _root_.map_smul, gradingBlock_single_plus, one_smul]
+      · simp only [grading_apply, lp.coeFn_smul, Pi.smul_apply, plusKernelVector_apply_ne hp,
+          smul_zero, _root_.map_zero, one_smul]
+
+/-- The `-1` graded part of the Dirac kernel is the zero-mode lower spinor line. -/
+private lemma negative_gradedKernel_eq_span :
+    Dkernel diracDirac ⊓ Module.End.eigenspace (grading : Module.End ℂ H) (-1 : ℂ) =
+      ℂ ∙ minusKernelVector := by
+  apply le_antisymm
+  · intro x hx
+    rw [Submodule.mem_span_singleton]
+    refine ⟨x (0 : ℤ × ℤ) (1 : Fin 2), ?_⟩
+    refine lp.ext (funext fun p => ?_)
+    by_cases hp : p = 0
+    · subst p
+      have heig : grading (x : H) = (-1 : ℂ) • x :=
+        Module.End.mem_eigenspace_iff.mp hx.2
+      have hfibre :
+          x (0 : ℤ × ℤ) =
+            (x (0 : ℤ × ℤ) (1 : Fin 2)) • spinorMinus := by
+        apply spinor_eq_minus_smul
+        have hmode := congrArg (fun y : H => y (0 : ℤ × ℤ)) heig
+        simpa [grading_apply] using hmode
+      simp only [lp.coeFn_smul, Pi.smul_apply, minusKernelVector_apply_zero]
+      exact hfibre.symm
+    · have hsupp := (mem_Dkernel_diracDirac_iff.mp hx.1) p hp
+      simp only [lp.coeFn_smul, Pi.smul_apply, minusKernelVector_apply_ne hp, smul_zero]
+      exact hsupp.symm
+  · intro x hx
+    rw [Submodule.mem_span_singleton] at hx
+    obtain ⟨c, rfl⟩ := hx
+    refine ⟨?_, ?_⟩
+    · exact mem_Dkernel_diracDirac_iff.mpr fun p hp => by
+        simp only [lp.coeFn_smul, Pi.smul_apply, minusKernelVector_apply_ne hp, smul_zero]
+    · apply Module.End.mem_eigenspace_iff.mpr
+      change grading (c • minusKernelVector) = (-1 : ℂ) • (c • minusKernelVector)
+      refine lp.ext (funext fun p => ?_)
+      by_cases hp : p = 0
+      · subst p
+        change grading (c • minusKernelVector) (0 : ℤ × ℤ) =
+          ((-1 : ℂ) • (c • minusKernelVector)) (0 : ℤ × ℤ)
+        simp only [grading_apply, lp.coeFn_smul, Pi.smul_apply, minusKernelVector_apply_zero,
+          _root_.map_smul, gradingBlock_single_minus, smul_smul]
+        rw [mul_comm]
+      · simp only [grading_apply, lp.coeFn_smul, Pi.smul_apply, minusKernelVector_apply_ne hp,
+          smul_zero, _root_.map_zero]
+
+private lemma finrank_positive_gradedKernel :
+    Module.finrank ℂ ↥(Dkernel diracDirac ⊓
+      Module.End.eigenspace (grading : Module.End ℂ H) (1 : ℂ)) = 1 := by
+  rw [positive_gradedKernel_eq_span]
+  exact finrank_span_singleton plusKernelVector_ne_zero
+
+private lemma finrank_negative_gradedKernel :
+    Module.finrank ℂ ↥(Dkernel diracDirac ⊓
+      Module.End.eigenspace (grading : Module.End ℂ H) (-1 : ℂ)) = 1 := by
+  rw [negative_gradedKernel_eq_span]
+  exact finrank_span_singleton minusKernelVector_ne_zero
+
+/-- The flat Dirac spectral triple on the two-torus has vanishing graded kernel index. -/
+theorem index_eq_zero : isEvenSpectralTriple.index = 0 := by
+  change SpectralTriples.index diracDirac grading = 0
+  unfold SpectralTriples.index
+  rw [finrank_positive_gradedKernel, finrank_negative_gradedKernel]
+  norm_num
 
 end SpectralTriples.Torus

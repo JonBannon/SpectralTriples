@@ -43,3 +43,4 @@
 'SpectralTriples.Torus.isOddSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Torus.isEvenSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Torus.isFinitelySummableSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.Torus.index_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound]

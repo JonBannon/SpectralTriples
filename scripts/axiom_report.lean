@@ -76,3 +76,4 @@ open LinearPMap
 #print axioms SpectralTriples.Torus.isOddSpectralTriple
 #print axioms SpectralTriples.Torus.isEvenSpectralTriple
 #print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
+#print axioms SpectralTriples.Torus.index_eq_zero

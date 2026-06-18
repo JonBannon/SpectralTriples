@@ -110,6 +110,7 @@ Reference: Connes Ch. VI; GBF §9–12 (canonical triple of a spin manifold, her
 | **`(A, H, D)` is an odd spectral triple** | `SpectralTriples.Torus.isOddSpectralTriple` — `Examples/Torus.lean:931` | ✓ axiom-clean |
 | **`(A, H, D, γ)` is an even spectral triple** | `SpectralTriples.Torus.isEvenSpectralTriple` — `Examples/Torus.lean:984` | ✓ axiom-clean |
 | **finitely summable at `i`** | `SpectralTriples.Torus.isFinitelySummableSpectralTriple` — `Examples/Torus.lean:994` | ✓ axiom-clean |
+| **index `= 0`** (`Â(T²)·rk`; `ker D = ℂ²` at the zero mode, split `1+1` by `γ`) | `SpectralTriples.Torus.index_eq_zero` — `Examples/Torus.lean:1257` | ✓ axiom-clean |
 
 *Faithfulness note for the example.* The chosen algebra is the trigonometric polynomials
 `ℂ[ℤ²]` (Fourier dual of `C(T²)`), represented by the coordinate shift unitaries — the
