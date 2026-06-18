@@ -98,3 +98,11 @@ open LinearPMap
 #print axioms SpectralTriples.Shift.shift
 #print axioms SpectralTriples.Shift.fredholmIndex
 #print axioms SpectralTriples.Shift.fredholmIndex_shift
+
+-- Examples/MagneticDirac.lean — flux-k magnetic Dirac model: index = k, with magnetic translations.
+#print axioms SpectralTriples.MagneticDirac.magneticDirac
+#print axioms SpectralTriples.MagneticDirac.magneticDirac_ker_finrank
+#print axioms SpectralTriples.MagneticDirac.fredholmIndex_magneticDirac
+#print axioms SpectralTriples.MagneticDirac.magneticTranslation_weyl
+#print axioms SpectralTriples.MagneticDirac.magClock_comm_dirac
+#print axioms SpectralTriples.MagneticDirac.magShift_comm_dirac
