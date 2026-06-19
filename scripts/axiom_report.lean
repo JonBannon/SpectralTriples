@@ -68,6 +68,8 @@ open LinearPMap
 -- FourierHolomorphic.lean (continued) — M3a upper bound.
 #print axioms SpectralTriples.holSection_finrank_le
 #print axioms SpectralTriples.holSection_finrank_eq
+#print axioms SpectralTriples.holSectionNeg_eq_bot
+#print axioms SpectralTriples.holSectionNeg_finrank_eq_zero
 
 -- DiagonalOperator.lean — block-diagonal operators on ℓ² and the compactness criterion.
 #print axioms lpDiag.diagL

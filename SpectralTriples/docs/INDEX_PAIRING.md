@@ -139,7 +139,11 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
   `AddCircle 1` and Mathlib's Fourier completeness + the identity theorem). Combined with M2 this
   gives the **exact** count `holSection_finrank_eq : dim H⁰(L_k) = k` — a complete dimension
   theorem with **no index theorem and no `L²` analysis**. Sorry-free, axiom-clean.
-- **Next: M3b** (`coker = 0`, the conjugate recursion) — also algebraic.
+- **M3b — done** (`SpectralTriples.FourierHolomorphic`): `coker = 0`. `holSectionNeg_eq_bot` —
+  the holomorphic sections of `L_{-k}` vanish, via the opposite-sign recursion
+  (`holCoeffNeg_recursion`, growth factor `> 1`) clashing with Parseval coefficient decay
+  (`holCoeff_tendsto_atTop_zero`) ⇒ all coefficients `0` ⇒ `f = 0`. By Serre duality this is
+  `H¹(L_k) = 0 = coker D⁺`. Sorry-free, axiom-clean.
 - **M3c / M1 / M4** (the `L²`/elliptic-regularity bridge from the operator kernel to the
   holomorphic sections, and the unitary equivalence to `magneticDirac k`) — the genuinely analytic
   frontier, where the only true Mathlib gap lives (no elliptic regularity / index theorem).
