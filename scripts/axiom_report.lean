@@ -65,6 +65,10 @@ open LinearPMap
 -- FourierHolomorphic.lean — the contour shift (M3a foundation: holomorphic period-integral).
 #print axioms SpectralTriples.periodIntegral_eq_of_periodic
 
+-- FourierHolomorphic.lean (continued) — M3a upper bound.
+#print axioms SpectralTriples.holSection_finrank_le
+#print axioms SpectralTriples.holSection_finrank_eq
+
 -- DiagonalOperator.lean — block-diagonal operators on ℓ² and the compactness criterion.
 #print axioms lpDiag.diagL
 #print axioms lpDiag.norm_diagL_le

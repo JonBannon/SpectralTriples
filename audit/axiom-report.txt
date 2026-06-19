@@ -31,6 +31,8 @@
 'SpectralTriples.grading_mem_Dkernel' depends on axioms: [propext, Classical.choice, Quot.sound]
 'IsEvenSpectralTriple.index' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.periodIntegral_eq_of_periodic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.holSection_finrank_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.holSection_finrank_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
 'lpDiag.diagL' depends on axioms: [propext, Classical.choice, Quot.sound]
 'lpDiag.norm_diagL_le' depends on axioms: [propext, Classical.choice, Quot.sound]
 'lpDiag.isCompactOperator_diagL_of_support_finite' depends on axioms: [propext, Classical.choice, Quot.sound]
