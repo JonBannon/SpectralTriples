@@ -57,7 +57,7 @@
 'SpectralTriples.Torus.isFinitelySummableSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Torus.index_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Shift.shift' depends on axioms: [propext, Classical.choice, Quot.sound]
-'SpectralTriples.Shift.fredholmIndex' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.Shift.finrank_quotient_range_eq_orthogonal' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Shift.fredholmIndex_shift' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.MagneticDirac.magneticDirac' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.MagneticDirac.magneticDirac_ker_finrank' depends on axioms: [propext, Classical.choice, Quot.sound]

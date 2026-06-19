@@ -96,7 +96,7 @@ open LinearPMap
 
 -- Examples/Shift.lean — the unilateral shift on ℓ²(ℕ): a Fredholm operator of index −1.
 #print axioms SpectralTriples.Shift.shift
-#print axioms SpectralTriples.Shift.fredholmIndex
+#print axioms SpectralTriples.Shift.finrank_quotient_range_eq_orthogonal
 #print axioms SpectralTriples.Shift.fredholmIndex_shift
 
 -- Examples/MagneticDirac.lean — flux-k magnetic Dirac model: index = k, with magnetic translations.

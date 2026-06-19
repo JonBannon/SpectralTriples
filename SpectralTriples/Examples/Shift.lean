@@ -8,6 +8,7 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.l2Space
 public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+public import SpectralTriples.Fredholm
 
 /-! # The unilateral shift on `ℓ²(ℕ)`
 
@@ -20,13 +21,6 @@ of the zeroth basis vector.  Its analytic Fredholm index is therefore `0 - 1 = -
 open scoped ENNReal NNReal
 
 namespace SpectralTriples.Shift
-
-/-- The analytic Fredholm index `dim ker T - dim coker T`, using `(range T)ᗮ` as the cokernel
-for the closed finite-codimensional ranges considered here. -/
-noncomputable def fredholmIndex {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
-    [InnerProductSpace 𝕜 E] (T : E →L[𝕜] E) : ℤ :=
-  (Module.finrank 𝕜 (LinearMap.ker (T : E →ₗ[𝕜] E)) : ℤ) -
-    (Module.finrank 𝕜 ↥((LinearMap.range (T : E →ₗ[𝕜] E))ᗮ) : ℤ)
 
 /-- The Hilbert space `ℓ²(ℕ)`, represented as `lp (fun _ : ℕ => ℂ) 2`. -/
 abbrev H : Type := lp (fun _ : ℕ => ℂ) 2
@@ -196,10 +190,42 @@ theorem range_shift_orthogonal_finrank :
   rw [range_shift_orthogonal]
   exact finrank_span_singleton e0_ne_zero
 
+/-- For a closed range in a Hilbert space, the quotient cokernel has the same dimension as the
+orthogonal-complement cokernel. -/
+theorem finrank_quotient_range_eq_orthogonal {H : Type*} [NormedAddCommGroup H]
+    [InnerProductSpace ℂ H] [CompleteSpace H] (T : H →L[ℂ] H)
+    (hclosed : IsClosed (LinearMap.range (T : H →ₗ[ℂ] H) : Set H)) :
+    Module.finrank ℂ (H ⧸ LinearMap.range (T : H →ₗ[ℂ] H))
+      = Module.finrank ℂ (LinearMap.range (T : H →ₗ[ℂ] H))ᗮ := by
+  let K : Submodule ℂ H := LinearMap.range (T : H →ₗ[ℂ] H)
+  change Module.finrank ℂ (H ⧸ K) = Module.finrank ℂ ↥Kᗮ
+  haveI : CompleteSpace K := hclosed.completeSpace_coe
+  exact (Submodule.quotientEquivOfIsCompl K Kᗮ
+    Submodule.isCompl_orthogonal_of_hasOrthogonalProjection).finrank_eq
+
+/-- The range of the unilateral shift is closed. -/
+theorem isClosed_range_shift :
+    IsClosed (LinearMap.range (shift : H →ₗ[ℂ] H) : Set H) := by
+  change IsClosed (Set.range (shift : H → H))
+  have hanti : AntilipschitzWith 1 (shift : H → H) := by
+    refine AntilipschitzWith.of_le_mul_dist ?_
+    intro x y
+    rw [dist_eq_norm, dist_eq_norm]
+    simp only [NNReal.coe_one, one_mul]
+    have hsub : shift x - shift y = shift (x - y) := by
+      exact (_root_.map_sub (shift : H →L[ℂ] H) x y).symm
+    rw [hsub]
+    change ‖x - y‖ ≤ ‖shiftAux (x - y)‖
+    exact le_of_eq (shiftAux_norm (x - y)).symm
+  exact hanti.isClosed_range shift.uniformContinuous
+
 /-- The forward unilateral shift on `ℓ²(ℕ)` is Fredholm of index `-1`. -/
-theorem fredholmIndex_shift : fredholmIndex shift = -1 := by
-  unfold fredholmIndex
-  rw [shift_ker_eq_bot, finrank_bot, range_shift_orthogonal_finrank]
+theorem fredholmIndex_shift :
+    SpectralTriples.Fredholm.index (shift : H →ₗ[ℂ] H) = -1 := by
+  unfold SpectralTriples.Fredholm.index
+  rw [shift_ker_eq_bot, finrank_bot,
+    finrank_quotient_range_eq_orthogonal shift isClosed_range_shift,
+    range_shift_orthogonal_finrank]
   norm_num
 
 end SpectralTriples.Shift

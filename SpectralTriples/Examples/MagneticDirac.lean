@@ -241,11 +241,69 @@ theorem range_magneticDirac_orthogonal_finrank (k : ℕ) :
     Module.finrank ℂ ↥((LinearMap.range (magneticDirac k : H k →ₗ[ℂ] H k))ᗮ) = 0 := by
   rw [range_magneticDirac_orthogonal, finrank_bot]
 
+/-- A right-inverse coordinate sequence for the backward-shift magnetic Dirac operator. -/
+def magneticDiracPreimageSeq {k : ℕ} (y : H k) : Idx k → ℂ :=
+  fun i => if i.1 = 0 then 0 else y (i.1 - 1, i.2)
+
+/-- The right-inverse sequence shifts back to the original vector. -/
+@[simp] lemma magneticDiracPreimageSeq_succ {k : ℕ} (y : H k) (n : ℕ) (j : Fin k) :
+    magneticDiracPreimageSeq y (n + 1, j) = y (n, j) := by
+  simp [magneticDiracPreimageSeq]
+
+/-- The right-inverse coordinate sequence is square-summable. -/
+lemma magneticDiracPreimageSeq_memℓp {k : ℕ} (y : H k) :
+    Memℓp (magneticDiracPreimageSeq y) 2 := by
+  rw [memℓp_gen_iff (p := (2 : ℝ≥0∞)) (by norm_num)]
+  have hy : Summable fun i : Idx k => ‖y i‖ ^ (2 : ℝ) := by
+    simpa using (lp.memℓp y).summable (p := (2 : ℝ≥0∞)) (by norm_num)
+  have hyprod :
+      (∀ n : ℕ, Summable fun j : Fin k => ‖y (n, j)‖ ^ (2 : ℝ)) ∧
+        Summable fun n : ℕ => ∑' j : Fin k, ‖y (n, j)‖ ^ (2 : ℝ) := by
+    exact (summable_prod_of_nonneg
+      (f := fun i : ℕ × Fin k => ‖y i‖ ^ (2 : ℝ)) (fun _ => by positivity)).1 hy
+  have htail : Summable fun n : ℕ =>
+      ∑' j : Fin k, ‖magneticDiracPreimageSeq y (n + 1, j)‖ ^ (2 : ℝ) := by
+    simpa [magneticDiracPreimageSeq] using hyprod.2
+  have hlevels : Summable fun n : ℕ =>
+      ∑' j : Fin k, ‖magneticDiracPreimageSeq y (n, j)‖ ^ (2 : ℝ) :=
+    (summable_nat_add_iff
+      (f := fun n : ℕ =>
+        ∑' j : Fin k, ‖magneticDiracPreimageSeq y (n, j)‖ ^ (2 : ℝ)) 1).1 htail
+  exact (summable_prod_of_nonneg
+    (f := fun i : ℕ × Fin k => ‖magneticDiracPreimageSeq y i‖ ^ (2 : ℝ))
+    (fun _ => by positivity)).2 ⟨fun _ => Summable.of_finite, hlevels⟩
+
+/-- A bundled right inverse for the magnetic Dirac operator. -/
+def magneticDiracPreimage {k : ℕ} (y : H k) : H k :=
+  ⟨magneticDiracPreimageSeq y, magneticDiracPreimageSeq_memℓp y⟩
+
+/-- Coordinate formula for the bundled right inverse. -/
+@[simp] lemma magneticDiracPreimage_apply {k : ℕ} (y : H k) (n : ℕ) (j : Fin k) :
+    magneticDiracPreimage y (n, j) = if n = 0 then 0 else y (n - 1, j) := rfl
+
+/-- The magnetic Dirac operator is surjective. -/
+theorem range_magneticDirac_eq_top (k : ℕ) :
+    LinearMap.range (magneticDirac k : H k →ₗ[ℂ] H k) = ⊤ := by
+  rw [LinearMap.range_eq_top]
+  intro y
+  refine ⟨magneticDiracPreimage y, ?_⟩
+  refine lp.ext (funext fun i => ?_)
+  rcases i with ⟨n, j⟩
+  simp [magneticDirac_apply]
+
+/-- The quotient cokernel of the magnetic Dirac operator has dimension `0`. -/
+theorem magneticDirac_coker_finrank (k : ℕ) :
+    Module.finrank ℂ (H k ⧸ LinearMap.range (magneticDirac k : H k →ₗ[ℂ] H k)) = 0 := by
+  rw [range_magneticDirac_eq_top]
+  haveI : Subsingleton (H k ⧸ (⊤ : Submodule ℂ (H k))) :=
+    Submodule.Quotient.subsingleton_iff.mpr rfl
+  exact Module.finrank_zero_of_subsingleton
+
 /-- The flux-`k` magnetic Dirac model has Fredholm index `k`. -/
 theorem fredholmIndex_magneticDirac (k : ℕ) [NeZero k] :
-    fredholmIndex (magneticDirac k) = (k : ℤ) := by
-  unfold fredholmIndex
-  rw [magneticDirac_ker_finrank, range_magneticDirac_orthogonal_finrank]
+    SpectralTriples.Fredholm.index (magneticDirac k : H k →ₗ[ℂ] H k) = (k : ℤ) := by
+  unfold SpectralTriples.Fredholm.index
+  rw [magneticDirac_ker_finrank, magneticDirac_coker_finrank]
   norm_num
 
 /-- A primitive `k`-th root of unity used in the magnetic clock operator. -/
