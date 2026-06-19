@@ -65,3 +65,10 @@
 'SpectralTriples.MagneticDirac.magneticTranslation_weyl' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.MagneticDirac.magClock_comm_dirac' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.MagneticDirac.magShift_comm_dirac' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.differentiable_thetaSection' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection_quasiPeriodic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection_translate' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection_linearIndependent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
