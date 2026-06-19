@@ -1,6 +1,7 @@
 import SpectralTriples.Basic
 import SpectralTriples.Resolvent
 import SpectralTriples.FinitelySummable
+import SpectralTriples.Index
 import SpectralTriples.DiagonalOperator
 import SpectralTriples.Examples.Circle
 import SpectralTriples.Examples.Torus

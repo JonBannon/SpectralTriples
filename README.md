@@ -18,6 +18,7 @@ All source is `sorry`-free and `axiom`-free. Built against Mathlib `v4.30.0`.
 | [`SpectralTriples/Basic.lean`](SpectralTriples/Basic.lean) | `IsOddSpectralTriple`, `IsEvenSpectralTriple` (Dirac operator `D` as an unbounded `LinearPMap`) and their basic API |
 | [`SpectralTriples/Resolvent.lean`](SpectralTriples/Resolvent.lean) | `LinearPMap.resolventSet` / `resolvent` (adapted from Mathlib PR [#29624](https://github.com/leanprover-community/mathlib4/pull/29624), Moritz Doll) |
 | [`SpectralTriples/FinitelySummable.lean`](SpectralTriples/FinitelySummable.lean) | self-adjoint resolvent estimates and `IsFinitelySummableSpectralTriple` (compact resolvent) |
+| [`SpectralTriples/Index.lean`](SpectralTriples/Index.lean) | the graded-kernel **index** of an even triple, with `finiteDimensional_Dkernel` (compact resolvent ⇒ `ker D` finite-dim, so `D⁺` is Fredholm) |
 | [`SpectralTriples/DiagonalOperator.lean`](SpectralTriples/DiagonalOperator.lean) | block-diagonal operators on `ℓ²` and the compactness criterion `isCompactOperator_diagL` (block norms `→ 0` ⇒ compact) |
 | [`SpectralTriples/Examples/Torus.lean`](SpectralTriples/Examples/Torus.lean) | the **2-torus `T²`** Dirac triple: self-adjoint `D`, compact resolvent at `i`, grading `γ = σ₃`, the shift representation of `ℂ[ℤ²]`, assembled as an even, finitely-summable spectral triple |
 

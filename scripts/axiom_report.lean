@@ -49,6 +49,13 @@ open LinearPMap
 #print axioms IsOddSpectralTriple.toIsFinitelySummableSpectralTriple
 #print axioms IsFinitelySummableSpectralTriple.resolvent_mem
 
+-- Index.lean — the graded-kernel index of an even spectral triple.
+#print axioms SpectralTriples.Dkernel
+#print axioms SpectralTriples.index
+#print axioms SpectralTriples.finiteDimensional_Dkernel
+#print axioms SpectralTriples.grading_mem_Dkernel
+#print axioms IsEvenSpectralTriple.index
+
 -- DiagonalOperator.lean — block-diagonal operators on ℓ² and the compactness criterion.
 #print axioms lpDiag.diagL
 #print axioms lpDiag.norm_diagL_le
@@ -69,3 +76,4 @@ open LinearPMap
 #print axioms SpectralTriples.Torus.isOddSpectralTriple
 #print axioms SpectralTriples.Torus.isEvenSpectralTriple
 #print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
+#print axioms SpectralTriples.Torus.index_eq_zero
