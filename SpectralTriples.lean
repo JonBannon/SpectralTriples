@@ -1,6 +1,7 @@
 import SpectralTriples.Basic
 import SpectralTriples.Resolvent
 import SpectralTriples.FinitelySummable
+import SpectralTriples.FourierHolomorphic
 import SpectralTriples.Fredholm
 import SpectralTriples.Index
 import SpectralTriples.DiagonalOperator
