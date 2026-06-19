@@ -309,9 +309,9 @@ and~\ref{sec:torus} are compact.
 \label{sec:circle}
 
 \textbf{Status: in progress.} The Hilbert space, the diagonal Dirac operator, its
-self-adjointness, and membership of $i$ in its resolvent set are formalized and
-\texttt{sorry}-free; the compact-resolvent estimate and the algebra representation remain to
-be built (shared technology with Section~\ref{sec:torus}, where they are complete).
+self-adjointness, membership of $i$ in its resolvent set, and the compact resolvent are
+formalized and \texttt{sorry}-free; only the algebra representation remains to be built
+(shared technology with Section~\ref{sec:torus}, where it is complete).
 
 The model is $H = \ell^2(\mathbb{Z})$, the Fourier side of $L^2(S^1)$, with Dirac operator
 $D = -i\,d/d\theta$ acting diagonally on the orthonormal Fourier basis $(e_n)_{n \in
@@ -341,6 +341,16 @@ $D = -i\,d/d\theta$ acting diagonally on the orthonormal Fourier basis $(e_n)_{n
   $i \in \rho(D)$, by the basic criterion of self-adjointness
   (Theorem~\ref{thm:basic-criterion-self-adjoint}) applied to
   Theorem~\ref{thm:circle-diracDirac-isSelfAdjoint}.
+\end{theorem}
+
+\begin{theorem}[Compact resolvent]
+  \label{thm:circle-isCompactOperator-resolvent-I}
+  \lean{SpectralTriples.Circle.isCompactOperator_resolvent_I}
+  \leanok
+  \uses{thm:circle-mem-resolventSet-I, thm:isCompactOperator-diagL}
+  The resolvent $R(i, D)$ is a compact operator on $\ell^2(\mathbb{Z})$. It is the diagonal
+  operator $b_n \mapsto b_n / (i - n)$, with block norms $1/|i-n| \to 0$, via
+  Theorem~\ref{thm:isCompactOperator-diagL}.
 \end{theorem}
 
 \section{The Dirac triple of the two-torus $T^2$}

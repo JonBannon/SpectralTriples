@@ -62,6 +62,12 @@ open LinearPMap
 #print axioms lpDiag.isCompactOperator_diagL_of_support_finite
 #print axioms lpDiag.isCompactOperator_diagL
 
+-- Examples/Circle.lean — the concrete S¹ Dirac operator (self-adjoint, compact resolvent).
+#print axioms SpectralTriples.Circle.diracDirac
+#print axioms SpectralTriples.Circle.diracDirac_isSelfAdjoint
+#print axioms SpectralTriples.Circle.mem_resolventSet_I
+#print axioms SpectralTriples.Circle.isCompactOperator_resolvent_I
+
 -- Examples/Torus.lean — the concrete T² Dirac spectral triple (even, finitely summable).
 #print axioms SpectralTriples.Torus.diracDirac
 #print axioms SpectralTriples.Torus.diracDirac_isSelfAdjoint
