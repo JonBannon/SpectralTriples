@@ -167,9 +167,65 @@ operator has compact resolvent.
 \chapter{The Fredholm index pairing}
 \label{cha:index-pairing}
 
-This chapter is not yet formalized; it corresponds to Phase~2 of the project plan.
-It is included here to record the intended statements and their dependencies on
-Chapter~\ref{cha:spectral-triples}.
+This chapter develops the index attached to an even spectral triple. The
+\emph{graded-kernel index} (Section~\ref{sec:graded-kernel-index}) — the special case of the
+index pairing at the unit projection $p = 1$ — is formalized. The general index pairing
+against an arbitrary $K_0$-class $[p]$ (Section~\ref{sec:general-index-pairing}) is not yet
+formalized; it corresponds to Phase~2 of the project plan.
+
+\section{The graded-kernel index}
+\label{sec:graded-kernel-index}
+
+\begin{definition}[Kernel of the Dirac operator]
+  \label{def:Dkernel}
+  \lean{SpectralTriples.Dkernel}
+  \leanok
+  For a (partially defined) linear operator $D \colon \dom{D} \to \Hil$, the \emph{kernel}
+  $\ker D \subseteq \Hil$ is the subspace of vectors $\xi \in \dom{D}$ with $D\xi = 0$.
+\end{definition}
+
+\begin{lemma}[The grading preserves the kernel]
+  \label{lem:grading-mem-Dkernel}
+  \lean{SpectralTriples.grading_mem_Dkernel}
+  \leanok
+  \uses{def:even-spectral-triple, def:Dkernel}
+  If $(A, \Hil, \pi, D, \gamma)$ is an even spectral triple and $\xi \in \ker D$, then
+  $\gamma \xi \in \ker D$. Consequently $\ker D$ splits as $\ker D = (\ker D)^{+} \oplus
+  (\ker D)^{-}$ into the $(\pm 1)$-eigenspaces of $\gamma$ restricted to $\ker D$.
+\end{lemma}
+
+\begin{definition}[Graded-kernel index]
+  \label{def:graded-kernel-index}
+  \lean{SpectralTriples.index}
+  \leanok
+  \uses{lem:grading-mem-Dkernel}
+  The \emph{(super)index} of an even Dirac datum $(D, \gamma)$ is the integer
+  \[
+    \operatorname{index}(D, \gamma) \;=\; \dim (\ker D)^{+} - \dim (\ker D)^{-}.
+  \]
+  This is the Fredholm index of the chiral operator $D^{+}$ from
+  Definition~\ref{def:index-pairing} in the special case $p = 1$. The corresponding invariant
+  of an even spectral triple is \lean{IsEvenSpectralTriple.index}\leanok.
+\end{definition}
+
+\begin{theorem}[Finite-dimensionality of the kernel]
+  \label{thm:finiteDimensional-Dkernel}
+  \lean{SpectralTriples.finiteDimensional_Dkernel}
+  \leanok
+  \uses{def:finitely-summable-spectral-triple, def:Dkernel}
+  If $D$ is self-adjoint with compact resolvent at $i$, then $\ker D$ is finite-dimensional.
+  Consequently $\operatorname{index}(D, \gamma)$ (Definition~\ref{def:graded-kernel-index}) is
+  a difference of genuine finite dimensions: for $\xi \in \ker D$, the resolvent $R(i, D)$
+  satisfies $R(i,D)(i\xi) = \xi$, so $\ker D$ embeds into the $i^{-1}$-eigenspace of the
+  compact operator $R(i, D)$, which is finite-dimensional by Riesz theory.
+\end{theorem}
+
+\section{The general index pairing}
+\label{sec:general-index-pairing}
+
+This section is not yet formalized; it corresponds to Phase~2 of the project plan. It
+generalizes Section~\ref{sec:graded-kernel-index} from the unit projection $p = 1$ to an
+arbitrary self-adjoint idempotent representing a class in $K_0(A)$.
 
 \begin{definition}[Index pairing]
   \label{def:index-pairing}
@@ -187,8 +243,209 @@ Chapter~\ref{cha:spectral-triples}.
 
 \begin{theorem}[The index pairing is well defined]
   \label{thm:index-pairing-well-defined}
-  \uses{def:index-pairing}
+  \uses{def:index-pairing, thm:finiteDimensional-Dkernel}
   In the situation of Definition~\ref{def:index-pairing}, the operator
   $\pi(p) D^{+} \pi(p)$, restricted to $\pi(p)\Hil \cap \dom{D}$, is Fredholm, so that
   $\langle [p], (\Hil, \pi, D, \gamma) \rangle \in \mathbb{Z}$ is well defined.
+\end{theorem}
+
+\chapter{Examples}
+\label{cha:examples}
+
+This chapter records concrete spectral triples built directly on the Fourier side, bypassing
+spin-geometry and Sobolev-space machinery from the literature. The two-torus example
+(Section~\ref{sec:torus}) is a complete, finitely summable, even spectral triple with
+vanishing index; the circle example (Section~\ref{sec:circle}) is a simpler, partially-built
+precursor sharing the same diagonal-operator technology (Section~\ref{sec:diagonal-operators}).
+
+\section{Block-diagonal operators on $\ell^2$}
+\label{sec:diagonal-operators}
+
+Given a family of finite-dimensional Hilbert spaces $(G_i)_{i \in \alpha}$ and a uniformly
+bounded family of block operators $T_i \colon G_i \to G_i$, this section builds the
+associated block-diagonal operator on $\ell^2(\alpha; G)$ and proves the compactness
+criterion used to show the Dirac resolvents in Sections~\ref{sec:circle}
+and~\ref{sec:torus} are compact.
+
+\begin{definition}[Block-diagonal operator]
+  \label{def:diagL}
+  \lean{lpDiag.diagL}
+  \leanok
+  Given a uniformly bounded family of operators $T_i \colon G_i \to G_i$ with $\|T_i\| \le C$
+  for all $i$, the \emph{block-diagonal operator} $\operatorname{diagL}(T) \colon
+  \ell^2(\alpha; G) \to \ell^2(\alpha; G)$ is defined by $(\operatorname{diagL}(T) a)_i =
+  T_i(a_i)$.
+\end{definition}
+
+\begin{lemma}[Operator norm bound]
+  \label{lem:norm-diagL-le}
+  \lean{lpDiag.norm_diagL_le}
+  \leanok
+  \uses{def:diagL}
+  $\|\operatorname{diagL}(T)\| \le C$ whenever $\|T_i\| \le C$ for all $i$.
+\end{lemma}
+
+\begin{theorem}[Compactness via finite-rank truncation]
+  \label{thm:isCompactOperator-diagL-of-support-finite}
+  \lean{lpDiag.isCompactOperator_diagL_of_support_finite}
+  \leanok
+  \uses{def:diagL}
+  If only finitely many blocks $T_i$ are nonzero, then $\operatorname{diagL}(T)$ is
+  finite-rank, hence compact.
+\end{theorem}
+
+\begin{theorem}[Compactness criterion for block-diagonal operators]
+  \label{thm:isCompactOperator-diagL}
+  \lean{lpDiag.isCompactOperator_diagL}
+  \leanok
+  \uses{thm:isCompactOperator-diagL-of-support-finite}
+  If $\|T_i\| \to 0$ along the cofinite filter on $\alpha$, then $\operatorname{diagL}(T)$ is
+  a compact operator. The finitely-supported truncations of
+  Theorem~\ref{thm:isCompactOperator-diagL-of-support-finite} converge to
+  $\operatorname{diagL}(T)$ in operator norm.
+\end{theorem}
+
+\section{The Dirac triple of the circle $S^1$}
+\label{sec:circle}
+
+\textbf{Status: in progress.} The Hilbert space, the diagonal Dirac operator, its
+self-adjointness, and membership of $i$ in its resolvent set are formalized and
+\texttt{sorry}-free; the compact-resolvent estimate and the algebra representation remain to
+be built (shared technology with Section~\ref{sec:torus}, where they are complete).
+
+The model is $H = \ell^2(\mathbb{Z})$, the Fourier side of $L^2(S^1)$, with Dirac operator
+$D = -i\,d/d\theta$ acting diagonally on the orthonormal Fourier basis $(e_n)_{n \in
+\mathbb{Z}}$ by $D e_n = n \cdot e_n$, with maximal domain the Sobolev space $H^1 = \{a \in
+\ell^2(\mathbb{Z}) : \sum n^2 |a_n|^2 < \infty\}$.
+
+\begin{definition}[Circle Dirac operator]
+  \label{def:circle-diracDirac}
+  \lean{SpectralTriples.Circle.diracDirac}
+  \leanok
+  The operator $D \colon H^1 \to \ell^2(\mathbb{Z})$, $(D a)_n = n \cdot a_n$.
+\end{definition}
+
+\begin{theorem}[Self-adjointness]
+  \label{thm:circle-diracDirac-isSelfAdjoint}
+  \lean{SpectralTriples.Circle.diracDirac_isSelfAdjoint}
+  \leanok
+  \uses{def:circle-diracDirac}
+  The circle Dirac operator is self-adjoint.
+\end{theorem}
+
+\begin{theorem}[$i$ lies in the resolvent set]
+  \label{thm:circle-mem-resolventSet-I}
+  \lean{SpectralTriples.Circle.mem_resolventSet_I}
+  \leanok
+  \uses{thm:circle-diracDirac-isSelfAdjoint, thm:basic-criterion-self-adjoint}
+  $i \in \rho(D)$, by the basic criterion of self-adjointness
+  (Theorem~\ref{thm:basic-criterion-self-adjoint}) applied to
+  Theorem~\ref{thm:circle-diracDirac-isSelfAdjoint}.
+\end{theorem}
+
+\section{The Dirac triple of the two-torus $T^2$}
+\label{sec:torus}
+
+\textbf{Status: complete.} This is the flagship example: a fully formalized, even, finitely
+summable spectral triple on the flat torus $T^2 = \mathbb{R}^2/\mathbb{Z}^2$, whose
+graded-kernel index is computed and shown to vanish, matching the Atiyah--Singer prediction
+for the trivial line bundle.
+
+The Hilbert space is $H = \ell^2(\mathbb{Z}^2; \mathbb{C}^2)$ (square-summable spinor-valued
+sequences over the Fourier lattice $\mathbb{Z}^2$). On the Fourier mode $(m, n)$ the Dirac
+operator acts on the spinor fibre $\mathbb{C}^2$ by the self-adjoint block
+\[
+  D_{(m,n)} = 2\pi (\sigma_1 m + \sigma_2 n)
+    = 2\pi \begin{pmatrix} 0 & m - in \\ m + in & 0 \end{pmatrix},
+\]
+with eigenvalues $\pm 2\pi\sqrt{m^2+n^2}$; the chirality grading is $\gamma = \sigma_3 =
+\operatorname{diag}(1,-1)$ fibrewise.
+
+\begin{definition}[Torus Dirac operator]
+  \label{def:torus-diracDirac}
+  \lean{SpectralTriples.Torus.diracDirac}
+  \leanok
+  The block-diagonal operator $D \colon H^1 \to H$, $(D a)_{(m,n)} = D_{(m,n)} (a_{(m,n)})$,
+  on the Sobolev domain $H^1$.
+\end{definition}
+
+\begin{theorem}[Self-adjointness]
+  \label{thm:torus-diracDirac-isSelfAdjoint}
+  \lean{SpectralTriples.Torus.diracDirac_isSelfAdjoint}
+  \leanok
+  \uses{def:torus-diracDirac}
+  The torus Dirac operator is self-adjoint.
+\end{theorem}
+
+\begin{theorem}[Compact resolvent]
+  \label{thm:torus-isCompactOperator-resolvent-I}
+  \lean{SpectralTriples.Torus.isCompactOperator_resolvent_I}
+  \leanok
+  \uses{thm:torus-diracDirac-isSelfAdjoint, thm:isCompactOperator-diagL}
+  The resolvent $R(i, D)$ is a compact operator on $H$. It is exhibited explicitly as a
+  block-diagonal operator with block norms tending to $0$ (since $|D_{(m,n)}| \to \infty$),
+  via Theorem~\ref{thm:isCompactOperator-diagL}.
+\end{theorem}
+
+\begin{definition}[Torus grading]
+  \label{def:torus-grading}
+  \lean{SpectralTriples.Torus.grading}
+  \leanok
+  The block-diagonal operator $\gamma$ acting fibrewise by $\sigma_3 =
+  \operatorname{diag}(1,-1)$.
+\end{definition}
+
+\begin{lemma}[Properties of the grading]
+  \label{lem:torus-grading-properties}
+  \lean{SpectralTriples.Torus.isSelfAdjoint_grading, SpectralTriples.Torus.grading_mul_self,
+        SpectralTriples.Torus.grading_anticomm}
+  \leanok
+  \uses{def:torus-grading, thm:torus-diracDirac-isSelfAdjoint}
+  $\gamma$ is self-adjoint, $\gamma^2 = 1$, and $D\gamma\xi = -\gamma D\xi$ for $\xi \in \dom
+  D$: each Dirac block is off-diagonal and $\sigma_3$ is diagonal, so they anticommute
+  fibrewise.
+\end{lemma}
+
+\begin{definition}[Torus algebra and representation]
+  \label{def:torus-algebra}
+  \lean{SpectralTriples.Torus.algebra, SpectralTriples.Torus.rep}
+  \leanok
+  The star-subalgebra of $\mathcal{B}(H)$ generated by the two coordinate shift unitaries
+  $W_{(1,0)}, W_{(0,1)}$ (the Fourier image of the trigonometric polynomials
+  $\mathbb{C}[\mathbb{Z}^2]$ on $T^2$), represented by inclusion into $\mathcal{B}(H)$.
+\end{definition}
+
+\begin{theorem}[Assembly: odd and even spectral triples]
+  \label{thm:torus-isEvenSpectralTriple}
+  \lean{SpectralTriples.Torus.isOddSpectralTriple, SpectralTriples.Torus.isEvenSpectralTriple}
+  \leanok
+  \uses{def:odd-spectral-triple, def:even-spectral-triple,
+        thm:torus-diracDirac-isSelfAdjoint, lem:torus-grading-properties, def:torus-algebra}
+  The torus data $(A, H, \pi, D)$, with $A$ the algebra of
+  Definition~\ref{def:torus-algebra}, is an odd spectral triple; together with the grading
+  $\gamma$ of Definition~\ref{def:torus-grading}, it is an even spectral triple. The
+  bounded-commutator condition is checked by propagating a uniform commutator bound for the
+  two generators $W_{(1,0)}, W_{(0,1)}$ through the generated star-subalgebra.
+\end{theorem}
+
+\begin{theorem}[Finite summability]
+  \label{thm:torus-isFinitelySummableSpectralTriple}
+  \lean{SpectralTriples.Torus.isFinitelySummableSpectralTriple}
+  \leanok
+  \uses{thm:torus-isEvenSpectralTriple, thm:torus-isCompactOperator-resolvent-I,
+        def:finitely-summable-spectral-triple}
+  The torus spectral triple is finitely summable: its Dirac operator has compact resolvent
+  at $i$.
+\end{theorem}
+
+\begin{theorem}[The index vanishes]
+  \label{thm:torus-index-eq-zero}
+  \lean{SpectralTriples.Torus.index_eq_zero}
+  \leanok
+  \uses{thm:torus-isEvenSpectralTriple, def:graded-kernel-index}
+  $\operatorname{index}(D, \gamma) = 0$ for the flat torus Dirac triple: the graded kernel of
+  $D$ is exactly the zero Fourier mode, with $(\ker D)^{+}$ and $(\ker D)^{-}$ each spanned by
+  one of the two spinor basis vectors at that mode, so $\dim(\ker D)^{+} = \dim(\ker D)^{-} =
+  1$. This matches the Atiyah--Singer prediction for the trivial (degree-$0$) line bundle on
+  $T^2$.
 \end{theorem}
