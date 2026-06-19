@@ -81,15 +81,41 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
   (their theta-characteristics differ ⇒ distinct quasi-periodicities ⇒ independent). This is a
   genuine, self-contained result: *the flux-`k` Dirac has at least `k` Landau ground states.*
 
-- **M3 — upper bound `dim ker = k` and `coker = 0` (TODO; hard).** The completeness half.
-  Two possible routes:
-  - *Index-theorem route:* `index = ∫ Â ch = c₁ = k`. **Mathlib-blocked** (no Atiyah–Singer).
-  - *Explicit Fourier/Gaussian route:* expand a section in the quasi-periodic Fourier basis;
-    the `∂̄_A ψ = 0` equation becomes, per guiding center, a first-order ODE whose `L²`
-    solution is a unique Gaussian. Counting guiding centers gives exactly `k`, and the
-    `n ≥ 1` levels are non-zero-energy (so `coker = 0`). This avoids abstract index theory but
-    needs Gaussian-integral / Hermite-function analysis. *Mathlib has* Gaussian integrals and
-    Hermite polynomials, so this route is feasible but substantial.
+- **M3 — upper bound `dim ker = k` and `coker = 0` (TODO; the research frontier).** The
+  completeness half. The *index-theorem route* (`index = ∫ Â ch = c₁ = k`) is **Mathlib-blocked**
+  (no Atiyah–Singer). Instead use the **Fourier-coefficient recursion** — an *algebraic* route
+  that needs no `L²`/ODE machinery for the holomorphic count, splitting M3 into three pieces:
+
+  - **M3a — the holomorphic-section space is *exactly* `k`-dimensional (recommended next; tractable).**
+    A holomorphic section `ψ` of `L_k` is entire with `ψ(z+1) = ψ(z)`, so it has a Laurent/`q`-expansion
+    `ψ(z) = ∑_{m ∈ ℤ} a_m e^{2πimz}` (`q = e^{2πiz}`). The `τ`-quasi-periodicity
+    `ψ(z+τ) = e^{-πik(2z+τ)}ψ(z)` forces, comparing coefficients of `e^{2πimz}`, the **recursion**
+
+    > `a_{m+k} = e^{πiτ(2m+k)} a_m`.
+
+    So the whole coefficient sequence is determined by `(a_0, …, a_{k-1})` (and `|e^{πiτ(2m+k)}| → 0`
+    as `m → ±∞` since `Im τ > 0`, so the series converges — the section is automatically entire).
+    Hence the restriction map `ψ ↦ (a_0,…,a_{k-1})` is an **injective** linear map into `ℂᵏ`, giving
+    `dim ≤ k`. Combined with **M2** (`≥ k`, the `k` explicit theta sections realizing exactly these
+    free constants), this yields `dim H⁰(L_k) = k` — a *complete, sorry-free* dimension count with
+    **no index theorem and no `L²` analysis**. The only analytic input is the Fourier/`q`-expansion of
+    a `1`-periodic entire function and that the coefficient functional is linear & injective.
+
+  - **M3b — `coker = 0` (`H¹(L_k) = 0` for `k > 0`).** The anti-holomorphic sections (`ker D⁻`)
+    satisfy the *conjugate* recursion `a_{m+k} = e^{-πiτ̄(…)} a_m`, whose factor has modulus `> 1`,
+    forcing `|a_m| → ∞` — no nonzero convergent (entire) solution. So `dim ker D⁻ = 0`, again
+    algebraically. (Equivalently, Serre duality `h¹(L_k) = h⁰(L_k^{-1}) = 0`, `deg < 0`.)
+
+  - **M3c — `L²` ↔ holomorphic (elliptic regularity).** Connects the *operator* kernel
+    `ker D⁺ ⊆ L²(L_k)` to the *entire* holomorphic sections counted in M3a/M2 (an `L²` solution of
+    `∂̄ψ = 0` is smooth/holomorphic). This is the genuinely analytic piece and the real Mathlib gap
+    (no elliptic regularity for `∂̄` on the torus). M3a+M2+M3b already give the *function-theoretic*
+    answer `dim H⁰(L_k) = k`, `dim H¹ = 0`; M3c (with M1/M4) upgrades it to the operator.
+
+  Mathlib inventory for M3a: Fourier coefficients on the circle (`fourierCoeff`, `AddCircle`) and
+  `q`-expansions of periodic holomorphic functions are present in pieces; the recursion and the
+  injectivity are elementary algebra on the coefficient sequence. **M3a is the recommended next
+  build** — it closes the dimension count to exactly `k` using real Fourier infrastructure.
 
 - **M4 — the unitary equivalence to the model (TODO).** Assemble `U` from M1–M3:
   `U D⁺_{L_k} U⁻¹ = magneticDirac k` (or the oscillator-lowering variant with the same index),
@@ -97,13 +123,19 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
   `index(D⁺_{L_k}) = fredholmIndex (magneticDirac k) = k` transports the **formalized** model
   result to the geometric operator.
 
-## Recommended next step
+## Progress / recommended next step
 
-**M2** (the theta-function lower bound). It uses real Mathlib infrastructure
-(`jacobiTheta₂`), is self-contained, and delivers a genuine geometric statement (`≥ k` ground
-states for flux `k`) without the index-theorem ceiling. M3/M4 are the research frontier; M3 is
-where the only true Mathlib gap lives (no index theorem — the Gaussian/Fourier completeness is
-the realistic path).
+- **M2 — done** (`SpectralTriples.Examples.ThetaSections`, `thetaSection_linearIndependent`):
+  `dim H⁰(L_k) ≥ k` via the `k` explicit theta zero modes. Sorry-free, axiom-clean.
+- **Next: M3a** — the matching *upper bound* `dim ≤ k` via the Fourier-coefficient recursion
+  `a_{m+k} = e^{πiτ(2m+k)} a_m`. Together with M2 this closes the **exact** count
+  `dim H⁰(L_k) = k` — a complete dimension theorem with **no index theorem and no `L²` analysis**,
+  using Mathlib's `fourierCoeff`/`q`-expansion. This is the tractable completion of the geometric
+  ground-state count.
+- **Then M3b** (`coker = 0`, the conjugate recursion) — also algebraic.
+- **M3c / M1 / M4** (the `L²`/elliptic-regularity bridge from the operator kernel to the
+  holomorphic sections, and the unitary equivalence to `magneticDirac k`) — the genuinely analytic
+  frontier, where the only true Mathlib gap lives (no elliptic regularity / index theorem).
 
 ## Mathlib inventory (for the bridge)
 
