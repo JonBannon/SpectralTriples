@@ -169,9 +169,50 @@ operator has compact resolvent.
 
 This chapter develops the index attached to an even spectral triple. The
 \emph{graded-kernel index} (Section~\ref{sec:graded-kernel-index}) — the special case of the
-index pairing at the unit projection $p = 1$ — is formalized. The general index pairing
-against an arbitrary $K_0$-class $[p]$ (Section~\ref{sec:general-index-pairing}) is not yet
-formalized; it corresponds to Phase~2 of the project plan.
+index pairing at the unit projection $p = 1$ — is formalized, building on a minimal notion of
+Fredholm linear map (Section~\ref{sec:fredholm}). The general index pairing against an
+arbitrary $K_0$-class $[p]$ (Section~\ref{sec:general-index-pairing}) is not yet formalized;
+it corresponds to Phase~2 of the project plan.
+
+\section{Fredholm operators}
+\label{sec:fredholm}
+
+This section records a minimal, self-contained notion of Fredholm linear map, scoped to
+exactly what the index pairing needs. Mathlib has ongoing, as yet unmerged, work towards a
+general theory of Fredholm operators on topological vector spaces; the definitions here are
+deliberately narrower — stated for plain linear maps rather than continuous linear maps, so
+that they apply uniformly to bounded operators and to the restriction of an unbounded
+operator to its domain, as needed for the chiral Dirac operator $D^{+}$ — and are expected to
+be replaced by an \texttt{import} once the upstream theory lands.
+
+\begin{definition}[Fredholm linear map]
+  \label{def:isFredholm}
+  \lean{SpectralTriples.Fredholm.IsFredholm}
+  \leanok
+  A linear map $f \colon E \to F$ is \emph{Fredholm} if $\ker f$ is finite-dimensional, the
+  range of $f$ is closed, and the range of $f$ has finite codimension (the cokernel
+  $F / \operatorname{ran} f$ is finite-dimensional).
+\end{definition}
+
+\begin{definition}[Fredholm index]
+  \label{def:fredholm-index}
+  \lean{SpectralTriples.Fredholm.index}
+  \leanok
+  \uses{def:isFredholm}
+  The \emph{Fredholm index} of a linear map $f \colon E \to F$ is the integer
+  \[
+    \operatorname{ind}(f) = \dim(\ker f) - \dim(F / \operatorname{ran} f).
+  \]
+\end{definition}
+
+\begin{lemma}[Index of a bijection]
+  \label{lem:fredholm-index-of-bijective}
+  \lean{SpectralTriples.Fredholm.isFredholm_of_bijective,
+        SpectralTriples.Fredholm.index_of_bijective}
+  \leanok
+  \uses{def:isFredholm, def:fredholm-index}
+  A bijective linear map with closed range is Fredholm, of index $0$.
+\end{lemma}
 
 \section{The graded-kernel index}
 \label{sec:graded-kernel-index}
@@ -229,7 +270,7 @@ arbitrary self-adjoint idempotent representing a class in $K_0(A)$.
 
 \begin{definition}[Index pairing]
   \label{def:index-pairing}
-  \uses{def:even-spectral-triple}
+  \uses{def:even-spectral-triple, def:fredholm-index}
   Let $(A, \Hil, \pi, D, \gamma)$ be an even spectral triple and let
   $p \in M_n(A)$ be a self-adjoint idempotent (a projection representing a class
   in $K_0(A)$). The \emph{index pairing} of $p$ with $(A, \Hil, \pi, D, \gamma)$ is
@@ -243,7 +284,7 @@ arbitrary self-adjoint idempotent representing a class in $K_0(A)$.
 
 \begin{theorem}[The index pairing is well defined]
   \label{thm:index-pairing-well-defined}
-  \uses{def:index-pairing, thm:finiteDimensional-Dkernel}
+  \uses{def:index-pairing, thm:finiteDimensional-Dkernel, def:isFredholm}
   In the situation of Definition~\ref{def:index-pairing}, the operator
   $\pi(p) D^{+} \pi(p)$, restricted to $\pi(p)\Hil \cap \dom{D}$, is Fredholm, so that
   $\langle [p], (\Hil, \pi, D, \gamma) \rangle \in \mathbb{Z}$ is well defined.

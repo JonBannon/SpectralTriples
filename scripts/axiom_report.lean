@@ -49,6 +49,12 @@ open LinearPMap
 #print axioms IsOddSpectralTriple.toIsFinitelySummableSpectralTriple
 #print axioms IsFinitelySummableSpectralTriple.resolvent_mem
 
+-- Fredholm.lean — a minimal, self-contained notion of Fredholm linear map.
+#print axioms SpectralTriples.Fredholm.IsFredholm
+#print axioms SpectralTriples.Fredholm.index
+#print axioms SpectralTriples.Fredholm.isFredholm_of_bijective
+#print axioms SpectralTriples.Fredholm.index_of_bijective
+
 -- Index.lean — the graded-kernel index of an even spectral triple.
 #print axioms SpectralTriples.Dkernel
 #print axioms SpectralTriples.index
