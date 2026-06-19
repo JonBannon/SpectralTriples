@@ -56,3 +56,10 @@
 'SpectralTriples.Torus.isEvenSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Torus.isFinitelySummableSpectralTriple' depends on axioms: [propext, Classical.choice, Quot.sound]
 'SpectralTriples.Torus.index_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.differentiable_thetaSection' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection_quasiPeriodic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection_translate' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SpectralTriples.ThetaSections.thetaSection_linearIndependent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
