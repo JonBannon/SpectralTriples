@@ -101,7 +101,10 @@ construction need forces it. Revisit when Phase 2 starts.
   open node above.
 * **Phase 2 — index pairing.** Introduce bounded `IsOddFredholmModule`; this is
   where the bounded tool enters. The only phase blocked on a *large* Mathlib
-  gap (unbounded functional calculus) if attempted unbounded-native.
+  gap (unbounded functional calculus) if attempted unbounded-native. Concrete
+  nonzero-index examples are already done (Toeplitz `−1`, flux-`k` magnetic
+  Dirac `k`); the roadmap for connecting the magnetic model to the geometric
+  `T²` line bundle is [`docs/INDEX_PAIRING.md`](SpectralTriples/docs/INDEX_PAIRING.md).
 * **Phase 2.5 — Connes' spectral distance.** Natural fit for the unbounded
   spine (DESIGN.md §2.7); does not need the index pairing.
 * **Phase 3 / 3.5 — examples (S¹, T² + line bundle).** Diagonal operators on
