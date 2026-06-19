@@ -93,3 +93,10 @@ open LinearPMap
 #print axioms SpectralTriples.Torus.isEvenSpectralTriple
 #print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
 #print axioms SpectralTriples.Torus.index_eq_zero
+
+-- Examples/ThetaSections.lean — M2: k independent theta zero modes of the flux-k Dirac (dim ker ≥ k).
+#print axioms SpectralTriples.ThetaSections.thetaSection
+#print axioms SpectralTriples.ThetaSections.differentiable_thetaSection
+#print axioms SpectralTriples.ThetaSections.thetaSection_quasiPeriodic
+#print axioms SpectralTriples.ThetaSections.thetaSection_translate
+#print axioms SpectralTriples.ThetaSections.thetaSection_linearIndependent
