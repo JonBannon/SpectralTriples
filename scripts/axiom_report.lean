@@ -93,3 +93,23 @@ open LinearPMap
 #print axioms SpectralTriples.Torus.isEvenSpectralTriple
 #print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
 #print axioms SpectralTriples.Torus.index_eq_zero
+
+-- Examples/Shift.lean — the unilateral shift on ℓ²(ℕ): a Fredholm operator of index −1.
+#print axioms SpectralTriples.Shift.shift
+#print axioms SpectralTriples.Shift.finrank_quotient_range_eq_orthogonal
+#print axioms SpectralTriples.Shift.fredholmIndex_shift
+
+-- Examples/MagneticDirac.lean — flux-k magnetic Dirac model: index = k, with magnetic translations.
+#print axioms SpectralTriples.MagneticDirac.magneticDirac
+#print axioms SpectralTriples.MagneticDirac.magneticDirac_ker_finrank
+#print axioms SpectralTriples.MagneticDirac.fredholmIndex_magneticDirac
+#print axioms SpectralTriples.MagneticDirac.magneticTranslation_weyl
+#print axioms SpectralTriples.MagneticDirac.magClock_comm_dirac
+#print axioms SpectralTriples.MagneticDirac.magShift_comm_dirac
+
+-- Examples/ThetaSections.lean — M2: k independent theta zero modes of the flux-k Dirac (dim ker ≥ k).
+#print axioms SpectralTriples.ThetaSections.thetaSection
+#print axioms SpectralTriples.ThetaSections.differentiable_thetaSection
+#print axioms SpectralTriples.ThetaSections.thetaSection_quasiPeriodic
+#print axioms SpectralTriples.ThetaSections.thetaSection_translate
+#print axioms SpectralTriples.ThetaSections.thetaSection_linearIndependent

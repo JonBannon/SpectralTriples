@@ -6,4 +6,7 @@ import SpectralTriples.CompactOperators
 import SpectralTriples.Index
 import SpectralTriples.DiagonalOperator
 import SpectralTriples.Examples.Circle
+import SpectralTriples.Examples.Shift
+import SpectralTriples.Examples.MagneticDirac
+import SpectralTriples.Examples.ThetaSections
 import SpectralTriples.Examples.Torus

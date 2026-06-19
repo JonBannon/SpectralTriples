@@ -294,11 +294,16 @@ arbitrary self-adjoint idempotent representing a class in $K_0(A)$.
 \label{cha:examples}
 
 This chapter records concrete spectral triples built directly on the Fourier side, bypassing
-spin-geometry and Sobolev-space machinery from the literature. Both examples share the same
-diagonal-operator technology (Section~\ref{sec:diagonal-operators}): the circle example
-(Section~\ref{sec:circle}) is a complete, finitely summable, odd spectral triple; the two-torus
-example (Section~\ref{sec:torus}) is a complete, finitely summable, even spectral triple with
-vanishing index.
+spin-geometry and Sobolev-space machinery from the literature, together with standalone
+Fredholm-index examples that illustrate Section~\ref{sec:fredholm} directly. The circle and
+torus examples share the same diagonal-operator technology (Section~\ref{sec:diagonal-operators}):
+the circle example (Section~\ref{sec:circle}) is a complete, finitely summable, odd spectral
+triple; the two-torus example (Section~\ref{sec:torus}) is a complete, finitely summable, even
+spectral triple with vanishing index. Sections~\ref{sec:shift} and~\ref{sec:magnetic-dirac} give
+two further examples with \emph{nonzero} Fredholm index, $-1$ and $k$ respectively, completing
+the index arc $0, -1, k$. Section~\ref{sec:theta-sections} begins connecting the abstract
+flux-$k$ model of Section~\ref{sec:magnetic-dirac} back to genuine geometry, by exhibiting $k$
+independent holomorphic sections of the degree-$k$ line bundle on the square torus.
 
 \section{Block-diagonal operators on \texorpdfstring{$\ell^2$}{l2}}
 \label{sec:diagonal-operators}
@@ -533,4 +538,157 @@ with eigenvalues $\pm 2\pi\sqrt{m^2+n^2}$; the chirality grading is $\gamma = \s
   one of the two spinor basis vectors at that mode, so $\dim(\ker D)^{+} = \dim(\ker D)^{-} =
   1$. This matches the Atiyah--Singer prediction for the trivial (degree-$0$) line bundle on
   $T^2$.
+\end{theorem}
+
+\section{The unilateral shift on \texorpdfstring{$\ell^2(\mathbb{N})$}{l2(N)}}
+\label{sec:shift}
+
+\textbf{Status: complete.} A direct illustration of the Fredholm index machinery
+(Section~\ref{sec:fredholm}) on a single bounded operator, independent of the spectral-triple
+framework: the classical forward unilateral shift on $\ell^2(\mathbb{N})$, with Fredholm index
+$-1$.
+
+\begin{definition}[Unilateral shift]
+  \label{def:shift}
+  \lean{SpectralTriples.Shift.shift}
+  \leanok
+  The forward unilateral shift $S$ on $\ell^2(\mathbb{N})$: $(Sx)_n = x_{n-1}$ for $n \geq 1$
+  and $(Sx)_0 = 0$.
+\end{definition}
+
+\begin{theorem}[The shift is Fredholm of index $-1$]
+  \label{thm:fredholmIndex-shift}
+  \lean{SpectralTriples.Shift.fredholmIndex_shift}
+  \leanok
+  \uses{def:shift, def:fredholm-index}
+  $\operatorname{ind}(S) = -1$. The shift is injective ($\ker S = 0$) and its range is closed
+  with one-dimensional orthogonal complement spanned by the zeroth basis vector $e_0$, so
+  $\operatorname{ind}(S) = \dim(\ker S) - \dim(\operatorname{coker} S) = 0 - 1 = -1$.
+\end{theorem}
+
+\section{The flux-\texorpdfstring{$k$}{k} magnetic Dirac model}
+\label{sec:magnetic-dirac}
+
+\textbf{Status: complete (model level).} A Landau-level / magnetic-translation model of the
+flux-$k$ Dirac operator on $T^2$, after reduction to $\ell^2(\mathbb{N}) \otimes \mathbb{C}^k$,
+with Fredholm index exactly $k$. The unitary equivalence between this lowest-Landau-level model
+and the geometric PDE on $T^2$ (the degree-$k$ line bundle) is \emph{not} formalized here and is
+deferred analysis; the content proved is that the index is $k$, and that the $k$-dimensional
+kernel carries the expected magnetic-translation (finite Weyl) structure certifying it as the
+flux-$k$ degeneracy.
+
+\begin{definition}[Flux-$k$ magnetic Dirac operator]
+  \label{def:magneticDirac}
+  \lean{SpectralTriples.MagneticDirac.magneticDirac}
+  \leanok
+  \uses{def:shift}
+  The backward shift on the Landau-level index $\mathbb{N}$, tensored with the identity on the
+  $k$-dimensional guiding-center factor $\mathbb{C}^k$: an operator $D_k$ on
+  $\ell^2(\mathbb{N}) \otimes \mathbb{C}^k$.
+\end{definition}
+
+\begin{theorem}[The kernel is the lowest Landau level]
+  \label{thm:magneticDirac-ker-finrank}
+  \lean{SpectralTriples.MagneticDirac.magneticDirac_ker_finrank}
+  \leanok
+  \uses{def:magneticDirac}
+  $\dim \ker(D_k) = k$: the kernel is exactly the lowest Landau level, identified with
+  $\mathbb{C}^k$.
+\end{theorem}
+
+\begin{theorem}[The magnetic Dirac operator is Fredholm of index $k$]
+  \label{thm:fredholmIndex-magneticDirac}
+  \lean{SpectralTriples.MagneticDirac.fredholmIndex_magneticDirac}
+  \leanok
+  \uses{thm:magneticDirac-ker-finrank, def:fredholm-index}
+  $\operatorname{ind}(D_k) = k$: the operator is surjective (trivial cokernel), so the index
+  equals the kernel dimension.
+\end{theorem}
+
+\begin{definition}[Magnetic translations]
+  \label{def:magnetic-translations}
+  \lean{SpectralTriples.MagneticDirac.magClock, SpectralTriples.MagneticDirac.magShift}
+  \leanok
+  The magnetic clock $\hat C$ and cyclic shift $\hat S$ operators on the guiding-center factor
+  $\mathbb{C}^k$, acting by the phase $\omega_k = e^{2\pi i / k}$ and by cyclic permutation
+  respectively.
+\end{definition}
+
+\begin{theorem}[Finite Weyl relation and commutation with the Dirac operator]
+  \label{thm:magnetic-translation-weyl}
+  \lean{SpectralTriples.MagneticDirac.magneticTranslation_weyl,
+        SpectralTriples.MagneticDirac.magClock_comm_dirac,
+        SpectralTriples.MagneticDirac.magShift_comm_dirac}
+  \leanok
+  \uses{def:magnetic-translations, def:magneticDirac}
+  The magnetic clock and shift satisfy the finite Weyl relation $\hat C \hat S = \omega_k \hat
+  S \hat C$, and both commute with $D_k$ — certifying that the $k$-dimensional kernel of
+  Theorem~\ref{thm:magneticDirac-ker-finrank} carries the genuine flux-$k$ Heisenberg
+  degeneracy.
+\end{theorem}
+
+\section{Theta sections on the square torus}
+\label{sec:theta-sections}
+
+\textbf{Status: partial (lower bound only).} This section proves the lower-bound half of the
+square-torus flux-$k$ Landau-level computation directly on the geometric side: $k$ explicit
+holomorphic theta sections for the degree-$k$ line bundle on the square torus $\mathbb{C} /
+(\mathbb{Z} + i \mathbb{Z})$ are exhibited and shown linearly independent, giving $\dim \ker
+D^{+} \geq k$ for the \emph{geometric} Dirac operator twisted by the degree-$k$ bundle (as
+opposed to the magnetic-translation model of Section~\ref{sec:magnetic-dirac}). The matching
+upper bound $\dim \ker D^{+} \leq k$, the vanishing of the cokernel, and the resulting
+identification of the geometric index with the model index $k$
+(Theorem~\ref{thm:fredholmIndex-magneticDirac}) are deferred; see
+\texttt{SpectralTriples/docs/INDEX\_PAIRING.md} for the roadmap.
+
+\begin{definition}[Explicit degree-$k$ theta sections]
+  \label{def:thetaSection}
+  \lean{SpectralTriples.ThetaSections.thetaSection}
+  \leanok
+  For $k \geq 1$ and $a \in \{0, \dots, k-1\}$, the theta section
+  \[
+    \theta_{k,a}(z) = e^{2\pi i a z} \, \vartheta(kz + ai;\, ki),
+  \]
+  built from Mathlib's two-variable Jacobi theta function $\vartheta$ at modulus $\tau = ki$.
+\end{definition}
+
+\begin{theorem}[Theta sections are holomorphic]
+  \label{thm:differentiable-thetaSection}
+  \lean{SpectralTriples.ThetaSections.differentiable_thetaSection}
+  \leanok
+  \uses{def:thetaSection}
+  Each $\theta_{k,a}$ is differentiable (holomorphic) on $\mathbb{C}$.
+\end{theorem}
+
+\begin{theorem}[Automorphy under the square-torus lattice]
+  \label{thm:thetaSection-quasiPeriodic}
+  \lean{SpectralTriples.ThetaSections.thetaSection_quasiPeriodic,
+        SpectralTriples.ThetaSections.thetaSection_periodic}
+  \leanok
+  \uses{def:thetaSection}
+  $\theta_{k,a}(z+1) = \theta_{k,a}(z)$ (periodicity under the lattice generator $1$) and
+  $\theta_{k,a}(z+i) = e^{-\pi i k (2z+i)} \, \theta_{k,a}(z)$ (the degree-$k$ automorphy factor
+  under the generator $i$): together, these are the defining quasi-periodicity conditions for a
+  holomorphic section of the degree-$k$ line bundle on $\mathbb{C}/(\mathbb{Z}+i\mathbb{Z})$.
+\end{theorem}
+
+\begin{theorem}[Diagonalization under translation by $1/k$]
+  \label{thm:thetaSection-translate}
+  \lean{SpectralTriples.ThetaSections.thetaSection_translate}
+  \leanok
+  \uses{def:thetaSection}
+  $\theta_{k,a}(z + 1/k) = \omega_k^{a} \, \theta_{k,a}(z)$, where $\omega_k = e^{2\pi i / k}$:
+  translation by $1/k$ diagonalizes the theta sections, with the same $k$-th roots of unity
+  that appear in the magnetic clock operator of Definition~\ref{def:magnetic-translations}.
+\end{theorem}
+
+\begin{theorem}[Linear independence: the lower bound $\dim \ker D^{+} \geq k$]
+  \label{thm:thetaSection-linearIndependent}
+  \lean{SpectralTriples.ThetaSections.thetaSection_linearIndependent}
+  \leanok
+  \uses{thm:thetaSection-translate}
+  The $k$ theta sections $\theta_{k,0}, \dots, \theta_{k,k-1}$ are linearly independent over
+  $\mathbb{C}$: they are eigenvectors of translation by $1/k$ with pairwise distinct
+  eigenvalues $\omega_k^{0}, \dots, \omega_k^{k-1}$ (the $k$ distinct $k$-th roots of unity),
+  hence independent.
 \end{theorem}
