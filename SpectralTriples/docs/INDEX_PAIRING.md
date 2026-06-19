@@ -93,13 +93,19 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
 
     > `a_{m+k} = e^{πiτ(2m+k)} a_m`.
 
-    So the whole coefficient sequence is determined by `(a_0, …, a_{k-1})` (and `|e^{πiτ(2m+k)}| → 0`
-    as `m → ±∞` since `Im τ > 0`, so the series converges — the section is automatically entire).
-    Hence the restriction map `ψ ↦ (a_0,…,a_{k-1})` is an **injective** linear map into `ℂᵏ`, giving
-    `dim ≤ k`. Combined with **M2** (`≥ k`, the `k` explicit theta sections realizing exactly these
-    free constants), this yields `dim H⁰(L_k) = k` — a *complete, sorry-free* dimension count with
-    **no index theorem and no `L²` analysis**. The only analytic input is the Fourier/`q`-expansion of
-    a `1`-periodic entire function and that the coefficient functional is linear & injective.
+    So the whole coefficient sequence is determined by `(a_0, …, a_{k-1})`, and the restriction map
+    `ψ ↦ (a_0,…,a_{k-1})` is an **injective** linear map into `ℂᵏ` (injectivity: `a_0=…=a_{k-1}=0`
+    ⇒ all `a_m = 0` ⇒ `ψ = 0` by Fourier completeness + the identity theorem), giving `dim ≤ k`.
+    With **M2** (`≥ k`) this yields `dim H⁰(L_k) = k`, with **no index theorem and no `L²` analysis**.
+
+    *The one genuine analytic crux* (not yet in Mathlib): extracting the `a_m` and deriving the
+    recursion. The right tool is **`fourierCoeff` on `AddCircle 1`** applied to the line-restrictions
+    `ψ(· + iy)` — **not** `Function.Periodic.cuspFunction`, which assumes the section is meromorphic
+    at the cusp; here the theta sections **grow like `e^{πk(Im z)²}`** (Gaussian, intrinsic to a
+    positive line bundle), so `cuspFunction` does not apply. The recursion comes from the
+    **holomorphic contour-shift** `fourierCoeff(ψ(·+iy)) m = a_m · e^{−2πmy}` (relating coefficients on
+    different horizontal lines via Cauchy/holomorphy) combined with the τ-quasi-periodicity. That
+    contour-shift is the substantive lemma to build; given it, the recursion + injectivity is easy.
 
   - **M3b — `coker = 0` (`H¹(L_k) = 0` for `k > 0`).** The anti-holomorphic sections (`ker D⁻`)
     satisfy the *conjugate* recursion `a_{m+k} = e^{-πiτ̄(…)} a_m`, whose factor has modulus `> 1`,
@@ -112,10 +118,10 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
     (no elliptic regularity for `∂̄` on the torus). M3a+M2+M3b already give the *function-theoretic*
     answer `dim H⁰(L_k) = k`, `dim H¹ = 0`; M3c (with M1/M4) upgrades it to the operator.
 
-  Mathlib inventory for M3a: Fourier coefficients on the circle (`fourierCoeff`, `AddCircle`) and
-  `q`-expansions of periodic holomorphic functions are present in pieces; the recursion and the
-  injectivity are elementary algebra on the coefficient sequence. **M3a is the recommended next
-  build** — it closes the dimension count to exactly `k` using real Fourier infrastructure.
+  Mathlib inventory for M3a: `fourierCoeff`/`AddCircle` and Fourier completeness are present; the
+  recursion and injectivity are then elementary. The **one piece to build is the contour-shift**
+  `fourierCoeff(ψ(·+iy)) m = a_m e^{−2πmy}` (a Cauchy/holomorphy lemma). **M3a is the recommended next
+  build**, modulo that single analytic lemma; it closes the dimension count to exactly `k`.
 
 - **M4 — the unitary equivalence to the model (TODO).** Assemble `U` from M1–M3:
   `U D⁺_{L_k} U⁻¹ = magneticDirac k` (or the oscillator-lowering variant with the same index),
