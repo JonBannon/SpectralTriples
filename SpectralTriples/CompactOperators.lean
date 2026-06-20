@@ -10,6 +10,7 @@ public import SpectralTriples.Fredholm
 public import Mathlib.Analysis.InnerProductSpace.Projection.Basic
 public import Mathlib.Analysis.Normed.Operator.Compact.Basic
 public import Mathlib.Analysis.InnerProductSpace.Adjoint
+public import Mathlib.Analysis.InnerProductSpace.Spectrum
 
 /-! # Compact operators on Hilbert space are Fredholm perturbations of the identity
 
@@ -183,3 +184,170 @@ theorem adjoint {K : H →L[𝕜] H} (hK : IsCompactOperator K) :
   exact isCompactOperator_of_tendsto htendsto (Filter.Eventually.of_forall hFadjCompact)
 
 end IsCompactOperator
+
+namespace SpectralTriples.Fredholm
+
+/-- **Fredholm-ness of compact perturbations of the identity** (the structural part of the
+classical Riesz–Schauder theorem for compact operators on Hilbert space): if `K` is compact,
+then `1 - K` is a Fredholm linear map — its kernel is finite-dimensional, its range is closed,
+and its range has finite codimension. (The further classical fact that the index is `0`,
+i.e. `dim (ker (1 - K)) = dim (coker (1 - K))`, is not proved here.) -/
+theorem isFredholm_one_sub {K : H →L[𝕜] H} (hK : IsCompactOperator K) :
+    IsFredholm ((1 - K : H →L[𝕜] H).toLinearMap) := by
+  set T : H →L[𝕜] H := 1 - K with hTdef
+  set N : Submodule 𝕜 H := LinearMap.ker T.toLinearMap with hNdef
+  -- `N = ker T` is the eigenspace of `K` at the eigenvalue `1`, hence finite-dimensional.
+  have hNeig : N = Module.End.eigenspace K.toLinearMap 1 := by
+    apply le_antisymm
+    · intro x hx
+      rw [Module.End.mem_eigenspace_iff, one_smul]
+      have hTx : T x = 0 := hx
+      rw [hTdef] at hTx
+      simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply,
+        sub_eq_zero] at hTx
+      exact hTx.symm
+    · intro x hx
+      rw [Module.End.mem_eigenspace_iff] at hx
+      have hx' : K x = x := by simpa using hx
+      change T x = 0
+      rw [hTdef]
+      simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply]
+      rw [hx', sub_self]
+  haveI hNfd : FiniteDimensional 𝕜 N := by
+    rw [hNeig]; exact K.finite_dimensional_eigenspace hK 1 one_ne_zero
+  -- Step 1: `T` is bounded below on `Nᗮ`.
+  have hbelow : ∃ c : ℝ, 0 < c ∧ ∀ x ∈ Nᗮ, c * ‖x‖ ≤ ‖T x‖ := by
+    by_contra hcon
+    push Not at hcon
+    have hseq : ∀ n : ℕ, ∃ x ∈ Nᗮ, ‖T x‖ < (1 / (n + 1 : ℝ)) * ‖x‖ := fun n =>
+      hcon (1 / (n + 1)) (by positivity)
+    choose x hxN hxlt using hseq
+    have hxne : ∀ n, x n ≠ 0 := by
+      intro n hx0
+      have h := hxlt n
+      rw [hx0] at h
+      simp at h
+    set y : ℕ → H := fun n => ((‖x n‖⁻¹ : ℝ) : 𝕜) • x n with hydef
+    have hyN : ∀ n, y n ∈ Nᗮ := fun n => Nᗮ.smul_mem _ (hxN n)
+    have hynorm : ∀ n, ‖y n‖ = 1 := by
+      intro n
+      rw [hydef, norm_smul, RCLike.norm_ofReal, abs_of_nonneg (by positivity),
+        inv_mul_cancel₀ (norm_ne_zero_iff.mpr (hxne n))]
+    have hTy_lt : ∀ n, ‖T (y n)‖ < 1 / (n + 1 : ℝ) := by
+      intro n
+      have h1 : T (y n) = ((‖x n‖⁻¹ : ℝ) : 𝕜) • T (x n) := by rw [hydef, _root_.map_smul]
+      rw [h1, norm_smul, RCLike.norm_ofReal,
+        abs_of_nonneg (by positivity : (0 : ℝ) ≤ ‖x n‖⁻¹)]
+      have hb := hxlt n
+      have hxnpos : (0 : ℝ) < ‖x n‖ := norm_pos_iff.mpr (hxne n)
+      calc ‖x n‖⁻¹ * ‖T (x n)‖ < ‖x n‖⁻¹ * ((1 / (↑n + 1)) * ‖x n‖) :=
+            mul_lt_mul_of_pos_left hb (inv_pos.mpr hxnpos)
+        _ = 1 / (↑n + 1) := by
+              rw [show ‖x n‖⁻¹ * ((1 / (↑n + 1)) * ‖x n‖)
+                  = (1 / (↑n + 1)) * (‖x n‖⁻¹ * ‖x n‖) by ring,
+                inv_mul_cancel₀ (ne_of_gt hxnpos), mul_one]
+    have hTy_tendsto : Filter.Tendsto (fun n => T (y n)) Filter.atTop (nhds 0) := by
+      rw [tendsto_zero_iff_norm_tendsto_zero]
+      refine squeeze_zero (fun n => norm_nonneg _) (fun n => (hTy_lt n).le) ?_
+      exact tendsto_one_div_add_atTop_nhds_zero_nat
+    obtain ⟨C, hC, hCsub⟩ := hK.image_closedBall_subset_compact 1
+    obtain ⟨z, _hzC, φ, hφ, hφy⟩ := hC.tendsto_subseq
+      (x := fun n => K (y n)) (fun n => hCsub ⟨y n, by simp [hynorm n], rfl⟩)
+    have hy_tendsto : Filter.Tendsto (fun n => y (φ n)) Filter.atTop (nhds z) := by
+      have heq : ∀ n, T (y (φ n)) + K (y (φ n)) = y (φ n) := by
+        intro n
+        simp only [hTdef, ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply]
+        abel
+      have htarget : Filter.Tendsto (fun n => T (y (φ n)) + K (y (φ n))) Filter.atTop (nhds z) := by
+        simpa using (hTy_tendsto.comp hφ.tendsto_atTop).add hφy
+      exact htarget.congr heq
+    have hzN : z ∈ Nᗮ :=
+      N.isClosed_orthogonal.mem_of_tendsto hy_tendsto
+        (Filter.Eventually.of_forall fun n => hyN (φ n))
+    have hzT0 : T z = 0 := by
+      have h1 : Filter.Tendsto (fun n => T (y (φ n))) Filter.atTop (nhds (T z)) :=
+        (T.continuous.tendsto z).comp hy_tendsto
+      have h2 : Filter.Tendsto (fun n => T (y (φ n))) Filter.atTop (nhds 0) :=
+        hTy_tendsto.comp hφ.tendsto_atTop
+      exact tendsto_nhds_unique h1 h2
+    have hz0 : z = 0 := by
+      have hzNN : z ∈ N := hzT0
+      have hmem : z ∈ N ⊓ Nᗮ := ⟨hzNN, hzN⟩
+      rwa [(Submodule.orthogonal_disjoint N).eq_bot, Submodule.mem_bot] at hmem
+    have hnorm_tendsto : Filter.Tendsto (fun n => ‖y (φ n)‖) Filter.atTop (nhds ‖z‖) :=
+      (continuous_norm.tendsto z).comp hy_tendsto
+    simp only [hynorm] at hnorm_tendsto
+    have h1 : ‖z‖ = 1 := tendsto_nhds_unique hnorm_tendsto tendsto_const_nhds
+    rw [hz0, norm_zero] at h1
+    exact absurd h1 (by norm_num)
+  obtain ⟨c, hc0, hTbelow⟩ := hbelow
+  haveI : CompleteSpace Nᗮ := N.isClosed_orthogonal.completeSpace_coe
+  set T' : Nᗮ →L[𝕜] H := T.comp (Nᗮ.subtypeL) with hT'def
+  have hT'bound : ∀ x : Nᗮ, ‖x‖ ≤ c⁻¹ * ‖T' x‖ := by
+    intro x
+    have hb := hTbelow x x.2
+    have hT'x : T' x = T x := rfl
+    rw [hT'x]
+    have hmul := mul_le_mul_of_nonneg_left hb (inv_nonneg.mpr hc0.le)
+    rwa [← mul_assoc, inv_mul_cancel₀ (ne_of_gt hc0), one_mul] at hmul
+  have hanti : AntilipschitzWith (⟨c⁻¹, inv_nonneg.mpr hc0.le⟩ : NNReal) T' :=
+    ContinuousLinearMap.antilipschitz_of_bound T' hT'bound
+  have hclosed_range' : IsClosed (Set.range (T' : Nᗮ → H)) :=
+    hanti.isClosed_range T'.uniformContinuous
+  -- Step 2: the range of `T` coincides with the range of `T'`, hence is closed.
+  have hrange_eq : LinearMap.range T.toLinearMap = LinearMap.range T'.toLinearMap := by
+    apply le_antisymm
+    · rintro - ⟨v, rfl⟩
+      have hsub : v - Nᗮ.starProjection v ∈ N := by
+        have h := Nᗮ.sub_starProjection_mem_orthogonal v
+        rwa [Submodule.orthogonal_orthogonal N] at h
+      have hTsub : T (v - Nᗮ.starProjection v) = 0 := LinearMap.mem_ker.mp hsub
+      have hTv : T v = T' ⟨Nᗮ.starProjection v, Nᗮ.starProjection_apply_mem v⟩ := by
+        have hsplit : T v = T (Nᗮ.starProjection v) + T (v - Nᗮ.starProjection v) := by
+          rw [← _root_.map_add]; congr 1; abel
+        rw [hsplit, hTsub, add_zero]; rfl
+      exact ⟨⟨Nᗮ.starProjection v, Nᗮ.starProjection_apply_mem v⟩, hTv.symm⟩
+    · rintro - ⟨u, rfl⟩
+      exact ⟨(u : H), rfl⟩
+  have hcoe_eq : (LinearMap.range T'.toLinearMap : Set H) = Set.range (T' : Nᗮ → H) := by
+    ext y; simp [LinearMap.mem_range]
+  have hclosed_T : IsClosed (LinearMap.range T.toLinearMap : Set H) := by
+    rw [hrange_eq, hcoe_eq]; exact hclosed_range'
+  haveI : CompleteSpace (LinearMap.range T.toLinearMap) := hclosed_T.completeSpace_coe
+  -- Step 3: the cokernel is finite-dimensional, via the adjoint `T† = 1 - K†` (also a compact
+  -- perturbation of the identity, since `K†` is compact) and `(range T)ᗮ = ker T†`.
+  have hTadj : ContinuousLinearMap.adjoint T = 1 - ContinuousLinearMap.adjoint K := by
+    rw [hTdef, map_sub]
+    congr 1
+    exact ContinuousLinearMap.adjoint_id
+  have hKadj : IsCompactOperator (ContinuousLinearMap.adjoint K) := hK.adjoint
+  have hNadj : LinearMap.ker (ContinuousLinearMap.adjoint T).toLinearMap =
+      Module.End.eigenspace (ContinuousLinearMap.adjoint K).toLinearMap 1 := by
+    apply le_antisymm
+    · intro x hx
+      rw [Module.End.mem_eigenspace_iff, one_smul]
+      have hTx : (ContinuousLinearMap.adjoint T) x = 0 := hx
+      rw [hTadj] at hTx
+      simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply,
+        sub_eq_zero] at hTx
+      exact hTx.symm
+    · intro x hx
+      rw [Module.End.mem_eigenspace_iff] at hx
+      have hx' : (ContinuousLinearMap.adjoint K) x = x := by simpa using hx
+      change (ContinuousLinearMap.adjoint T) x = 0
+      rw [hTadj]
+      simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply]
+      rw [hx', sub_self]
+  haveI hNadjfd : FiniteDimensional 𝕜
+      (LinearMap.ker (ContinuousLinearMap.adjoint T).toLinearMap) := by
+    rw [hNadj]
+    exact (ContinuousLinearMap.adjoint K).finite_dimensional_eigenspace hKadj 1 one_ne_zero
+  haveI hcokerfd : FiniteDimensional 𝕜 (LinearMap.range T.toLinearMap)ᗮ := by
+    rw [T.orthogonal_range]; exact hNadjfd
+  have hequiv := Submodule.quotientEquivOfIsCompl (LinearMap.range T.toLinearMap)
+    (LinearMap.range T.toLinearMap)ᗮ Submodule.isCompl_orthogonal_of_hasOrthogonalProjection
+  haveI : FiniteDimensional 𝕜 (H ⧸ LinearMap.range T.toLinearMap) :=
+    FiniteDimensional.of_injective hequiv.toLinearMap hequiv.injective
+  exact ⟨hNfd, hclosed_T, ‹FiniteDimensional 𝕜 (H ⧸ LinearMap.range T.toLinearMap)›⟩
+
+end SpectralTriples.Fredholm
