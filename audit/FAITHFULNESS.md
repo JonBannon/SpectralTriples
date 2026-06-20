@@ -64,9 +64,10 @@ representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 
 | Object / Claim | Informal content | Lean | Status |
 |---|---|---|---|
-| Block-diagonal operator on `ℓ²` | `(diagL T) a = (i ↦ Tᵢ aᵢ)` for a uniformly bounded block family | `lpDiag.diagL` — `DiagonalOperator.lean:69` | ✓ axiom-clean |
-| its operator-norm bound | `‖diagL T‖ ≤ C` when `‖Tᵢ‖ ≤ C` | `lpDiag.norm_diagL_le` — `DiagonalOperator.lean:97` | ✓ axiom-clean |
-| **compactness criterion** | block norms `→ 0` (cofinite) + finite-dim fibres ⇒ `diagL T` compact (finite-rank truncations converge in operator norm) | `lpDiag.isCompactOperator_diagL` — `DiagonalOperator.lean:185` | ✓ axiom-clean |
+| Block-diagonal operator on `ℓ²` | `(diagL T) a = (i ↦ Tᵢ aᵢ)` for a uniformly bounded block family | `lpDiag.diagL` — `DiagonalOperator.lean:70` | ✓ axiom-clean |
+| its operator-norm bound | `‖diagL T‖ ≤ C` when `‖Tᵢ‖ ≤ C` | `lpDiag.norm_diagL_le` — `DiagonalOperator.lean:98` | ✓ axiom-clean |
+| **compactness criterion** | block norms `→ 0` (cofinite) + finite-dim fibres ⇒ `diagL T` compact (finite-rank truncations converge in operator norm) | `lpDiag.isCompactOperator_diagL` — `DiagonalOperator.lean:186` | ✓ axiom-clean |
+| **unbounded block-diagonal Dirac operator** | given symmetric blocks `B i`, the operator on its maximal `ℓ²` domain is self-adjoint (shared by the `S¹`/`T²` examples below) | `lpDiag.diracDirac_isSelfAdjoint` — `DiagonalOperator.lean:340` | ✓ axiom-clean |
 
 ## Index of an even spectral triple (Phase 2 foundations)
 
@@ -97,20 +98,20 @@ Reference: Connes Ch. VI; GBF §9–12 (canonical triple of a spin manifold, her
 
 | Object / Claim | Lean | Status |
 |---|---|---|
-| Dirac operator `D` (block-diagonal, unbounded) | `SpectralTriples.Torus.diracDirac` — `Examples/Torus.lean:131` | ✓ axiom-clean |
-| `D` self-adjoint | `SpectralTriples.Torus.diracDirac_isSelfAdjoint` — `Examples/Torus.lean:211` | ✓ axiom-clean |
-| `i ∈ ρ(D)` | `SpectralTriples.Torus.mem_resolventSet_I` — `Examples/Torus.lean:231` | ✓ axiom-clean |
-| `(D − i·1)⁻¹` is compact | `SpectralTriples.Torus.isCompactOperator_resolvent_I` — `Examples/Torus.lean:509` | ✓ axiom-clean |
-| grading `γ = σ₃` (CLM) | `SpectralTriples.Torus.grading` — `Examples/Torus.lean:592` | ✓ axiom-clean |
-| `γ` self-adjoint | `SpectralTriples.Torus.isSelfAdjoint_grading` — `Examples/Torus.lean:608` | ✓ axiom-clean |
-| `γ² = 1` | `SpectralTriples.Torus.grading_mul_self` — `Examples/Torus.lean:612` | ✓ axiom-clean |
-| `D γ = −γ D` on `dom D` | `SpectralTriples.Torus.grading_anticomm` — `Examples/Torus.lean:631` | ✓ axiom-clean |
-| algebra `ℂ[ℤ²]` (shift `*`-subalgebra) | `SpectralTriples.Torus.algebra` — `Examples/Torus.lean:871` | ✓ axiom-clean |
-| representation (inclusion `StarAlgHom`) | `SpectralTriples.Torus.rep` — `Examples/Torus.lean:876` | ✓ axiom-clean |
-| **`(A, H, D)` is an odd spectral triple** | `SpectralTriples.Torus.isOddSpectralTriple` — `Examples/Torus.lean:931` | ✓ axiom-clean |
-| **`(A, H, D, γ)` is an even spectral triple** | `SpectralTriples.Torus.isEvenSpectralTriple` — `Examples/Torus.lean:984` | ✓ axiom-clean |
-| **finitely summable at `i`** | `SpectralTriples.Torus.isFinitelySummableSpectralTriple` — `Examples/Torus.lean:994` | ✓ axiom-clean |
-| **index `= 0`** (`Â(T²)·rk`; `ker D = ℂ²` at the zero mode, split `1+1` by `γ`) | `SpectralTriples.Torus.index_eq_zero` — `Examples/Torus.lean:1257` | ✓ axiom-clean |
+| Dirac operator `D` (block-diagonal, unbounded) | `SpectralTriples.Torus.diracDirac` — `Examples/Torus.lean:120` | ✓ axiom-clean |
+| `D` self-adjoint | `SpectralTriples.Torus.diracDirac_isSelfAdjoint` — `Examples/Torus.lean:128` | ✓ axiom-clean |
+| `i ∈ ρ(D)` | `SpectralTriples.Torus.mem_resolventSet_I` — `Examples/Torus.lean:133` | ✓ axiom-clean |
+| `(D − i·1)⁻¹` is compact | `SpectralTriples.Torus.isCompactOperator_resolvent_I` — `Examples/Torus.lean:411` | ✓ axiom-clean |
+| grading `γ = σ₃` (CLM) | `SpectralTriples.Torus.grading` — `Examples/Torus.lean:494` | ✓ axiom-clean |
+| `γ` self-adjoint | `SpectralTriples.Torus.isSelfAdjoint_grading` — `Examples/Torus.lean:510` | ✓ axiom-clean |
+| `γ² = 1` | `SpectralTriples.Torus.grading_mul_self` — `Examples/Torus.lean:514` | ✓ axiom-clean |
+| `D γ = −γ D` on `dom D` | `SpectralTriples.Torus.grading_anticomm` — `Examples/Torus.lean:533` | ✓ axiom-clean |
+| algebra `ℂ[ℤ²]` (shift `*`-subalgebra) | `SpectralTriples.Torus.algebra` — `Examples/Torus.lean:773` | ✓ axiom-clean |
+| representation (inclusion `StarAlgHom`) | `SpectralTriples.Torus.rep` — `Examples/Torus.lean:778` | ✓ axiom-clean |
+| **`(A, H, D)` is an odd spectral triple** | `SpectralTriples.Torus.isOddSpectralTriple` — `Examples/Torus.lean:833` | ✓ axiom-clean |
+| **`(A, H, D, γ)` is an even spectral triple** | `SpectralTriples.Torus.isEvenSpectralTriple` — `Examples/Torus.lean:886` | ✓ axiom-clean |
+| **finitely summable at `i`** | `SpectralTriples.Torus.isFinitelySummableSpectralTriple` — `Examples/Torus.lean:896` | ✓ axiom-clean |
+| **index `= 0`** (`Â(T²)·rk`; `ker D = ℂ²` at the zero mode, split `1+1` by `γ`) | `SpectralTriples.Torus.index_eq_zero` — `Examples/Torus.lean:1158` | ✓ axiom-clean |
 
 *Faithfulness note for the example.* The chosen algebra is the trigonometric polynomials
 `ℂ[ℤ²]` (Fourier dual of `C(T²)`), represented by the coordinate shift unitaries — the
