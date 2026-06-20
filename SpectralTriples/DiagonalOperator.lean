@@ -288,11 +288,9 @@ theorem diracDirac_isFormalAdjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i
   rw [diracDirac_apply, diracDirac_apply]
   exact hB i _ _
 
-variable [DecidableEq α]
-
 omit [∀ i, CompleteSpace (G i)] in
 /-- Each single-mode vector lies in the maximal domain. -/
-theorem single_mem_diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
+theorem single_mem_diracDomain [DecidableEq α] (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
     (lp.single 2 i v : lp G 2) ∈ diracDomain B := by
   rw [mem_diracDomain_iff]
   have hfun : (fun q => B q ((lp.single 2 i v : lp G 2) q))
@@ -306,7 +304,7 @@ theorem single_mem_diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G
 
 omit [∀ i, CompleteSpace (G i)] in
 /-- The image of a single-mode vector under the diagonal operator. -/
-theorem diracDirac_single (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
+theorem diracDirac_single [DecidableEq α] (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
     diracDirac B ⟨lp.single 2 i v, single_mem_diracDomain B i v⟩
       = (lp.single 2 i (B i v) : lp G 2) := by
   refine lp.ext (funext fun q => ?_)
@@ -317,6 +315,7 @@ theorem diracDirac_single (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
 /-- The maximal domain is dense: it contains every single-mode vector. -/
 theorem dense_diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) :
     Dense ((diracDirac B).domain : Set (lp G 2)) := by
+  classical
   change Dense (diracDomain B : Set (lp G 2))
   have horth : (diracDomain B : Submodule 𝕜 (lp G 2))ᗮ = ⊥ := by
     rw [Submodule.eq_bot_iff]
@@ -340,6 +339,7 @@ circle/torus self-adjointness arguments: symmetry gives `D ≤ D†`, and testin
 relation against each single-mode vector shows `D†.domain ⊆ diracDomain B`. -/
 theorem diracDirac_isSelfAdjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i, (B i).IsSymmetric) :
     IsSelfAdjoint (diracDirac B) := by
+  classical
   rw [LinearPMap.isSelfAdjoint_def]
   have hfa : (diracDirac B)†.IsFormalAdjoint (diracDirac B) :=
     LinearPMap.adjoint_isFormalAdjoint (dense_diracDomain B)
