@@ -226,7 +226,7 @@ it is self-adjoint. This is the analytic core shared by the `S¹` and `T²` Dira
 circle's scalar multiplication by `n` and the torus's `2×2` spinor blocks are both instances of
 a symmetric block family, differing only in the fibre `G i` and the block `B i`. -/
 
-variable [∀ i, CompleteSpace (G i)] [DecidableEq α]
+variable [∀ i, CompleteSpace (G i)]
 
 /-- The maximal domain of the unbounded block-diagonal operator with blocks `B`: those `a` for
 which `i ↦ B i (aᵢ)` is again square-summable. -/
@@ -245,7 +245,7 @@ def diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) : Submodule 𝕜 (lp G 2) wher
       funext i; simp only [lp.coeFn_smul, Pi.smul_apply, _root_.map_smul]
     rw [Set.mem_setOf_eq, heq]; exact ha.const_smul c
 
-omit [∀ i, CompleteSpace (G i)] [DecidableEq α] in
+omit [∀ i, CompleteSpace (G i)] in
 theorem mem_diracDomain_iff (B : ∀ i, G i →ₗ[𝕜] G i) (a : lp G 2) :
     a ∈ diracDomain B ↔ Memℓp (fun i => B i (a i)) 2 := Iff.rfl
 
@@ -255,7 +255,7 @@ noncomputable def applyDirac (B : ∀ i, G i →ₗ[𝕜] G i) (a : lp G 2)
     (h : Memℓp (fun i => B i (a i)) 2) : lp G 2 :=
   ⟨fun i => B i (a i), h⟩
 
-omit [∀ i, CompleteSpace (G i)] [DecidableEq α] in
+omit [∀ i, CompleteSpace (G i)] in
 @[simp] theorem coe_applyDirac (B : ∀ i, G i →ₗ[𝕜] G i) (a : lp G 2) (h) (i : α) :
     (applyDirac B a h) i = B i (a i) := rfl
 
@@ -274,9 +274,11 @@ noncomputable def diracDirac (B : ∀ i, G i →ₗ[𝕜] G i) : lp G 2 →ₗ.[
         simp only [coe_applyDirac, Submodule.coe_smul, lp.coeFn_smul, Pi.smul_apply,
           _root_.map_smul, RingHom.id_apply] }
 
+omit [∀ i, CompleteSpace (G i)] in
 @[simp] theorem diracDirac_apply (B : ∀ i, G i →ₗ[𝕜] G i) (a : diracDomain B) (i : α) :
     (diracDirac B a) i = B i ((a : lp G 2) i) := rfl
 
+omit [∀ i, CompleteSpace (G i)] in
 /-- The block-diagonal operator is symmetric (formally self-adjoint) when each block is. -/
 theorem diracDirac_isFormalAdjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i, (B i).IsSymmetric) :
     (diracDirac B).IsFormalAdjoint (diracDirac B) := by
@@ -286,6 +288,9 @@ theorem diracDirac_isFormalAdjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i
   rw [diracDirac_apply, diracDirac_apply]
   exact hB i _ _
 
+variable [DecidableEq α]
+
+omit [∀ i, CompleteSpace (G i)] in
 /-- Each single-mode vector lies in the maximal domain. -/
 theorem single_mem_diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
     (lp.single 2 i v : lp G 2) ∈ diracDomain B := by
@@ -299,6 +304,7 @@ theorem single_mem_diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G
   rw [hfun]
   exact lp.memℓp _
 
+omit [∀ i, CompleteSpace (G i)] in
 /-- The image of a single-mode vector under the diagonal operator. -/
 theorem diracDirac_single (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
     diracDirac B ⟨lp.single 2 i v, single_mem_diracDomain B i v⟩
