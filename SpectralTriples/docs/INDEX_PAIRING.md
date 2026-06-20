@@ -129,6 +129,62 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
   `index(D⁺_{L_k}) = fredholmIndex (magneticDirac k) = k` transports the **formalized** model
   result to the geometric operator.
 
+## M3c / M1 / M4 — the operator bridge (detailed scope)
+
+The function-theoretic count is **done**: `dim H⁰(L_k) = k` (M3a) and `H¹(L_k) = 0` (M3b). What
+remains is to connect this to the genuine **operator** `D⁺_{L_k}` on `L²(L_k)` — i.e. to prove
+`index(D⁺_{L_k}) = k`. This is the analytic frontier, and a survey of Mathlib shows it is the one
+place with *substantial* gaps on **every** route.
+
+### M1 — the geometric Hilbert space and operator (prerequisite, from scratch)
+
+`L²(L_k)` is the **weighted** `L²` of quasi-periodic sections: `ψ : ℂ → ℂ` with the automorphy
+factor and `∫_F |ψ(z)|² e^{-2πk (Im z)²/Im τ} dA < ∞` (the Hermitian bundle metric of constant
+curvature `B`, `∫B = 2πk`). The twisted `∂̄_A` is the unbounded chiral Dirac. *Mathlib gap:* no
+line-bundle `L²`-sections, no weighted-`L²`-of-sections; build by hand on top of Mathlib `Lp`.
+The operator-theoretic layer (self-adjointness, resolvent, compactness) can reuse our `LinearPMap`
+API and `lpDiag` once the space is in place.
+
+### Two routes for the bridge — both have a real Mathlib gap
+
+- **Route A — elliptic regularity (Weyl's lemma).** `ker D⁺ ⊆ L²` consists of *weak* solutions of
+  `∂̄_A ψ = 0`; Weyl's lemma upgrades these to genuine holomorphic sections, so
+  `ker D⁺ = H⁰(L_k)` and `dim ker D⁺ = k` by M3a (holomorphic sections are automatically `L²` on
+  the compact torus). *Mathlib gap:* **no hypoellipticity / elliptic regularity / Weyl's lemma for
+  `∂̄`** at all. This route is effectively blocked until that analysis is built — a large project.
+
+- **Route B — Landau / Hermite decomposition (= M4).** Diagonalize directly: the magnetic
+  oscillator's eigenfunctions (physicists' Hermite functions × Gaussian, indexed by the Landau
+  level `n`) give a unitary `L²(L_k) ≅ ⨁_{n} ℂᵏ` (the `ℂᵏ` = guiding-center degeneracy carrying
+  the Heisenberg irrep), under which `D⁺` is the lowering operator, so `ker D⁺ = level 0 ≅ ℂᵏ` and
+  `D⁺ ≅ magneticDirac k` *directly* — no elliptic regularity needed, and it transports the
+  **already-formalized** model result `fredholmIndex_magneticDirac = k`. *Mathlib gap:* the
+  Hermite functions' **`L²(ℝ)` completeness / orthonormal basis is absent** — Mathlib has only the
+  Hermite *polynomials* and the Rodrigues formula (`RingTheory/Polynomial/Hermite`), not the
+  orthogonality integral or the `HilbertBasis`. Building that basis is a clean, classical,
+  **independently useful** result and the natural first step of this route.
+
+### Connection to Jon's Riesz–Schauder work (PR #11, merged)
+
+`SpectralTriples/CompactOperators.lean` + the Riesz–Schauder Fredholm half (`1−K` Fredholm for
+compact `K`) give the operator-theoretic foundation: with `D⁺`'s compact resolvent (the model's is
+formalized; the geometric one would follow once M1 is built), `D⁺` is **Fredholm**, so `ker`/`coker`
+are finite-dimensional and `index(D⁺)` is well-defined. But the **value** `= k` still needs one of
+the routes above (the Fredholm property alone does not compute the index). So the two efforts meet
+exactly here: Jon's side gives *well-definedness*, our M3a/M3b give the *count*, and Route A or B
+is the missing *identification* of the operator kernel with the counted sections.
+
+### Recommended first step
+
+**Build the Hermite-function orthonormal basis of `L²(ℝ)`** (`{H_n(x) e^{-x²/2}}` normalized).
+It is the gating lemma for Route B, a genuine Mathlib gap, classical and self-contained
+(orthogonality from `Hermite/Gaussian.lean`'s Rodrigues formula + completeness via density of
+polynomials-times-Gaussian / the Hermite operator's spectrum), and reusable far beyond this
+project. With it, M4's Landau decomposition becomes the realistic path to the operator index,
+avoiding the (harder, fully-absent) elliptic-regularity route. **Caveat:** even with the Hermite
+basis, M1 (the weighted `L²(L_k)` space) and the magnetic-translation guiding-center reduction
+remain substantial — this is a multi-step analytic build, not a single lemma.
+
 ## Progress / recommended next step
 
 - **M2 — done** (`SpectralTriples.Examples.ThetaSections`, `thetaSection_linearIndependent`):
@@ -144,17 +200,24 @@ i.e. exactly the model `magneticDirac k` (a backward shift on `ℕ` ⊗ `1_{ℂ�
   (`holCoeffNeg_recursion`, growth factor `> 1`) clashing with Parseval coefficient decay
   (`holCoeff_tendsto_atTop_zero`) ⇒ all coefficients `0` ⇒ `f = 0`. By Serre duality this is
   `H¹(L_k) = 0 = coker D⁺`. Sorry-free, axiom-clean.
-- **M3c / M1 / M4** (the `L²`/elliptic-regularity bridge from the operator kernel to the
-  holomorphic sections, and the unitary equivalence to `magneticDirac k`) — the genuinely analytic
-  frontier, where the only true Mathlib gap lives (no elliptic regularity / index theorem).
+- **M3c / M1 / M4 — the operator bridge** (detailed scope above): connect the operator
+  `ker D⁺ ⊆ L²(L_k)` to the counted sections. Both routes have real Mathlib gaps — Route A
+  (Weyl's lemma) is fully absent; Route B (Landau/Hermite, recommended) needs the Hermite `L²(ℝ)`
+  basis (absent) plus the weighted `L²(L_k)` space (M1, from scratch). **Recommended first step:
+  the Hermite orthonormal basis of `L²(ℝ)`** — the gating lemma for Route B, a clean reusable
+  Mathlib-gap fill. Jon's merged Riesz–Schauder (#11) supplies the Fredholm *well-definedness*;
+  the *value* `= k` still needs this bridge.
 
 ## Mathlib inventory (for the bridge)
 
 | need | status |
 |---|---|
 | Jacobi theta functions `jacobiTheta₂(z, τ)` | ✅ `Mathlib.NumberTheory.ModularForms.JacobiTheta` |
-| Gaussian integrals, Hermite polynomials | ✅ present (analysis / special functions) |
-| `L²` sections of a line bundle / quasi-periodic `L²` | ❌ build by hand |
-| theta functions *with characteristics*, their dimension `= k` | ❌ build (from `jacobiTheta₂`) |
-| Atiyah–Singer / Riemann–Roch / Kodaira vanishing | ❌ absent (use the explicit Fourier/Gaussian route instead) |
+| Gaussian integrals; Hermite *polynomials* + Rodrigues formula | ✅ present (`RingTheory/Polynomial/Hermite`) |
+| Hermite *functions* as an `L²(ℝ)` orthonormal basis (gating M4 / Route B) | ❌ **build** (only polynomials present) |
+| theta functions *with characteristics*; the count `dim H⁰(L_k)=k`, `H¹=0` | ✅ **done** (`FourierHolomorphic`: `holSection_finrank_eq`, `holSectionNeg_eq_bot`) |
+| `L²` sections of a line bundle / weighted quasi-periodic `L²` (M1) | ❌ build by hand |
+| elliptic regularity / Weyl's lemma for `∂̄` (Route A) | ❌ absent — use Route B instead |
+| Atiyah–Singer / Riemann–Roch / Kodaira vanishing | ❌ absent (replaced by the Fourier-recursion count, done) |
+| compact-operator theory + Riesz–Schauder Fredholm (`1−K`) | ✅ `SpectralTriples/CompactOperators.lean` (Jon, #11) |
 | magnetic translations / finite Heisenberg irrep | ✅ formalized in `MagneticDirac.lean` (`magClock`/`magShift`, Weyl relation) |
