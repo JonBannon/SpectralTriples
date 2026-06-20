@@ -16,9 +16,10 @@ public import Mathlib.Analysis.InnerProductSpace.Spectrum
 
 This file proves, for an inner product space `H`, that `1 - K` is a Fredholm linear map
 (`SpectralTriples.Fredholm.IsFredholm`) whenever `K` is a compact operator on `H`. This is the
-Hilbert-space case of the classical Riesz–Schauder theorem; it is not yet in Mathlib (only the
-weaker spectral dichotomy `IsCompactOperator.hasEigenvalue_or_mem_resolventSet` is), so we prove
-it here from scratch.
+structural part of the Hilbert-space case of the classical Riesz–Schauder theorem (finite
+kernel, closed range, finite-dimensional cokernel); the further classical fact that the index
+is `0` is not proved here. None of this is yet in Mathlib (only the weaker spectral dichotomy
+`IsCompactOperator.hasEigenvalue_or_mem_resolventSet` is), so we prove it here from scratch.
 
 ## Main results
 

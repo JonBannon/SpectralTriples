@@ -217,10 +217,12 @@ be replaced by an \texttt{import} once the upstream theory lands.
 \subsection{Compact perturbations of the identity}
 \label{subsec:compact-perturbations}
 
-This subsection proves the Hilbert-space case of the classical Riesz--Schauder theorem:
-$1 - K$ is Fredholm whenever $K$ is compact. None of this is yet in Mathlib (only the weaker
-spectral dichotomy for compact operators is), so it is built here from scratch, as the
-analytic ingredient needed to eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
+This subsection proves the structural part of the Hilbert-space case of the classical
+Riesz--Schauder theorem: $1 - K$ is Fredholm whenever $K$ is compact (finite kernel, closed
+range, finite-dimensional cokernel). The further classical fact that the index is $0$ is not
+proved here. None of this is yet in Mathlib (only the weaker spectral dichotomy for compact
+operators is), so it is built here from scratch, as the analytic ingredient needed to
+eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
 
 \begin{theorem}[Compact operators are approximable by finite rank]
   \label{thm:exists-finiteRank-norm-sub-lt}
