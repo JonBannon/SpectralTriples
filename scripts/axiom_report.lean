@@ -55,6 +55,15 @@ open LinearPMap
 #print axioms SpectralTriples.Fredholm.isFredholm_of_bijective
 #print axioms SpectralTriples.Fredholm.index_of_bijective
 
+-- CompactOperators.lean — compact operators on Hilbert space are Riesz–Schauder Fredholm
+-- perturbations of the identity (not yet in Mathlib).
+#print axioms IsCompactOperator.exists_finiteRank_norm_sub_lt
+#print axioms ContinuousLinearMap.finiteDimensional_range_adjoint
+#print axioms IsCompactOperator.adjoint
+#print axioms Submodule.finrank_quotient_eq_finrank_orthogonal
+#print axioms Submodule.finiteDimensional_quotient_of_finiteDimensional_orthogonal
+#print axioms SpectralTriples.Fredholm.isFredholm_one_sub
+
 -- Index.lean — the graded-kernel index of an even spectral triple.
 #print axioms SpectralTriples.Dkernel
 #print axioms SpectralTriples.index
@@ -105,7 +114,6 @@ open LinearPMap
 
 -- Examples/Shift.lean — the unilateral shift on ℓ²(ℕ): a Fredholm operator of index −1.
 #print axioms SpectralTriples.Shift.shift
-#print axioms SpectralTriples.Shift.finrank_quotient_range_eq_orthogonal
 #print axioms SpectralTriples.Shift.fredholmIndex_shift
 
 -- Examples/MagneticDirac.lean — flux-k magnetic Dirac model: index = k, with magnetic translations.

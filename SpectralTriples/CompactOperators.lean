@@ -185,6 +185,32 @@ theorem adjoint {K : H →L[𝕜] H} (hK : IsCompactOperator K) :
 
 end IsCompactOperator
 
+namespace Submodule
+
+/-- For a submodule of a Hilbert space with an orthogonal projection (e.g. one with closed
+range), the quotient by it is linearly equivalent to its orthogonal complement. -/
+noncomputable def quotientEquivOrthogonal (K : Submodule 𝕜 H) [K.HasOrthogonalProjection] :
+    (H ⧸ K) ≃ₗ[𝕜] Kᗮ :=
+  Submodule.quotientEquivOfIsCompl K Kᗮ Submodule.isCompl_orthogonal_of_hasOrthogonalProjection
+
+omit [CompleteSpace H] in
+/-- The quotient by a submodule with an orthogonal projection has the same finite dimension as
+its orthogonal complement. -/
+theorem finrank_quotient_eq_finrank_orthogonal (K : Submodule 𝕜 H) [K.HasOrthogonalProjection] :
+    Module.finrank 𝕜 (H ⧸ K) = Module.finrank 𝕜 Kᗮ :=
+  (K.quotientEquivOrthogonal).finrank_eq
+
+omit [CompleteSpace H] in
+/-- The quotient by a submodule with an orthogonal projection is finite-dimensional whenever
+its orthogonal complement is. -/
+theorem finiteDimensional_quotient_of_finiteDimensional_orthogonal (K : Submodule 𝕜 H)
+    [K.HasOrthogonalProjection] [FiniteDimensional 𝕜 Kᗮ] :
+    FiniteDimensional 𝕜 (H ⧸ K) :=
+  FiniteDimensional.of_injective (K.quotientEquivOrthogonal).toLinearMap
+    (K.quotientEquivOrthogonal).injective
+
+end Submodule
+
 namespace SpectralTriples.Fredholm
 
 /-- **Fredholm-ness of compact perturbations of the identity** (the structural part of the
@@ -344,10 +370,8 @@ theorem isFredholm_one_sub {K : H →L[𝕜] H} (hK : IsCompactOperator K) :
     exact (ContinuousLinearMap.adjoint K).finite_dimensional_eigenspace hKadj 1 one_ne_zero
   haveI hcokerfd : FiniteDimensional 𝕜 (LinearMap.range T.toLinearMap)ᗮ := by
     rw [T.orthogonal_range]; exact hNadjfd
-  have hequiv := Submodule.quotientEquivOfIsCompl (LinearMap.range T.toLinearMap)
-    (LinearMap.range T.toLinearMap)ᗮ Submodule.isCompl_orthogonal_of_hasOrthogonalProjection
   haveI : FiniteDimensional 𝕜 (H ⧸ LinearMap.range T.toLinearMap) :=
-    FiniteDimensional.of_injective hequiv.toLinearMap hequiv.injective
+    (LinearMap.range T.toLinearMap).finiteDimensional_quotient_of_finiteDimensional_orthogonal
   exact ⟨hNfd, hclosed_T, ‹FiniteDimensional 𝕜 (H ⧸ LinearMap.range T.toLinearMap)›⟩
 
 end SpectralTriples.Fredholm

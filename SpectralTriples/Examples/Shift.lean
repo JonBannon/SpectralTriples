@@ -9,6 +9,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.l2Space
 public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 public import SpectralTriples.Fredholm
+public import SpectralTriples.CompactOperators
 
 /-! # The unilateral shift on `ℓ²(ℕ)`
 
@@ -190,19 +191,6 @@ theorem range_shift_orthogonal_finrank :
   rw [range_shift_orthogonal]
   exact finrank_span_singleton e0_ne_zero
 
-/-- For a closed range in a Hilbert space, the quotient cokernel has the same dimension as the
-orthogonal-complement cokernel. -/
-theorem finrank_quotient_range_eq_orthogonal {H : Type*} [NormedAddCommGroup H]
-    [InnerProductSpace ℂ H] [CompleteSpace H] (T : H →L[ℂ] H)
-    (hclosed : IsClosed (LinearMap.range (T : H →ₗ[ℂ] H) : Set H)) :
-    Module.finrank ℂ (H ⧸ LinearMap.range (T : H →ₗ[ℂ] H))
-      = Module.finrank ℂ (LinearMap.range (T : H →ₗ[ℂ] H))ᗮ := by
-  let K : Submodule ℂ H := LinearMap.range (T : H →ₗ[ℂ] H)
-  change Module.finrank ℂ (H ⧸ K) = Module.finrank ℂ ↥Kᗮ
-  haveI : CompleteSpace K := hclosed.completeSpace_coe
-  exact (Submodule.quotientEquivOfIsCompl K Kᗮ
-    Submodule.isCompl_orthogonal_of_hasOrthogonalProjection).finrank_eq
-
 /-- The range of the unilateral shift is closed. -/
 theorem isClosed_range_shift :
     IsClosed (LinearMap.range (shift : H →ₗ[ℂ] H) : Set H) := by
@@ -222,9 +210,11 @@ theorem isClosed_range_shift :
 /-- The forward unilateral shift on `ℓ²(ℕ)` is Fredholm of index `-1`. -/
 theorem fredholmIndex_shift :
     SpectralTriples.Fredholm.index (shift : H →ₗ[ℂ] H) = -1 := by
+  haveI : CompleteSpace (LinearMap.range (shift : H →ₗ[ℂ] H)) :=
+    isClosed_range_shift.completeSpace_coe
   unfold SpectralTriples.Fredholm.index
   rw [shift_ker_eq_bot, finrank_bot,
-    finrank_quotient_range_eq_orthogonal shift isClosed_range_shift,
+    (LinearMap.range (shift : H →ₗ[ℂ] H)).finrank_quotient_eq_finrank_orthogonal,
     range_shift_orthogonal_finrank]
   norm_num
 
