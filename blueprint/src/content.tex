@@ -214,6 +214,60 @@ be replaced by an \texttt{import} once the upstream theory lands.
   A bijective linear map with closed range is Fredholm, of index $0$.
 \end{lemma}
 
+\subsection{Compact perturbations of the identity}
+\label{subsec:compact-perturbations}
+
+This subsection proves the Hilbert-space case of the classical Riesz--Schauder theorem:
+$1 - K$ is Fredholm whenever $K$ is compact. None of this is yet in Mathlib (only the weaker
+spectral dichotomy for compact operators is), so it is built here from scratch, as the
+analytic ingredient needed to eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
+
+\begin{theorem}[Compact operators are approximable by finite rank]
+  \label{thm:exists-finiteRank-norm-sub-lt}
+  \lean{IsCompactOperator.exists_finiteRank_norm_sub_lt}
+  \leanok
+  A compact operator $K$ on a Hilbert space is approximable, in operator norm, by finite-rank
+  operators: for every $\varepsilon > 0$ there is a finite-rank $F$ with
+  $\|K - F\| \leq \varepsilon$. The approximant is built by composing $K$ with the orthogonal
+  projection onto the span of a finite $\varepsilon$-net of the (relatively compact) image of
+  the closed unit ball.
+\end{theorem}
+
+\begin{lemma}[Finite-rank operators have finite-rank adjoints]
+  \label{lem:finiteDimensional-range-adjoint}
+  \lean{ContinuousLinearMap.finiteDimensional_range_adjoint}
+  \leanok
+  If a continuous linear map on an inner product space has finite-dimensional range, so does
+  its adjoint.
+\end{lemma}
+
+\begin{theorem}[The adjoint of a compact operator is compact]
+  \label{thm:isCompactOperator-adjoint}
+  \lean{IsCompactOperator.adjoint}
+  \leanok
+  \uses{thm:exists-finiteRank-norm-sub-lt, lem:finiteDimensional-range-adjoint}
+  If $K$ is a compact operator on a Hilbert space, then its adjoint $K^{\dagger}$ is also
+  compact: the adjoints of finite-rank approximants of $K$
+  (Theorem~\ref{thm:exists-finiteRank-norm-sub-lt}) are themselves finite-rank
+  (Lemma~\ref{lem:finiteDimensional-range-adjoint}), hence compact, and converge to
+  $K^{\dagger}$ in norm since the adjoint operation is norm-preserving.
+\end{theorem}
+
+\begin{theorem}[Compact perturbations of the identity are Fredholm]
+  \label{thm:isFredholm-one-sub}
+  \lean{SpectralTriples.Fredholm.isFredholm_one_sub}
+  \leanok
+  \uses{def:isFredholm, thm:isCompactOperator-adjoint}
+  The structural part of the classical Riesz--Schauder theorem: if $K$ is compact on a
+  Hilbert space, then $1 - K$ is Fredholm. The kernel is finite-dimensional (it is the
+  eigenspace of $K$ at the eigenvalue $1$); the range is closed, via a bounded-below estimate
+  on the orthogonal complement of the kernel established by a contradiction argument using
+  compactness of $K$; and the cokernel is finite-dimensional, via the adjoint identity
+  $(1-K)^{\dagger} = 1 - K^{\dagger}$ (Theorem~\ref{thm:isCompactOperator-adjoint}) together
+  with $(\operatorname{ran}(1-K))^{\perp} = \ker((1-K)^{\dagger})$. (The further classical fact
+  that the index is $0$ is not proved here.)
+\end{theorem}
+
 \section{The graded-kernel index}
 \label{sec:graded-kernel-index}
 

@@ -3,6 +3,7 @@ import SpectralTriples.Resolvent
 import SpectralTriples.FinitelySummable
 import SpectralTriples.FourierHolomorphic
 import SpectralTriples.Fredholm
+import SpectralTriples.CompactOperators
 import SpectralTriples.Index
 import SpectralTriples.DiagonalOperator
 import SpectralTriples.Examples.Circle
