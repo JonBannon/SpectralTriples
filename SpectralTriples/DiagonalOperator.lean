@@ -8,6 +8,7 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.l2Space
 public import Mathlib.Analysis.Normed.Operator.Compact.Basic
+public import Mathlib.Analysis.InnerProductSpace.LinearPMap
 
 /-! # Block-diagonal operators on `ℓ²`
 
@@ -40,7 +41,7 @@ exactly such block-diagonal operators with block norms `→ 0`.
 namespace lpDiag
 
 open scoped Topology
-open Filter
+open Filter LinearPMap
 
 variable {α 𝕜 : Type*} [RCLike 𝕜] {G : α → Type*}
     [∀ i, NormedAddCommGroup (G i)] [∀ i, InnerProductSpace 𝕜 (G i)]
@@ -216,5 +217,145 @@ theorem isCompactOperator_diagL (T : ∀ i, G i →L[𝕜] G i) {C : ℝ} (hC0 :
     refine squeeze_zero (fun n => norm_nonneg _) hop ?_
     exact tendsto_one_div_add_atTop_nhds_zero_nat
   exact isCompactOperator_of_tendsto htends (Filter.Eventually.of_forall hcompact)
+
+/-! ### The unbounded block-diagonal Dirac operator
+
+Given a family of *symmetric* (Hermitian) blocks `B i : G i →ₗ[𝕜] G i`, this section builds the
+associated unbounded "diagonal Dirac operator" on its maximal domain in `ℓ²(α; G)`, and proves
+it is self-adjoint. This is the analytic core shared by the `S¹` and `T²` Dirac examples: the
+circle's scalar multiplication by `n` and the torus's `2×2` spinor blocks are both instances of
+a symmetric block family, differing only in the fibre `G i` and the block `B i`. -/
+
+variable [∀ i, CompleteSpace (G i)]
+
+/-- The maximal domain of the unbounded block-diagonal operator with blocks `B`: those `a` for
+which `i ↦ B i (aᵢ)` is again square-summable. -/
+def diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) : Submodule 𝕜 (lp G 2) where
+  carrier := {a | Memℓp (fun i => B i (a i)) 2}
+  zero_mem' := by
+    have hzero : (fun i => B i ((0 : lp G 2) i)) = 0 := by
+      funext i; simp only [lp.coeFn_zero, Pi.zero_apply, _root_.map_zero]
+    simp only [Set.mem_setOf_eq, hzero]; exact zero_memℓp
+  add_mem' := fun {a b} ha hb => by
+    have heq : (fun i => B i ((a + b) i)) = (fun i => B i (a i)) + fun i => B i (b i) := by
+      funext i; simp only [lp.coeFn_add, Pi.add_apply, _root_.map_add]
+    rw [Set.mem_setOf_eq, heq]; exact ha.add hb
+  smul_mem' := fun c a ha => by
+    have heq : (fun i => B i ((c • a) i)) = c • fun i => B i (a i) := by
+      funext i; simp only [lp.coeFn_smul, Pi.smul_apply, _root_.map_smul]
+    rw [Set.mem_setOf_eq, heq]; exact ha.const_smul c
+
+omit [∀ i, CompleteSpace (G i)] in
+theorem mem_diracDomain_iff (B : ∀ i, G i →ₗ[𝕜] G i) (a : lp G 2) :
+    a ∈ diracDomain B ↔ Memℓp (fun i => B i (a i)) 2 := Iff.rfl
+
+/-- Coordinatewise application of the blocks, as an element of `ℓ²(α; G)`, given a proof the
+result is square-summable. -/
+noncomputable def applyDirac (B : ∀ i, G i →ₗ[𝕜] G i) (a : lp G 2)
+    (h : Memℓp (fun i => B i (a i)) 2) : lp G 2 :=
+  ⟨fun i => B i (a i), h⟩
+
+omit [∀ i, CompleteSpace (G i)] in
+@[simp] theorem coe_applyDirac (B : ∀ i, G i →ₗ[𝕜] G i) (a : lp G 2) (h) (i : α) :
+    (applyDirac B a h) i = B i (a i) := rfl
+
+/-- The unbounded block-diagonal operator on `ℓ²(α; G)` with blocks `B`, on its maximal domain
+`diracDomain B`. -/
+noncomputable def diracDirac (B : ∀ i, G i →ₗ[𝕜] G i) : lp G 2 →ₗ.[𝕜] lp G 2 where
+  domain := diracDomain B
+  toFun :=
+    { toFun := fun a => applyDirac B (a : lp G 2) ((mem_diracDomain_iff B _).mp a.2)
+      map_add' := fun a b => by
+        refine lp.ext (funext fun i => ?_)
+        simp only [coe_applyDirac, Submodule.coe_add, lp.coeFn_add, Pi.add_apply,
+          _root_.map_add]
+      map_smul' := fun c a => by
+        refine lp.ext (funext fun i => ?_)
+        simp only [coe_applyDirac, Submodule.coe_smul, lp.coeFn_smul, Pi.smul_apply,
+          _root_.map_smul, RingHom.id_apply] }
+
+omit [∀ i, CompleteSpace (G i)] in
+@[simp] theorem diracDirac_apply (B : ∀ i, G i →ₗ[𝕜] G i) (a : diracDomain B) (i : α) :
+    (diracDirac B a) i = B i ((a : lp G 2) i) := rfl
+
+omit [∀ i, CompleteSpace (G i)] in
+/-- The block-diagonal operator is symmetric (formally self-adjoint) when each block is. -/
+theorem diracDirac_isFormalAdjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i, (B i).IsSymmetric) :
+    (diracDirac B).IsFormalAdjoint (diracDirac B) := by
+  intro x y
+  rw [lp.inner_eq_tsum, lp.inner_eq_tsum]
+  refine tsum_congr fun i => ?_
+  rw [diracDirac_apply, diracDirac_apply]
+  exact hB i _ _
+
+omit [∀ i, CompleteSpace (G i)] in
+/-- Each single-mode vector lies in the maximal domain. -/
+theorem single_mem_diracDomain [DecidableEq α] (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
+    (lp.single 2 i v : lp G 2) ∈ diracDomain B := by
+  rw [mem_diracDomain_iff]
+  have hfun : (fun q => B q ((lp.single 2 i v : lp G 2) q))
+      = ⇑(lp.single 2 i (B i v) : lp G 2) := by
+    funext q
+    rcases eq_or_ne q i with h | h
+    · subst h; simp [lp.single_apply]
+    · simp [lp.single_apply, h, _root_.map_zero]
+  rw [hfun]
+  exact lp.memℓp _
+
+omit [∀ i, CompleteSpace (G i)] in
+/-- The image of a single-mode vector under the diagonal operator. -/
+theorem diracDirac_single [DecidableEq α] (B : ∀ i, G i →ₗ[𝕜] G i) (i : α) (v : G i) :
+    diracDirac B ⟨lp.single 2 i v, single_mem_diracDomain B i v⟩
+      = (lp.single 2 i (B i v) : lp G 2) := by
+  refine lp.ext (funext fun q => ?_)
+  rcases eq_or_ne q i with h | h
+  · subst h; simp [diracDirac_apply, lp.single_apply]
+  · simp [diracDirac_apply, lp.single_apply, h, _root_.map_zero]
+
+/-- The maximal domain is dense: it contains every single-mode vector. -/
+theorem dense_diracDomain (B : ∀ i, G i →ₗ[𝕜] G i) :
+    Dense ((diracDirac B).domain : Set (lp G 2)) := by
+  classical
+  change Dense (diracDomain B : Set (lp G 2))
+  have horth : (diracDomain B : Submodule 𝕜 (lp G 2))ᗮ = ⊥ := by
+    rw [Submodule.eq_bot_iff]
+    intro y hy
+    refine lp.ext (funext fun i => ?_)
+    refine ext_inner_left 𝕜 fun v => ?_
+    have h0 : inner 𝕜 (lp.single 2 i v : lp G 2) y = 0 := hy _ (single_mem_diracDomain B i v)
+    rw [lp.inner_single_left] at h0
+    rw [h0, lp.coeFn_zero, Pi.zero_apply, inner_zero_right]
+  have htop : (diracDomain B).topologicalClosure = ⊤ :=
+    (Submodule.topologicalClosure_eq_top_iff (K := diracDomain B)).mpr horth
+  rw [dense_iff_closure_eq, ← Submodule.topologicalClosure_coe, htop, Submodule.top_coe]
+
+/-- The block-diagonal operator with symmetric blocks is contained in its adjoint. -/
+theorem diracDirac_le_adjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i, (B i).IsSymmetric) :
+    diracDirac B ≤ (diracDirac B)† :=
+  (diracDirac_isFormalAdjoint B hB).le_adjoint (dense_diracDomain B)
+
+/-- **The block-diagonal operator with symmetric blocks is self-adjoint.** The proof mirrors the
+circle/torus self-adjointness arguments: symmetry gives `D ≤ D†`, and testing the adjoint
+relation against each single-mode vector shows `D†.domain ⊆ diracDomain B`. -/
+theorem diracDirac_isSelfAdjoint (B : ∀ i, G i →ₗ[𝕜] G i) (hB : ∀ i, (B i).IsSymmetric) :
+    IsSelfAdjoint (diracDirac B) := by
+  classical
+  rw [LinearPMap.isSelfAdjoint_def]
+  have hfa : (diracDirac B)†.IsFormalAdjoint (diracDirac B) :=
+    LinearPMap.adjoint_isFormalAdjoint (dense_diracDomain B)
+  have hdomle : (diracDirac B)†.domain ≤ diracDomain B := by
+    intro y hy
+    rw [mem_diracDomain_iff]
+    have hcoe : (fun i => B i (y i)) = ⇑((diracDirac B)† ⟨y, hy⟩) := by
+      funext i
+      refine (ext_inner_right 𝕜 fun v => ?_).symm
+      have key := hfa ⟨y, hy⟩ ⟨lp.single 2 i v, single_mem_diracDomain B i v⟩
+      rw [lp.inner_single_right, diracDirac_single, lp.inner_single_right] at key
+      rw [key]
+      exact (hB i (y i) v).symm
+    rw [hcoe]; exact lp.memℓp _
+  have heq : (diracDirac B).domain = (diracDirac B)†.domain :=
+    le_antisymm (diracDirac_le_adjoint B hB).1 hdomle
+  exact (LinearPMap.eq_of_le_of_domain_eq (diracDirac_le_adjoint B hB) heq).symm
 
 end lpDiag

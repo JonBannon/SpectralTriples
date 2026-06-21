@@ -217,10 +217,12 @@ be replaced by an \texttt{import} once the upstream theory lands.
 \subsection{Compact perturbations of the identity}
 \label{subsec:compact-perturbations}
 
-This subsection proves the Hilbert-space case of the classical Riesz--Schauder theorem:
-$1 - K$ is Fredholm whenever $K$ is compact. None of this is yet in Mathlib (only the weaker
-spectral dichotomy for compact operators is), so it is built here from scratch, as the
-analytic ingredient needed to eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
+This subsection proves the structural part of the Hilbert-space case of the classical
+Riesz--Schauder theorem: $1 - K$ is Fredholm whenever $K$ is compact (finite kernel, closed
+range, finite-dimensional cokernel). The further classical fact that the index is $0$ is not
+proved here. None of this is yet in Mathlib (only the weaker spectral dichotomy for compact
+operators is), so it is built here from scratch, as the analytic ingredient needed to
+eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
 
 \begin{theorem}[Compact operators are approximable by finite rank]
   \label{thm:exists-finiteRank-norm-sub-lt}
@@ -355,9 +357,11 @@ the circle example (Section~\ref{sec:circle}) is a complete, finitely summable, 
 triple; the two-torus example (Section~\ref{sec:torus}) is a complete, finitely summable, even
 spectral triple with vanishing index. Sections~\ref{sec:shift} and~\ref{sec:magnetic-dirac} give
 two further examples with \emph{nonzero} Fredholm index, $-1$ and $k$ respectively, completing
-the index arc $0, -1, k$. Section~\ref{sec:theta-sections} begins connecting the abstract
-flux-$k$ model of Section~\ref{sec:magnetic-dirac} back to genuine geometry, by exhibiting $k$
-independent holomorphic sections of the degree-$k$ line bundle on the square torus.
+the index arc $0, -1, k$. Sections~\ref{sec:theta-sections} and~\ref{sec:fourier-holomorphic}
+connect the abstract flux-$k$ model of Section~\ref{sec:magnetic-dirac} back to genuine
+geometry: together they give a complete, purely algebraic dimension count
+$\dim H^0(L_k) = k$, $\dim H^1(L_k) = 0$ for the degree-$k$ line bundle on the square torus,
+with no index theorem and no $L^2$ analysis.
 
 \section{Block-diagonal operators on \texorpdfstring{$\ell^2$}{l2}}
 \label{sec:diagonal-operators}
@@ -684,15 +688,17 @@ flux-$k$ degeneracy.
 \section{Theta sections on the square torus}
 \label{sec:theta-sections}
 
-\textbf{Status: partial (lower bound only).} This section proves the lower-bound half of the
+\textbf{Status: complete (lower bound).} This section proves the lower-bound half of the
 square-torus flux-$k$ Landau-level computation directly on the geometric side: $k$ explicit
 holomorphic theta sections for the degree-$k$ line bundle on the square torus $\mathbb{C} /
 (\mathbb{Z} + i \mathbb{Z})$ are exhibited and shown linearly independent, giving $\dim \ker
 D^{+} \geq k$ for the \emph{geometric} Dirac operator twisted by the degree-$k$ bundle (as
 opposed to the magnetic-translation model of Section~\ref{sec:magnetic-dirac}). The matching
-upper bound $\dim \ker D^{+} \leq k$, the vanishing of the cokernel, and the resulting
-identification of the geometric index with the model index $k$
-(Theorem~\ref{thm:fredholmIndex-magneticDirac}) are deferred; see
+upper bound $\dim \ker D^{+} \leq k$ and the vanishing of the cokernel are completed in
+Section~\ref{sec:fourier-holomorphic}. The resulting identification of the geometric index
+with the model index $k$ (Theorem~\ref{thm:fredholmIndex-magneticDirac}) — which additionally
+needs the $L^2$-to-holomorphic bridge (elliptic regularity for $\bar\partial$, not in Mathlib)
+and the unitary equivalence to the magnetic model — is deferred; see
 \texttt{SpectralTriples/docs/INDEX\_PAIRING.md} for the roadmap.
 
 \begin{definition}[Explicit degree-$k$ theta sections]
@@ -745,4 +751,123 @@ identification of the geometric index with the model index $k$
   $\mathbb{C}$: they are eigenvectors of translation by $1/k$ with pairwise distinct
   eigenvalues $\omega_k^{0}, \dots, \omega_k^{k-1}$ (the $k$ distinct $k$-th roots of unity),
   hence independent.
+\end{theorem}
+
+\section{The Fourier-coefficient recursion: an exact dimension count}
+\label{sec:fourier-holomorphic}
+
+\textbf{Status: complete (M3a, M3b).} This section completes the dimension count begun in
+Section~\ref{sec:theta-sections} (M2) by an entirely algebraic route, with \emph{no index
+theorem and no $L^2$ analysis}: the upper bound $\dim H^0(L_k) \leq k$ (M3a) and the
+cokernel vanishing $\dim H^1(L_k) = 0$ (M3b). Both rest on a single new analytic lemma not in
+Mathlib — the \emph{contour shift} — from which a Fourier-coefficient recursion is derived
+algebraically. See \texttt{SpectralTriples/docs/INDEX\_PAIRING.md} for the full roadmap; the
+remaining gap (M3c/M4: the $L^2$-to-holomorphic bridge and the unitary equivalence to the
+magnetic model of Section~\ref{sec:magnetic-dirac}) is the genuinely analytic frontier and is
+not addressed here.
+
+\begin{theorem}[Contour shift]
+  \label{thm:periodIntegral-eq-of-periodic}
+  \lean{SpectralTriples.periodIntegral_eq_of_periodic}
+  \leanok
+  For an entire $1$-periodic function $f$, the period integral $\int_0^1 f(x+iy)\,dx$ does not
+  depend on the height $y$. (Cauchy--Goursat on the rectangle $[0,1] \times [y_1,y_2]$: the two
+  vertical sides cancel by periodicity, leaving the two horizontal integrals equal.)
+\end{theorem}
+
+\begin{definition}[Holomorphic sections of the degree-$k$ line bundle]
+  \label{def:holSection}
+  \lean{SpectralTriples.holSection}
+  \leanok
+  $H^0(L_k)$: the space of entire functions $f$ with $f(z+1) = f(z)$ and the degree-$k$
+  automorphy factor $f(z+i) = e^{-\pi i k(2z+i)} f(z)$ — the same quasi-periodicity conditions
+  satisfied by the theta sections of Definition~\ref{def:thetaSection}.
+\end{definition}
+
+\begin{definition}[Fourier coefficient of a periodic holomorphic function]
+  \label{def:holCoeff}
+  \lean{SpectralTriples.holCoeff}
+  \leanok
+  For a $1$-periodic function $f$, the Fourier coefficient $a_m = \int_0^1 f(x)\,
+  e^{-2\pi i m x}\,dx$, computed on the real period.
+\end{definition}
+
+\begin{lemma}[The Fourier-coefficient recursion]
+  \label{lem:holCoeff-recursion}
+  \lean{SpectralTriples.holCoeff_recursion}
+  \leanok
+  \uses{def:holSection, def:holCoeff, thm:periodIntegral-eq-of-periodic}
+  For $f \in H^0(L_k)$, the Fourier coefficients satisfy
+  \[
+    a_{m+k} = e^{-\pi(2m+k)} \, a_m.
+  \]
+  Comparing Fourier coefficients of the degree-$k$ automorphy relation, via the contour shift
+  (Theorem~\ref{thm:periodIntegral-eq-of-periodic}) relating $f$'s Fourier coefficients on
+  different horizontal lines, turns the quasi-periodicity condition into this purely algebraic
+  recursion: the whole coefficient sequence is determined by $(a_0, \dots, a_{k-1})$.
+\end{lemma}
+
+\begin{theorem}[Fourier completeness: vanishing coefficients imply $f = 0$]
+  \label{thm:eq-zero-of-holCoeff-eq-zero}
+  \lean{SpectralTriples.eq_zero_of_holCoeff_eq_zero}
+  \leanok
+  \uses{def:holCoeff}
+  If $f$ is entire and $1$-periodic with all Fourier coefficients $a_m = 0$, then $f = 0$:
+  lifting $f$ to the circle, Mathlib's Fourier completeness gives $f$ vanishes on $\mathbb{R}$,
+  and the identity theorem for the entire function $f$ then gives $f \equiv 0$ on $\mathbb{C}$.
+\end{theorem}
+
+\begin{theorem}[The upper bound: $\dim H^0(L_k) \leq k$]
+  \label{thm:holSection-finrank-le}
+  \lean{SpectralTriples.holSection_finrank_le}
+  \leanok
+  \uses{lem:holCoeff-recursion, thm:eq-zero-of-holCoeff-eq-zero}
+  The restriction map $f \mapsto (a_0, \dots, a_{k-1})$ is an injective linear map
+  $H^0(L_k) \to \mathbb{C}^k$: by the recursion (Lemma~\ref{lem:holCoeff-recursion}),
+  $a_0 = \cdots = a_{k-1} = 0$ forces every Fourier coefficient to vanish, hence $f = 0$ by
+  Theorem~\ref{thm:eq-zero-of-holCoeff-eq-zero}. Injectivity gives $\dim H^0(L_k) \leq k$.
+\end{theorem}
+
+\begin{theorem}[The exact count: $\dim H^0(L_k) = k$]
+  \label{thm:holSection-finrank-eq}
+  \lean{SpectralTriples.holSection_finrank_eq}
+  \leanok
+  \uses{thm:holSection-finrank-le, thm:thetaSection-linearIndependent}
+  Combining the upper bound of Theorem~\ref{thm:holSection-finrank-le} (M3a) with the lower
+  bound of Theorem~\ref{thm:thetaSection-linearIndependent} (M2, the theta sections span a
+  $k$-dimensional subspace) gives $\dim H^0(L_k) = k$ exactly — a complete dimension theorem
+  with no index theorem and no $L^2$ analysis.
+\end{theorem}
+
+\begin{definition}[Holomorphic sections of the degree-$(-k)$ line bundle]
+  \label{def:holSectionNeg}
+  \lean{SpectralTriples.holSectionNeg}
+  \leanok
+  $H^0(L_{-k})$: the same definition as $H^0(L_k)$ (Definition~\ref{def:holSection}) but with
+  the opposite-sign automorphy factor $f(z+i) = e^{\pi i k(2z+i)} f(z)$. By Serre duality this
+  represents $H^1(L_k)$, the cokernel of the degree-$k$ Dirac operator.
+\end{definition}
+
+\begin{lemma}[Parseval decay of Fourier coefficients]
+  \label{lem:holCoeff-tendsto-atTop-zero}
+  \lean{SpectralTriples.holCoeff_tendsto_atTop_zero}
+  \leanok
+  \uses{def:holCoeff}
+  For any entire $1$-periodic $f$, the Fourier coefficients $a_m \to 0$ as $m \to \infty$ (and
+  as $m \to -\infty$): a consequence of $\ell^2$-summability of $|a_m|^2$ (Parseval, via the
+  $L^2$ lift to the circle).
+\end{lemma}
+
+\begin{theorem}[The cokernel vanishes: $\dim H^0(L_{-k}) = 0$]
+  \label{thm:holSectionNeg-eq-bot}
+  \lean{SpectralTriples.holSectionNeg_eq_bot, SpectralTriples.holSectionNeg_finrank_eq_zero}
+  \leanok
+  \uses{def:holSectionNeg, lem:holCoeff-recursion, lem:holCoeff-tendsto-atTop-zero,
+        thm:eq-zero-of-holCoeff-eq-zero}
+  $H^0(L_{-k}) = 0$ for $k > 0$ (equivalently $\dim H^1(L_k) = 0$, the cokernel-vanishing half
+  of $\operatorname{index} = k$, via Serre duality $h^1(L_k) = h^0(L_k^{-1})$). The
+  opposite-sign automorphy gives the opposite-sign recursion $a_{m+k} = e^{\pi(2m+k)} a_m$,
+  whose growth factor has modulus $> 1$; this clashes with the Parseval decay of
+  Lemma~\ref{lem:holCoeff-tendsto-atTop-zero} unless every coefficient is already $0$, and then
+  Theorem~\ref{thm:eq-zero-of-holCoeff-eq-zero} gives $f = 0$.
 \end{theorem}

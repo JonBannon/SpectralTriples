@@ -76,123 +76,41 @@ eigenvalue is the real number `n`. These are real (hence `D` is symmetric) and s
 `|n| → ∞` (hence `D` has compact resolvent). -/
 def diracEigen : ℤ → ℝ := fun n => (n : ℝ)
 
+/-- The scalar block at Fourier mode `n`: multiplication by the real eigenvalue `n`, as an
+instance of the generic symmetric-block-diagonal machinery of `lpDiag`. -/
+noncomputable def diracBlock (n : ℤ) : ℂ →ₗ[ℂ] ℂ := (diracEigen n : ℂ) • LinearMap.id
+
+@[simp] theorem diracBlock_apply (n : ℤ) (v : ℂ) :
+    diracBlock n v = (diracEigen n : ℂ) * v :=
+  smul_eq_mul _ _
+
+/-- Each scalar block is symmetric, since its eigenvalue is real. -/
+theorem diracBlock_isSymmetric (n : ℤ) : (diracBlock n).IsSymmetric := by
+  intro x y
+  simp only [diracBlock_apply, RCLike.inner_apply, map_mul, Complex.conj_ofReal]
+  ring
+
 /-- The maximal domain of the circle Dirac operator: the `H¹` Sobolev space
 `{ a ∈ ℓ²(ℤ) : Σ n² |aₙ|² < ∞ }`, i.e. those `a` for which `n ↦ n · aₙ` is again in `ℓ²(ℤ)`.
 This is the domain on which the diagonal Dirac operator `(D a)ₙ = n · aₙ` will be defined. -/
-def diracDomain : Submodule ℂ L2 where
-  carrier := {a | Memℓp (fun n => (diracEigen n : ℂ) * a n) 2}
-  zero_mem' := by
-    simp only [Set.mem_setOf_eq, lp.coeFn_zero, Pi.zero_apply, mul_zero]
-    exact zero_memℓp
-  add_mem' := by
-    intro a b ha hb
-    simp only [Set.mem_setOf_eq, lp.coeFn_add, Pi.add_apply, mul_add] at *
-    exact ha.add hb
-  smul_mem' := by
-    intro c a ha
-    simp only [Set.mem_setOf_eq, lp.coeFn_smul, Pi.smul_apply, smul_eq_mul] at *
-    have hrw : (fun n => (diracEigen n : ℂ) * (c * a n))
-        = c • fun n => (diracEigen n : ℂ) * a n := by
-      funext n; simp only [Pi.smul_apply, smul_eq_mul]; ring
-    rw [hrw]; exact ha.const_smul c
+noncomputable def diracDomain : Submodule ℂ L2 := lpDiag.diracDomain diracBlock
 
 theorem mem_diracDomain_iff (a : L2) :
-    a ∈ diracDomain ↔ Memℓp (fun n => (diracEigen n : ℂ) * a n) 2 := Iff.rfl
-
-/-- Coordinatewise multiplication by the eigenvalue sequence `(n)`, as an element of `ℓ²(ℤ)`,
-given a proof that the result is square-summable. -/
-def applyDirac (a : L2) (h : Memℓp (fun n => (diracEigen n : ℂ) * a n) 2) : L2 :=
-  ⟨fun n => (diracEigen n : ℂ) * a n, h⟩
-
-@[simp] theorem coe_applyDirac (a : L2) (h) (n : ℤ) :
-    (applyDirac a h) n = (diracEigen n : ℂ) * a n := rfl
+    a ∈ diracDomain ↔ Memℓp (fun n => (diracEigen n : ℂ) * a n) 2 := by
+  simp only [diracDomain, lpDiag.mem_diracDomain_iff, diracBlock_apply]
 
 /-- The circle Dirac operator `D = -i d/dθ` as an unbounded `LinearPMap`: diagonal on the
 Fourier basis, `(D a)ₙ = n · aₙ`, with domain the `H¹` Sobolev space `diracDomain`. -/
-noncomputable def diracDirac : L2 →ₗ.[ℂ] L2 where
-  domain := diracDomain
-  toFun :=
-    { toFun := fun a => applyDirac (a : L2) ((mem_diracDomain_iff _).mp a.2)
-      map_add' := fun a b => by
-        ext n
-        simp only [coe_applyDirac, Submodule.coe_add, lp.coeFn_add, Pi.add_apply, mul_add]
-      map_smul' := fun c a => by
-        ext n
-        simp only [coe_applyDirac, Submodule.coe_smul, lp.coeFn_smul, Pi.smul_apply,
-          smul_eq_mul, RingHom.id_apply, mul_left_comm] }
+noncomputable def diracDirac : L2 →ₗ.[ℂ] L2 := lpDiag.diracDirac diracBlock
 
 @[simp] theorem diracDirac_apply (a : diracDomain) (n : ℤ) :
-    (diracDirac a) n = (diracEigen n : ℂ) * (a : L2) n := rfl
+    (diracDirac a) n = (diracEigen n : ℂ) * (a : L2) n := by
+  simp only [diracDirac, lpDiag.diracDirac_apply, diracBlock_apply]
 
-/-- The circle Dirac operator is symmetric (formally self-adjoint): `⟪D x, y⟫ = ⟪x, D y⟫`
-on its domain, because its eigenvalues are real. -/
-theorem diracDirac_isFormalAdjoint : diracDirac.IsFormalAdjoint diracDirac := by
-  intro x y
-  rw [lp.inner_eq_tsum, lp.inner_eq_tsum]
-  refine tsum_congr fun n => ?_
-  simp only [diracDirac_apply, RCLike.inner_apply, map_mul, Complex.conj_ofReal]
-  ring
-
-/-- Each Fourier basis vector `eₙ = lp.single 2 n 1` lies in the `H¹` domain (it has finite
-support, so `m ↦ m · (eₙ)ₘ = n · eₙ` is square-summable). -/
-theorem single_mem_diracDomain (n : ℤ) : (lp.single 2 n (1 : ℂ) : L2) ∈ diracDomain := by
-  rw [mem_diracDomain_iff]
-  have hfun : (fun m => (diracEigen m : ℂ) * (lp.single 2 n (1 : ℂ) : L2) m)
-      = (diracEigen n : ℂ) • (⇑(lp.single 2 n (1 : ℂ) : L2) : ℤ → ℂ) := by
-    funext m
-    rcases eq_or_ne m n with h | h
-    · subst h; simp [lp.single_apply]
-    · simp [lp.single_apply, h]
-  rw [hfun]
-  exact (lp.memℓp _).const_smul _
-
-/-- The `H¹` domain is dense in `ℓ²(ℤ)`: it contains every Fourier basis vector, so its
-orthogonal complement is trivial. -/
-theorem dense_diracDomain : Dense (diracDirac.domain : Set L2) := by
-  change Dense (diracDomain : Set L2)
-  have horth : (diracDomain : Submodule ℂ L2)ᗮ = ⊥ := by
-    rw [Submodule.eq_bot_iff]
-    intro y hy
-    refine lp.ext (funext fun n => ?_)
-    have h0 : inner ℂ (lp.single 2 n (1 : ℂ) : L2) y = 0 := hy _ (single_mem_diracDomain n)
-    rw [lp.inner_single_left] at h0
-    simpa [RCLike.inner_apply, lp.coeFn_zero] using h0
-  have htop : diracDomain.topologicalClosure = ⊤ :=
-    (Submodule.topologicalClosure_eq_top_iff (K := diracDomain)).mpr horth
-  rw [dense_iff_closure_eq, ← Submodule.topologicalClosure_coe, htop, Submodule.top_coe]
-
-/-- The circle Dirac operator is contained in its adjoint (symmetry ⇒ `D ≤ D†`). -/
-theorem diracDirac_le_adjoint : diracDirac ≤ diracDirac† :=
-  diracDirac_isFormalAdjoint.le_adjoint dense_diracDomain
-
-/-- **The circle Dirac operator is self-adjoint.** Since it is symmetric (so `D ≤ D†`), it
-suffices that `D†.domain ⊆ D.domain`: for `y ∈ D†.domain`, testing the adjoint relation against
-each Fourier basis vector `eₙ` gives `(D† y)ₙ = n · yₙ`, so `n ↦ n · yₙ` is square-summable and
-`y` lies in the `H¹` domain. -/
-theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac := by
-  rw [isSelfAdjoint_def]
-  have hfa : diracDirac†.IsFormalAdjoint diracDirac := adjoint_isFormalAdjoint dense_diracDomain
-  have hdomle : diracDirac†.domain ≤ diracDomain := by
-    intro y hy
-    rw [mem_diracDomain_iff]
-    have hcoe : (fun n => (diracEigen n : ℂ) * y n) = ⇑(diracDirac† ⟨y, hy⟩) := by
-      funext n
-      have key := hfa ⟨y, hy⟩ ⟨lp.single 2 n (1 : ℂ), single_mem_diracDomain n⟩
-      have hDe : diracDirac ⟨lp.single 2 n (1 : ℂ), single_mem_diracDomain n⟩
-          = (diracEigen n : ℂ) • (lp.single 2 n (1 : ℂ) : L2) := by
-        refine lp.ext (funext fun m => ?_)
-        simp only [diracDirac_apply, lp.coeFn_smul, Pi.smul_apply, smul_eq_mul]
-        rcases eq_or_ne m n with h | h
-        · subst h; rfl
-        · simp [lp.single_apply, h]
-      rw [lp.inner_single_right, hDe, inner_smul_right, lp.inner_single_right] at key
-      have key2 := congrArg (starRingEnd ℂ) key
-      simp [RCLike.inner_apply, map_mul, Complex.conj_ofReal] at key2
-      exact key2.symm
-    rw [hcoe]; exact lp.memℓp _
-  have heq : diracDirac.domain = diracDirac†.domain :=
-    le_antisymm diracDirac_le_adjoint.1 hdomle
-  exact (LinearPMap.eq_of_le_of_domain_eq diracDirac_le_adjoint heq).symm
+/-- **The circle Dirac operator is self-adjoint.** An instance of the generic
+`lpDiag.diracDirac_isSelfAdjoint` for symmetric block families. -/
+theorem diracDirac_isSelfAdjoint : IsSelfAdjoint diracDirac :=
+  lpDiag.diracDirac_isSelfAdjoint diracBlock diracBlock_isSymmetric
 
 /-- `i` lies in the resolvent set of the circle Dirac operator: it is self-adjoint and
 `Im i = 1 ≠ 0`, so the basic criterion applies. -/
