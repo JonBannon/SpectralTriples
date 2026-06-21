@@ -361,7 +361,10 @@ the index arc $0, -1, k$. Sections~\ref{sec:theta-sections} and~\ref{sec:fourier
 connect the abstract flux-$k$ model of Section~\ref{sec:magnetic-dirac} back to genuine
 geometry: together they give a complete, purely algebraic dimension count
 $\dim H^0(L_k) = k$, $\dim H^1(L_k) = 0$ for the degree-$k$ line bundle on the square torus,
-with no index theorem and no $L^2$ analysis.
+with no index theorem and no $L^2$ analysis. Section~\ref{sec:hermite-l2} begins the
+remaining operator bridge (M3c/M1/M4): the Gaussian-weighted orthogonality of the Hermite
+polynomials, the foundation of the Hermite-function $L^2(\mathbb{R})$ basis needed for the
+Landau/Hermite decomposition route.
 
 \section{Block-diagonal operators on \texorpdfstring{$\ell^2$}{l2}}
 \label{sec:diagonal-operators}
@@ -870,4 +873,67 @@ not addressed here.
   whose growth factor has modulus $> 1$; this clashes with the Parseval decay of
   Lemma~\ref{lem:holCoeff-tendsto-atTop-zero} unless every coefficient is already $0$, and then
   Theorem~\ref{thm:eq-zero-of-holCoeff-eq-zero} gives $f = 0$.
+\end{theorem}
+
+\section{The Hermite functions: Gaussian-weighted orthogonality}
+\label{sec:hermite-l2}
+
+\textbf{Status: partial (orthogonality only).} This section is the foundation of \emph{Route
+B} for the M3c/M1/M4 operator bridge of Section~\ref{sec:fourier-holomorphic} (see
+\texttt{SpectralTriples/docs/INDEX\_PAIRING.md}): the recommended next step there is to build
+the Hermite \emph{functions} $h_n(x) = c_n \cdot H_n(x) \cdot e^{-x^2/2}$ as an orthonormal
+basis of $L^2(\mathbb{R})$, the gating lemma for the Landau/Hermite decomposition that
+identifies the geometric magnetic Dirac operator with the already-formalized model
+(Section~\ref{sec:magnetic-dirac}). Mathlib has the probabilists' Hermite \emph{polynomials}
+and the Rodrigues identity, but neither the Gaussian-weighted orthogonality integral nor the
+$L^2$ basis. This section proves the orthogonality integral; the normalization constants $c_n$
+and the completeness of $\{h_n\}$ in $L^2(\mathbb{R})$ (needed for the \texttt{HilbertBasis})
+remain to be built.
+
+\begin{lemma}[Hermite derivative identity]
+  \label{lem:derivative-hermite}
+  \lean{Polynomial.derivative_hermite}
+  \leanok
+  The probabilists' Hermite polynomials satisfy $H_{n+1}' = (n+1) \cdot H_n$. (Mathlib has the
+  three-term recursion $H_{n+1} = X H_n - n H_{n-1}$ but not this derivative form.)
+\end{lemma}
+
+\begin{lemma}[Integrability against the Gaussian weight]
+  \label{lem:integrable-aeval-mul-gaussian}
+  \lean{Polynomial.integrable_aeval_mul_gaussian}
+  \leanok
+  Any polynomial $p$ times the Gaussian weight $e^{-x^2/2}$ is integrable on $\mathbb{R}$.
+\end{lemma}
+
+\begin{theorem}[Off-diagonal orthogonality]
+  \label{thm:hermite-integral-eq-zero-of-ne}
+  \lean{Polynomial.hermite_integral_eq_zero_of_ne}
+  \leanok
+  \uses{lem:derivative-hermite, lem:integrable-aeval-mul-gaussian}
+  For $m \neq n$, $\int_{\mathbb{R}} H_m(x) H_n(x) e^{-x^2/2}\,dx = 0$. From the Rodrigues
+  identity $(H_n \cdot w)' = -H_{n+1} \cdot w$ (with $w = e^{-x^2/2}$) and a single integration
+  by parts, the weighted pairing of a polynomial $P$ against $H_{n+1}$ satisfies
+  $\langle P, H_{n+1}\rangle = \langle P', H_n\rangle$; iterating shows $\deg P \leq n$ forces
+  $\langle P, H_{n+1}\rangle = 0$, which gives off-diagonal vanishing without $n$-fold
+  integration by parts.
+\end{theorem}
+
+\begin{theorem}[Diagonal value]
+  \label{thm:hermite-integral-self}
+  \lean{Polynomial.hermite_integral_self}
+  \leanok
+  \uses{lem:derivative-hermite, thm:hermite-integral-eq-zero-of-ne}
+  $\int_{\mathbb{R}} H_n(x)^2 e^{-x^2/2}\,dx = n! \sqrt{2\pi}$. The same integration-by-parts
+  recursion gives $\langle H_{n+1}, H_{n+1}\rangle = (n+1) \langle H_n, H_n \rangle$
+  (Lemma~\ref{lem:derivative-hermite}), reducing to the base case
+  $\int_{\mathbb{R}} e^{-x^2/2}\,dx = \sqrt{2\pi}$ (the Gaussian integral).
+\end{theorem}
+
+\begin{theorem}[Gaussian-weighted orthogonality]
+  \label{thm:hermite-orthogonality}
+  \lean{Polynomial.hermite_orthogonality}
+  \leanok
+  \uses{thm:hermite-integral-eq-zero-of-ne, thm:hermite-integral-self}
+  $\int_{\mathbb{R}} H_m(x) H_n(x) e^{-x^2/2}\,dx = n! \sqrt{2\pi} \cdot \delta_{mn}$, combining
+  the off-diagonal and diagonal cases.
 \end{theorem}

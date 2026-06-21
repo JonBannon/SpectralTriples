@@ -203,10 +203,19 @@ remain substantial — this is a multi-step analytic build, not a single lemma.
 - **M3c / M1 / M4 — the operator bridge** (detailed scope above): connect the operator
   `ker D⁺ ⊆ L²(L_k)` to the counted sections. Both routes have real Mathlib gaps — Route A
   (Weyl's lemma) is fully absent; Route B (Landau/Hermite, recommended) needs the Hermite `L²(ℝ)`
-  basis (absent) plus the weighted `L²(L_k)` space (M1, from scratch). **Recommended first step:
-  the Hermite orthonormal basis of `L²(ℝ)`** — the gating lemma for Route B, a clean reusable
-  Mathlib-gap fill. Jon's merged Riesz–Schauder (#11) supplies the Fredholm *well-definedness*;
-  the *value* `= k` still needs this bridge.
+  basis (started, see below) plus the weighted `L²(L_k)` space (M1, from scratch). Jon's merged
+  Riesz–Schauder (#11) supplies the Fredholm *well-definedness*; the *value* `= k` still needs
+  this bridge.
+  - **Hermite orthogonality — done** (`SpectralTriples.HermiteL2`, PR #16): the gating lemma for
+    Route B is the Hermite-function orthonormal basis of `L²(ℝ)`; this is its first half, the
+    Gaussian-weighted orthogonality of the Hermite *polynomials*
+    `∫ Hₘ Hₙ e^{-x²/2} = n!√(2π)·δₘₙ` (`hermite_orthogonality`), proved without `n`-fold
+    integration by parts via the derivative recursion `Hₙ₊₁' = (n+1)·Hₙ`
+    (`derivative_hermite`) and a single integration by parts. Sorry-free, axiom-clean.
+  - **Still TODO for the Hermite basis**: the normalization constants `cₙ` (so that
+    `hₙ = cₙ·Hₙ·e^{-x²/2}` is unit norm in `L²(ℝ)`) and completeness of `{hₙ}` in `L²(ℝ)`
+    (needed to package it as a Mathlib `HilbertBasis`) — via density of polynomials-times-Gaussian
+    or the spectral theory of the Hermite/oscillator operator.
 
 ## Mathlib inventory (for the bridge)
 
@@ -214,7 +223,7 @@ remain substantial — this is a multi-step analytic build, not a single lemma.
 |---|---|
 | Jacobi theta functions `jacobiTheta₂(z, τ)` | ✅ `Mathlib.NumberTheory.ModularForms.JacobiTheta` |
 | Gaussian integrals; Hermite *polynomials* + Rodrigues formula | ✅ present (`RingTheory/Polynomial/Hermite`) |
-| Hermite *functions* as an `L²(ℝ)` orthonormal basis (gating M4 / Route B) | ❌ **build** (only polynomials present) |
+| Hermite *functions* as an `L²(ℝ)` orthonormal basis (gating M4 / Route B) | 🟡 **in progress** — Gaussian-weighted orthogonality done (`HermiteL2.lean`); normalization + `L²` completeness remain |
 | theta functions *with characteristics*; the count `dim H⁰(L_k)=k`, `H¹=0` | ✅ **done** (`FourierHolomorphic`: `holSection_finrank_eq`, `holSectionNeg_eq_bot`) |
 | `L²` sections of a line bundle / weighted quasi-periodic `L²` (M1) | ❌ build by hand |
 | elliptic regularity / Weyl's lemma for `∂̄` (Route A) | ❌ absent — use Route B instead |
