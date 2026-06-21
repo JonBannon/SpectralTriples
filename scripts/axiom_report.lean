@@ -80,6 +80,13 @@ open LinearPMap
 #print axioms SpectralTriples.holSectionNeg_eq_bot
 #print axioms SpectralTriples.holSectionNeg_finrank_eq_zero
 
+-- HermiteL2.lean — Gaussian-weighted orthogonality of the Hermite polynomials (Route B foundation).
+#print axioms Polynomial.derivative_hermite
+#print axioms Polynomial.integrable_aeval_mul_gaussian
+#print axioms Polynomial.hermite_integral_eq_zero_of_ne
+#print axioms Polynomial.hermite_integral_self
+#print axioms Polynomial.hermite_orthogonality
+
 -- DiagonalOperator.lean — block-diagonal operators on ℓ² and the compactness criterion.
 #print axioms lpDiag.diagL
 #print axioms lpDiag.norm_diagL_le
