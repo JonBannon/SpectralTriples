@@ -2,6 +2,7 @@ import SpectralTriples.Basic
 import SpectralTriples.Resolvent
 import SpectralTriples.FinitelySummable
 import SpectralTriples.FourierHolomorphic
+import SpectralTriples.HermiteL2
 import SpectralTriples.Fredholm
 import SpectralTriples.CompactOperators
 import SpectralTriples.Index
