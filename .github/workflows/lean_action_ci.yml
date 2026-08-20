@@ -5,15 +5,23 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Cancel superseded runs for the same branch or pull request. The documentation
+# build is deliberately comprehensive and comparatively expensive.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only by default. The documentation job alone receives Pages permissions.
 permissions:
-  contents: read # Read access to repository contents
-  pages: write # Write access to GitHub Pages
-  id-token: write # Write access to ID tokens
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     env:
       # Opt in to Node.js 24 early, since some actions used here (transitively,
       # via docgen-action) are still pinned to Node.js 20 actions.
@@ -54,8 +62,12 @@ jobs:
   # headline's axiom set is a reviewed diff.
   axiom-report:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
+      - name: Every blueprint declaration has an axiom trace
+        run: python3 scripts/check_axiom_coverage.py
       - uses: leanprover/lean-action@v1
       - name: Axiom report matches the kernel
         run: |

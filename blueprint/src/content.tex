@@ -9,14 +9,17 @@
 \chapter{Spectral triples}
 \label{cha:spectral-triples}
 
-This chapter records the basic definitions of (odd and even) spectral triples
-and the first consequences of the axioms. It corresponds to Phase~1 of the
-project plan.
+This chapter records the core operator predicates underlying odd and even spectral triples
+and the first consequences of their axioms.  The predicates deliberately separate the
+self-adjointness, domain, commutator, and grading axioms from compactness of the resolvent;
+the latter is added by Definition~\ref{def:compact-resolvent-spectral-triple}.  This split is
+an implementation convenience, not the standard terminology in which compact resolvent is
+already part of the definition of a spectral triple.
 
 \section{Odd spectral triples}
 \label{sec:odd-spectral-triples}
 
-\begin{definition}[Odd spectral triple]
+\begin{definition}[Odd spectral-triple core]
   \label{def:odd-spectral-triple}
   \lean{IsOddSpectralTriple}
   \leanok
@@ -24,13 +27,15 @@ project plan.
   $*$-algebra over $\Bbbk$, and let $\pi \colon A \to \mathcal{B}(\Hil)$ be a
   $*$-algebra homomorphism. A possibly unbounded linear operator
   $D \colon \dom{D} \to \Hil$, with $\dom{D} \subseteq \Hil$ a linear subspace,
-  together with the data $(A, \Hil, \pi, D)$, is an \emph{odd spectral triple} if:
+  together with the data $(A, \Hil, \pi, D)$, satisfies the \emph{odd spectral-triple core}
+  predicate if:
   \begin{itemize}
     \item $D$ is self-adjoint (in particular, $\dom{D}$ is dense and $D$ is closed);
     \item for every $a \in A$, $\pi(a)$ maps $\dom{D}$ into $\dom{D}$;
     \item for every $a \in A$, the commutator $[D, \pi(a)]$, viewed as an operator on
       $\dom{D}$, is bounded on the closed unit ball of $\dom{D}$.
   \end{itemize}
+  No compact-resolvent or Schatten-summability condition is included in this predicate.
 \end{definition}
 
 \begin{lemma}[Density of the domain of the Dirac operator]
@@ -38,7 +43,7 @@ project plan.
   \lean{IsOddSpectralTriple.dense_domain_dirac}
   \leanok
   \uses{def:odd-spectral-triple}
-  If $(A, \Hil, \pi, D)$ is an odd spectral triple, then $\dom{D}$ is dense in $\Hil$.
+  If $(A, \Hil, \pi, D)$ satisfies the odd core predicate, then $\dom{D}$ is dense in $\Hil$.
 \end{lemma}
 
 \begin{lemma}[Closedness of the Dirac operator]
@@ -46,32 +51,61 @@ project plan.
   \lean{IsOddSpectralTriple.isClosed_dirac}
   \leanok
   \uses{def:odd-spectral-triple}
-  If $(A, \Hil, \pi, D)$ is an odd spectral triple, then $D$ is a closed operator.
+  If $(A, \Hil, \pi, D)$ satisfies the odd core predicate, then $D$ is a closed operator.
 \end{lemma}
 
-\begin{lemma}[A uniform commutator bound]
-  \label{lem:exists-comm-bound}
-  \lean{IsOddSpectralTriple.exists_comm_bound}
+\begin{definition}[The algebraic commutator on the Dirac domain]
+  \label{def:commutator-on-domain}
+  \lean{IsOddSpectralTriple.domainRepresentation,
+        IsOddSpectralTriple.commutatorOnDomain}
   \leanok
   \uses{def:odd-spectral-triple}
-  If $(A, \Hil, \pi, D)$ is an odd spectral triple, then for every $a \in A$ there is a
-  real constant $C \geq 0$ such that
+  Domain invariance restricts $\pi(a)$ to a linear endomorphism of $\dom{D}$.  The algebraic
+  commutator on that domain is the linear map
   \[
-    \big\| \pi(a) D \xi - D \pi(a) \xi \big\| \leq C
+    C_a\xi = D\pi(a)\xi-\pi(a)D\xi = [D,\pi(a)]\xi.
   \]
-  for every $\xi \in \dom{D}$ with $\|\xi\| \leq 1$.
+\end{definition}
+
+\begin{lemma}[Unit-ball and homogeneous commutator bounds]
+  \label{lem:exists-comm-bound}
+  \lean{IsOddSpectralTriple.exists_comm_bound,
+        IsOddSpectralTriple.exists_commutator_bound}
+  \leanok
+  \uses{def:odd-spectral-triple, def:commutator-on-domain}
+  If $(A, \Hil, \pi, D)$ satisfies the odd core predicate, then for every $a \in A$ there is
+  a real constant $C \geq 0$ such that
+  \[
+    \|C_a\xi\| \leq C\|\xi\|
+  \]
+  for every $\xi \in \dom{D}$.  This homogeneous estimate is obtained by scaling the
+  unit-ball bound in the core axiom.
 \end{lemma}
+
+\begin{definition}[The bounded commutator]
+  \label{def:bounded-commutator}
+  \lean{IsOddSpectralTriple.boundedCommutator,
+        IsOddSpectralTriple.boundedCommutator_apply,
+        IsOddSpectralTriple.boundedCommutator_unique}
+  \leanok
+  \uses{lem:dense-domain-dirac, def:commutator-on-domain, lem:exists-comm-bound}
+  The homogeneous estimate extends $C_a$ uniquely from the dense domain $\dom{D}$ to a
+  continuous linear map $\overline C_a\colon\Hil\to\Hil$.  On the original domain it satisfies
+  \[
+    \overline C_a\xi=D\pi(a)\xi-\pi(a)D\xi.
+  \]
+\end{definition}
 
 \section{Even spectral triples}
 \label{sec:even-spectral-triples}
 
-\begin{definition}[Even spectral triple]
+\begin{definition}[Even spectral-triple core]
   \label{def:even-spectral-triple}
   \lean{IsEvenSpectralTriple}
   \leanok
   \uses{def:odd-spectral-triple}
-  An \emph{even spectral triple} $(A, \Hil, \pi, D, \gamma)$ consists of an odd
-  spectral triple $(A, \Hil, \pi, D)$ together with a bounded operator
+  The \emph{even spectral-triple core} predicate for $(A, \Hil, \pi, D, \gamma)$ consists of
+  the odd core predicate for $(A, \Hil, \pi, D)$ together with a bounded operator
   $\gamma \in \mathcal{B}(\Hil)$ (the \emph{grading operator}) such that:
   \begin{itemize}
     \item $\gamma$ is self-adjoint: $\gamma^* = \gamma$;
@@ -82,12 +116,13 @@ project plan.
   \end{itemize}
 \end{definition}
 
-\section{Resolvents and finitely summable spectral triples}
+\section{Resolvents and compact-resolvent spectral triples}
 \label{sec:resolvents}
 
 This section introduces the resolvent set and resolvent of the (partially defined) Dirac
-operator $D$, and uses them to define finitely summable spectral triples: those whose Dirac
-operator has compact resolvent.
+operator $D$, and adds the compact-resolvent condition to the core predicate.  Compact
+resolvent alone is weaker than finite or $p$-summability, which would require a Schatten- or
+trace-ideal estimate and is not formalized here.
 
 \begin{definition}[Resolvent set]
   \label{def:resolvent-set}
@@ -148,38 +183,37 @@ operator has compact resolvent.
   the range of $z - D$ is closed (the bounded-below estimate makes preimage sequences Cauchy,
   and the graph of $D$ is closed) and dense (its orthogonal complement is trivial, via the
   adjoint), hence all of $\Hil$. In particular $i \in \rho(D)$, so the resolvent-set hypothesis
-  of a finitely summable spectral triple holds automatically at $z = i$.
+  needed by the compact-resolvent predicate holds automatically at $z = i$ over $\mathbb C$.
 \end{theorem}
 
-\begin{definition}[Finitely summable spectral triple]
-  \label{def:finitely-summable-spectral-triple}
-  \lean{IsFinitelySummableSpectralTriple}
+\begin{definition}[Compact-resolvent spectral triple]
+  \label{def:compact-resolvent-spectral-triple}
+  \lean{IsCompactResolventSpectralTriple}
   \leanok
   \uses{def:odd-spectral-triple, def:resolvent-set, def:resolvent,
         thm:basic-criterion-self-adjoint}
-  An odd spectral triple $(A, \Hil, \pi, D)$ is \emph{finitely summable} if the
-  resolvent $R(i, D)$ at the imaginary unit $i \in \Bbbk$ is a compact operator on
-  $\Hil$. By Theorem~\ref{thm:basic-criterion-self-adjoint}, the hypothesis $i \in
-  \rho(D)$ holds automatically whenever $\operatorname{Im}(i) \neq 0$ (e.g.\ when
-  $\Bbbk = \mathbb{C}$), and is not required as part of the definition.
+  An odd spectral-triple core $(A, \Hil, \pi, D)$ has \emph{compact resolvent at $i$} if
+  $i \in \rho(D)$ and the resolvent $R(i,D)$ is a compact operator on $\Hil$.  The
+  resolvent-membership proof is an explicit field: over $\mathbb C$ it follows from
+  Theorem~\ref{thm:basic-criterion-self-adjoint}, whereas for $\Bbbk=\mathbb R$ the value
+  \texttt{RCLike.I} is $0$ and membership must be supplied separately.
 \end{definition}
 
 \chapter{The Fredholm index pairing}
 \label{cha:index-pairing}
 
-This chapter develops the index attached to an even spectral triple. The
-\emph{graded-kernel index} (Section~\ref{sec:graded-kernel-index}) — the special case of the
-index pairing at the unit projection $p = 1$ — is formalized, building on a minimal notion of
-Fredholm linear map (Section~\ref{sec:fredholm}). The general index pairing against an
-arbitrary $K_0$-class $[p]$ (Section~\ref{sec:general-index-pairing}) is not yet formalized;
-it corresponds to Phase~2 of the project plan.
+This chapter develops foundations for the Fredholm index pairing.  The formalized
+\emph{graded-kernel invariant} (Section~\ref{sec:graded-kernel-index}) is the difference of
+the two graded kernel dimensions.  The still-open chiral bridge must construct $D^+$, prove it
+Fredholm, and identify its Fredholm index with that invariant.  The general pairing against an
+arbitrary $K_0$-class $[p]$ is likewise not yet formalized.
 
 \section{Fredholm operators}
 \label{sec:fredholm}
 
 This section records a minimal, self-contained notion of Fredholm linear map, scoped to
-exactly what the index pairing needs. Mathlib has ongoing, as yet unmerged, work towards a
-general theory of Fredholm operators on topological vector spaces; the definitions here are
+exactly what the index pairing needs. The Mathlib version pinned by this repository does not
+provide a finalized general theory of Fredholm operators; the definitions here are
 deliberately narrower — stated for plain linear maps rather than continuous linear maps, so
 that they apply uniformly to bounded operators and to the restriction of an unbounded
 operator to its domain, as needed for the chiral Dirac operator $D^{+}$ — and are expected to
@@ -199,10 +233,12 @@ be replaced by an \texttt{import} once the upstream theory lands.
   \lean{SpectralTriples.Fredholm.index}
   \leanok
   \uses{def:isFredholm}
-  The \emph{Fredholm index} of a linear map $f \colon E \to F$ is the integer
+  For a Fredholm linear map $f \colon E \to F$, its \emph{Fredholm index} is the integer
   \[
     \operatorname{ind}(f) = \dim(\ker f) - \dim(F / \operatorname{ran} f).
   \]
+  The Lean definition is total on all linear maps; its intended dimension-counting
+  interpretation is used together with an \texttt{IsFredholm} witness.
 \end{definition}
 
 \begin{lemma}[Index of a bijection]
@@ -270,7 +306,7 @@ eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
   that the index is $0$ is not proved here.)
 \end{theorem}
 
-\section{The graded-kernel index}
+\section{The graded-kernel invariant}
 \label{sec:graded-kernel-index}
 
 \begin{definition}[Kernel of the Dirac operator]
@@ -286,48 +322,67 @@ eventually show the chiral Dirac operator $D^{+}$ is Fredholm.
   \lean{SpectralTriples.grading_mem_Dkernel}
   \leanok
   \uses{def:even-spectral-triple, def:Dkernel}
-  If $(A, \Hil, \pi, D, \gamma)$ is an even spectral triple and $\xi \in \ker D$, then
-  $\gamma \xi \in \ker D$. Consequently $\ker D$ splits as $\ker D = (\ker D)^{+} \oplus
-  (\ker D)^{-}$ into the $(\pm 1)$-eigenspaces of $\gamma$ restricted to $\ker D$.
+  If $(A, \Hil, \pi, D, \gamma)$ satisfies the even spectral-triple core predicate and
+  $\xi \in \ker D$, then $\gamma \xi \in \ker D$.  This theorem proves preservation of the
+  kernel; a separate formal theorem supplies the eigenspace decomposition of the ambient
+  grading.
 \end{lemma}
 
-\begin{definition}[Graded-kernel index]
+\begin{definition}[Graded-kernel invariant]
   \label{def:graded-kernel-index}
-  \lean{SpectralTriples.index}
+  \lean{SpectralTriples.gradedKernelIndex}
   \leanok
   \uses{lem:grading-mem-Dkernel}
-  The \emph{(super)index} of an even Dirac datum $(D, \gamma)$ is the integer
+  The \emph{graded-kernel invariant} of an even Dirac datum $(D, \gamma)$ is the integer
   \[
-    \operatorname{index}(D, \gamma) \;=\; \dim (\ker D)^{+} - \dim (\ker D)^{-}.
+    \operatorname{gkIndex}(D, \gamma) \;=\; \dim (\ker D)^{+} - \dim (\ker D)^{-}.
   \]
-  This is the Fredholm index of the chiral operator $D^{+}$ from
-  Definition~\ref{def:index-pairing} in the special case $p = 1$. The corresponding invariant
-  of an even spectral triple is \lean{IsEvenSpectralTriple.index}\leanok.
+  The corresponding invariant of an even core predicate is
+  \lean{IsEvenSpectralTriple.gradedKernelIndex}\leanok.  No chiral operator or equality with
+  a Fredholm index is asserted by this definition.
 \end{definition}
 
 \begin{theorem}[Finite-dimensionality of the kernel]
   \label{thm:finiteDimensional-Dkernel}
   \lean{SpectralTriples.finiteDimensional_Dkernel}
   \leanok
-  \uses{def:finitely-summable-spectral-triple, def:Dkernel}
-  If $D$ is self-adjoint with compact resolvent at $i$, then $\ker D$ is finite-dimensional.
-  Consequently $\operatorname{index}(D, \gamma)$ (Definition~\ref{def:graded-kernel-index}) is
-  a difference of genuine finite dimensions: for $\xi \in \ker D$, the resolvent $R(i, D)$
+  \uses{def:compact-resolvent-spectral-triple, def:Dkernel}
+  If $D$ is self-adjoint, its resolvent at $i$ is compact, and
+  $\operatorname{Im}(i)\neq 0$ (in particular over $\mathbb C$), then $\ker D$ is
+  finite-dimensional.
+  Consequently $\operatorname{gkIndex}(D, \gamma)$
+  (Definition~\ref{def:graded-kernel-index}) is a difference of genuine finite dimensions:
+  for $\xi \in \ker D$, the resolvent $R(i, D)$
   satisfies $R(i,D)(i\xi) = \xi$, so $\ker D$ embeds into the $i^{-1}$-eigenspace of the
   compact operator $R(i, D)$, which is finite-dimensional by Riesz theory.
+\end{theorem}
+
+\begin{theorem}[Chiral Fredholm bridge (planned)]
+  \label{thm:chiral-fredholm-bridge}
+  \uses{def:even-spectral-triple, def:compact-resolvent-spectral-triple,
+        def:graded-kernel-index, def:isFredholm, def:fredholm-index,
+        thm:finiteDimensional-Dkernel}
+  For an even spectral-triple core with compact resolvent, construct the chiral restriction
+  $D^+\colon \dom(D)\cap\Hil^+\to\Hil^-$, prove that it is Fredholm, and prove
+  \[
+    \operatorname{ind}(D^+) = \operatorname{gkIndex}(D,\gamma).
+  \]
+  This is an open dependency: finite-dimensionality of $\ker D$ alone does not prove closed
+  range or finite-dimensional cokernel for the chiral restriction.
 \end{theorem}
 
 \section{The general index pairing}
 \label{sec:general-index-pairing}
 
-This section is not yet formalized; it corresponds to Phase~2 of the project plan. It
-generalizes Section~\ref{sec:graded-kernel-index} from the unit projection $p = 1$ to an
-arbitrary self-adjoint idempotent representing a class in $K_0(A)$.
+This section is not yet formalized; it corresponds to Phase~2 of the project plan.  It builds
+on the planned chiral bridge and treats an arbitrary self-adjoint idempotent representing a
+class in $K_0(A)$.
 
 \begin{definition}[Index pairing]
   \label{def:index-pairing}
-  \uses{def:even-spectral-triple, def:fredholm-index}
-  Let $(A, \Hil, \pi, D, \gamma)$ be an even spectral triple and let
+  \uses{def:even-spectral-triple, def:compact-resolvent-spectral-triple,
+        def:fredholm-index}
+  Let $(A, \Hil, \pi, D, \gamma)$ satisfy the even core and compact-resolvent predicates, and let
   $p \in M_n(A)$ be a self-adjoint idempotent (a projection representing a class
   in $K_0(A)$). The \emph{index pairing} of $p$ with $(A, \Hil, \pi, D, \gamma)$ is
   the Fredholm index
@@ -340,7 +395,7 @@ arbitrary self-adjoint idempotent representing a class in $K_0(A)$.
 
 \begin{theorem}[The index pairing is well defined]
   \label{thm:index-pairing-well-defined}
-  \uses{def:index-pairing, thm:finiteDimensional-Dkernel, def:isFredholm}
+  \uses{def:index-pairing, thm:chiral-fredholm-bridge, def:isFredholm}
   In the situation of Definition~\ref{def:index-pairing}, the operator
   $\pi(p) D^{+} \pi(p)$, restricted to $\pi(p)\Hil \cap \dom{D}$, is Fredholm, so that
   $\langle [p], (\Hil, \pi, D, \gamma) \rangle \in \mathbb{Z}$ is well defined.
@@ -353,18 +408,15 @@ This chapter records concrete spectral triples built directly on the Fourier sid
 spin-geometry and Sobolev-space machinery from the literature, together with standalone
 Fredholm-index examples that illustrate Section~\ref{sec:fredholm} directly. The circle and
 torus examples share the same diagonal-operator technology (Section~\ref{sec:diagonal-operators}):
-the circle example (Section~\ref{sec:circle}) is a complete, finitely summable, odd spectral
-triple; the two-torus example (Section~\ref{sec:torus}) is a complete, finitely summable, even
-spectral triple with vanishing index. Sections~\ref{sec:shift} and~\ref{sec:magnetic-dirac} give
-two further examples with \emph{nonzero} Fredholm index, $-1$ and $k$ respectively, completing
-the index arc $0, -1, k$. Sections~\ref{sec:theta-sections} and~\ref{sec:fourier-holomorphic}
-connect the abstract flux-$k$ model of Section~\ref{sec:magnetic-dirac} back to genuine
-geometry: together they give a complete, purely algebraic dimension count
-$\dim H^0(L_k) = k$, $\dim H^1(L_k) = 0$ for the degree-$k$ line bundle on the square torus,
-with no index theorem and no $L^2$ analysis. Section~\ref{sec:hermite-l2} begins the
-remaining operator bridge (M3c/M1/M4): the Gaussian-weighted orthogonality of the Hermite
-polynomials, the foundation of the Hermite-function $L^2(\mathbb{R})$ basis needed for the
-Landau/Hermite decomposition route.
+the circle example (Section~\ref{sec:circle}) is a complete odd core with compact resolvent;
+the two-torus example (Section~\ref{sec:torus}) is a complete even core with compact resolvent
+and vanishing graded-kernel invariant. Sections~\ref{sec:shift} and~\ref{sec:magnetic-dirac}
+give two bounded Fredholm examples with indices $-1$ and $k$. Sections~\ref{sec:theta-sections}
+and~\ref{sec:fourier-holomorphic} give the purely function-theoretic count
+$\dim H^0(L_k)=k$ and the vanishing of the negative-degree holomorphic-section space.  Their
+interpretation as the kernel and cokernel of a geometric $L^2$ Dirac operator remains part of
+the planned operator bridge. Section~\ref{sec:hermite-l2} supplies a normalized orthonormal
+Hermite family; completeness is the next missing analytic node.
 
 \section{Block-diagonal operators on \texorpdfstring{$\ell^2$}{l2}}
 \label{sec:diagonal-operators}
@@ -416,8 +468,8 @@ and~\ref{sec:torus} are compact.
 \section{The Dirac triple of the circle \texorpdfstring{$S^1$}{S1}}
 \label{sec:circle}
 
-\textbf{Status: complete.} A fully formalized, odd, finitely summable spectral triple on the
-circle. The algebra representation is generated by a single Fourier shift unitary; since the
+\textbf{Status: complete.} A fully formalized odd spectral-triple core with compact resolvent
+on the circle. The algebra representation is generated by a single Fourier shift unitary; since the
 Dirac eigenvalues are additive in the shift, the commutator of the shift with $D$ collapses to
 a scalar multiple of the shift itself, simplifying the boundedness argument relative to the
 torus case (Section~\ref{sec:torus}), which uses the same diagonal-operator technology but
@@ -472,35 +524,34 @@ $D = -i\,d/d\theta$ acting diagonally on the orthonormal Fourier basis $(e_n)_{n
   represented by inclusion into $\mathcal{B}(\ell^2(\mathbb{Z}))$.
 \end{definition}
 
-\begin{theorem}[Assembly: odd spectral triple]
+\begin{theorem}[Assembly: odd spectral-triple core]
   \label{thm:circle-isOddSpectralTriple}
   \lean{SpectralTriples.Circle.isOddSpectralTriple}
   \leanok
   \uses{def:odd-spectral-triple, thm:circle-diracDirac-isSelfAdjoint, def:circle-algebra}
   The circle data $(A, \ell^2(\mathbb{Z}), \pi, D)$, with $A$ the algebra of
-  Definition~\ref{def:circle-algebra}, is an odd spectral triple. Since the Dirac eigenvalues
-  are additive in the shift index, the commutator $[D, W_g]$ collapses to the scalar multiple
-  $g \cdot W_g$ of the shift itself; this bound is propagated through the generated
+  Definition~\ref{def:circle-algebra}, satisfies the odd core predicate. Since the Dirac
+  eigenvalues are additive in the shift index, the commutator $[D, W_g]$ collapses to the
+  scalar multiple $g \cdot W_g$ of the shift itself; this bound is propagated through the generated
   star-subalgebra by \texttt{StarAlgebra.adjoin\_induction}.
 \end{theorem}
 
-\begin{theorem}[Finite summability]
-  \label{thm:circle-isFinitelySummableSpectralTriple}
-  \lean{SpectralTriples.Circle.isFinitelySummableSpectralTriple}
+\begin{theorem}[Compact resolvent]
+  \label{thm:circle-isCompactResolventSpectralTriple}
+  \lean{SpectralTriples.Circle.isCompactResolventSpectralTriple}
   \leanok
   \uses{thm:circle-isOddSpectralTriple, thm:circle-isCompactOperator-resolvent-I,
-        def:finitely-summable-spectral-triple}
-  The circle spectral triple is finitely summable: its Dirac operator has compact resolvent
-  at $i$.
+        def:compact-resolvent-spectral-triple}
+  The circle core satisfies the compact-resolvent predicate at $i$.
 \end{theorem}
 
 \section{The Dirac triple of the two-torus \texorpdfstring{$T^2$}{T2}}
 \label{sec:torus}
 
-\textbf{Status: complete.} This is the flagship example: a fully formalized, even, finitely
-summable spectral triple on the flat torus $T^2 = \mathbb{R}^2/\mathbb{Z}^2$, whose
-graded-kernel index is computed and shown to vanish, matching the Atiyah--Singer prediction
-for the trivial line bundle.
+\textbf{Status: complete.} This is the flagship example: a fully formalized even
+spectral-triple core with compact resolvent on the flat torus
+$T^2 = \mathbb{R}^2/\mathbb{Z}^2$, whose graded-kernel invariant is computed and shown to
+vanish.
 
 The Hilbert space is $H = \ell^2(\mathbb{Z}^2; \mathbb{C}^2)$ (square-summable spinor-valued
 sequences over the Fourier lattice $\mathbb{Z}^2$). On the Fourier mode $(m, n)$ the Dirac
@@ -566,39 +617,39 @@ with eigenvalues $\pm 2\pi\sqrt{m^2+n^2}$; the chirality grading is $\gamma = \s
   $\mathbb{C}[\mathbb{Z}^2]$ on $T^2$), represented by inclusion into $\mathcal{B}(H)$.
 \end{definition}
 
-\begin{theorem}[Assembly: odd and even spectral triples]
+\begin{theorem}[Assembly: odd and even spectral-triple cores]
   \label{thm:torus-isEvenSpectralTriple}
   \lean{SpectralTriples.Torus.isOddSpectralTriple, SpectralTriples.Torus.isEvenSpectralTriple}
   \leanok
   \uses{def:odd-spectral-triple, def:even-spectral-triple,
         thm:torus-diracDirac-isSelfAdjoint, lem:torus-grading-properties, def:torus-algebra}
   The torus data $(A, H, \pi, D)$, with $A$ the algebra of
-  Definition~\ref{def:torus-algebra}, is an odd spectral triple; together with the grading
-  $\gamma$ of Definition~\ref{def:torus-grading}, it is an even spectral triple. The
+  Definition~\ref{def:torus-algebra}, satisfies the odd core predicate; together with the
+  grading $\gamma$ of Definition~\ref{def:torus-grading}, it satisfies the even core predicate. The
   bounded-commutator condition is checked by propagating a uniform commutator bound for the
   two generators $W_{(1,0)}, W_{(0,1)}$ through the generated star-subalgebra.
 \end{theorem}
 
-\begin{theorem}[Finite summability]
-  \label{thm:torus-isFinitelySummableSpectralTriple}
-  \lean{SpectralTriples.Torus.isFinitelySummableSpectralTriple}
+\begin{theorem}[Compact resolvent]
+  \label{thm:torus-isCompactResolventSpectralTriple}
+  \lean{SpectralTriples.Torus.isCompactResolventSpectralTriple}
   \leanok
   \uses{thm:torus-isEvenSpectralTriple, thm:torus-isCompactOperator-resolvent-I,
-        def:finitely-summable-spectral-triple}
-  The torus spectral triple is finitely summable: its Dirac operator has compact resolvent
-  at $i$.
+        def:compact-resolvent-spectral-triple}
+  The torus core satisfies the compact-resolvent predicate at $i$.
 \end{theorem}
 
-\begin{theorem}[The index vanishes]
+\begin{theorem}[The graded-kernel invariant vanishes]
   \label{thm:torus-index-eq-zero}
-  \lean{SpectralTriples.Torus.index_eq_zero}
+  \lean{SpectralTriples.Torus.gradedKernelIndex_eq_zero}
   \leanok
   \uses{thm:torus-isEvenSpectralTriple, def:graded-kernel-index}
-  $\operatorname{index}(D, \gamma) = 0$ for the flat torus Dirac triple: the graded kernel of
+  $\operatorname{gkIndex}(D, \gamma) = 0$ for the flat torus Dirac core: the graded kernel of
   $D$ is exactly the zero Fourier mode, with $(\ker D)^{+}$ and $(\ker D)^{-}$ each spanned by
   one of the two spinor basis vectors at that mode, so $\dim(\ker D)^{+} = \dim(\ker D)^{-} =
   1$. This matches the Atiyah--Singer prediction for the trivial (degree-$0$) line bundle on
-  $T^2$.
+  $T^2$.  This theorem does not construct the chiral operator or identify the invariant with
+  a Fredholm index.
 \end{theorem}
 
 \section{The unilateral shift on \texorpdfstring{$\ell^2(\mathbb{N})$}{l2(N)}}
@@ -617,52 +668,67 @@ $-1$.
   and $(Sx)_0 = 0$.
 \end{definition}
 
-\begin{theorem}[The shift is Fredholm of index $-1$]
+\begin{theorem}[The shift is Fredholm]
+  \label{thm:isFredholm-shift}
+  \lean{SpectralTriples.Shift.isFredholm_shift}
+  \leanok
+  \uses{def:shift, def:isFredholm}
+  The shift has trivial kernel, closed range, and one-dimensional cokernel, and hence is
+  Fredholm.
+\end{theorem}
+
+\begin{theorem}[The shift has index $-1$]
   \label{thm:fredholmIndex-shift}
   \lean{SpectralTriples.Shift.fredholmIndex_shift}
   \leanok
-  \uses{def:shift, def:fredholm-index}
+  \uses{thm:isFredholm-shift, def:fredholm-index}
   $\operatorname{ind}(S) = -1$. The shift is injective ($\ker S = 0$) and its range is closed
   with one-dimensional orthogonal complement spanned by the zeroth basis vector $e_0$, so
   $\operatorname{ind}(S) = \dim(\ker S) - \dim(\operatorname{coker} S) = 0 - 1 = -1$.
 \end{theorem}
 
-\section{The flux-\texorpdfstring{$k$}{k} magnetic Dirac model}
+\section{The flux-\texorpdfstring{$k$}{k} magnetic phase model}
 \label{sec:magnetic-dirac}
 
-\textbf{Status: complete (model level).} A Landau-level / magnetic-translation model of the
-flux-$k$ Dirac operator on $T^2$, after reduction to $\ell^2(\mathbb{N}) \otimes \mathbb{C}^k$,
-with Fredholm index exactly $k$. The unitary equivalence between this lowest-Landau-level model
-and the geometric PDE on $T^2$ (the degree-$k$ line bundle) is \emph{not} formalized here and is
-deferred analysis; the content proved is that the index is $k$, and that the $k$-dimensional
-kernel carries the expected magnetic-translation (finite Weyl) structure certifying it as the
-flux-$k$ degeneracy.
+\textbf{Status: complete (bounded phase model).}  The formalized operator is the bounded
+backward shift on $\ell^2(\mathbb N)\otimes\mathbb C^k$.  It is the expected phase of the
+unbounded, $\sqrt{n+1}$-weighted Landau lowering operator, not that geometric Dirac operator
+itself.  It is Fredholm of index $k$, and its kernel carries the expected finite Weyl action.
+Constructing the weighted operator and the geometric line-bundle realization is deferred.
 
-\begin{definition}[Flux-$k$ magnetic Dirac operator]
+\begin{definition}[Flux-$k$ bounded magnetic phase]
   \label{def:magneticDirac}
-  \lean{SpectralTriples.MagneticDirac.magneticDirac}
+  \lean{SpectralTriples.MagneticDirac.magneticPhase}
   \leanok
   \uses{def:shift}
   The backward shift on the Landau-level index $\mathbb{N}$, tensored with the identity on the
-  $k$-dimensional guiding-center factor $\mathbb{C}^k$: an operator $D_k$ on
+  $k$-dimensional guiding-center factor $\mathbb{C}^k$: a bounded operator $F_k$ on
   $\ell^2(\mathbb{N}) \otimes \mathbb{C}^k$.
 \end{definition}
 
 \begin{theorem}[The kernel is the lowest Landau level]
   \label{thm:magneticDirac-ker-finrank}
-  \lean{SpectralTriples.MagneticDirac.magneticDirac_ker_finrank}
+  \lean{SpectralTriples.MagneticDirac.magneticPhase_ker_finrank}
   \leanok
   \uses{def:magneticDirac}
-  $\dim \ker(D_k) = k$: the kernel is exactly the lowest Landau level, identified with
+  $\dim \ker(F_k) = k$: the kernel is exactly the lowest Landau level, identified with
   $\mathbb{C}^k$.
 \end{theorem}
 
-\begin{theorem}[The magnetic Dirac operator is Fredholm of index $k$]
-  \label{thm:fredholmIndex-magneticDirac}
-  \lean{SpectralTriples.MagneticDirac.fredholmIndex_magneticDirac}
+\begin{theorem}[The magnetic phase is Fredholm]
+  \label{thm:isFredholm-magneticPhase}
+  \lean{SpectralTriples.MagneticDirac.isFredholm_magneticPhase}
   \leanok
-  \uses{thm:magneticDirac-ker-finrank, def:fredholm-index}
-  $\operatorname{ind}(D_k) = k$: the operator is surjective (trivial cokernel), so the index
+  \uses{thm:magneticDirac-ker-finrank, def:isFredholm}
+  The bounded phase $F_k$ is Fredholm: its kernel is $k$-dimensional and it is surjective.
+\end{theorem}
+
+\begin{theorem}[The magnetic phase has index $k$]
+  \label{thm:fredholmIndex-magneticDirac}
+  \lean{SpectralTriples.MagneticDirac.fredholmIndex_magneticPhase}
+  \leanok
+  \uses{thm:isFredholm-magneticPhase, def:fredholm-index}
+  $\operatorname{ind}(F_k) = k$: the operator is surjective (trivial cokernel), so the index
   equals the kernel dimension.
 \end{theorem}
 
@@ -675,7 +741,7 @@ flux-$k$ degeneracy.
   respectively.
 \end{definition}
 
-\begin{theorem}[Finite Weyl relation and commutation with the Dirac operator]
+\begin{theorem}[Finite Weyl relation and commutation with the phase]
   \label{thm:magnetic-translation-weyl}
   \lean{SpectralTriples.MagneticDirac.magneticTranslation_weyl,
         SpectralTriples.MagneticDirac.magClock_comm_dirac,
@@ -683,7 +749,7 @@ flux-$k$ degeneracy.
   \leanok
   \uses{def:magnetic-translations, def:magneticDirac}
   The magnetic clock and shift satisfy the finite Weyl relation $\hat C \hat S = \omega_k \hat
-  S \hat C$, and both commute with $D_k$ — certifying that the $k$-dimensional kernel of
+  S \hat C$, and both commute with $F_k$ — certifying that the $k$-dimensional kernel of
   Theorem~\ref{thm:magneticDirac-ker-finrank} carries the genuine flux-$k$ Heisenberg
   degeneracy.
 \end{theorem}
@@ -691,18 +757,12 @@ flux-$k$ degeneracy.
 \section{Theta sections on the square torus}
 \label{sec:theta-sections}
 
-\textbf{Status: complete (lower bound).} This section proves the lower-bound half of the
-square-torus flux-$k$ Landau-level computation directly on the geometric side: $k$ explicit
-holomorphic theta sections for the degree-$k$ line bundle on the square torus $\mathbb{C} /
-(\mathbb{Z} + i \mathbb{Z})$ are exhibited and shown linearly independent, giving $\dim \ker
-D^{+} \geq k$ for the \emph{geometric} Dirac operator twisted by the degree-$k$ bundle (as
-opposed to the magnetic-translation model of Section~\ref{sec:magnetic-dirac}). The matching
-upper bound $\dim \ker D^{+} \leq k$ and the vanishing of the cokernel are completed in
-Section~\ref{sec:fourier-holomorphic}. The resulting identification of the geometric index
-with the model index $k$ (Theorem~\ref{thm:fredholmIndex-magneticDirac}) — which additionally
-needs the $L^2$-to-holomorphic bridge (elliptic regularity for $\bar\partial$, not in Mathlib)
-and the unitary equivalence to the magnetic model — is deferred; see
-\texttt{SpectralTriples/docs/INDEX\_PAIRING.md} for the roadmap.
+\textbf{Status: complete (function-theoretic lower bound).}  The code constructs $k$ explicit
+entire functions satisfying the degree-$k$ automorphy relations on the square torus and proves
+them linearly independent.  It does not yet define a geometric $L^2$ line-bundle Dirac
+operator or identify these functions with its kernel.  The exact dimension of the automorphic
+holomorphic-function space is completed in Section~\ref{sec:fourier-holomorphic}; the operator
+interpretation is deferred to the planned bridge below.
 
 \begin{definition}[Explicit degree-$k$ theta sections]
   \label{def:thetaSection}
@@ -745,29 +805,31 @@ and the unitary equivalence to the magnetic model — is deferred; see
   that appear in the magnetic clock operator of Definition~\ref{def:magnetic-translations}.
 \end{theorem}
 
-\begin{theorem}[Linear independence: the lower bound $\dim \ker D^{+} \geq k$]
+\begin{theorem}[Linear independence of the theta sections]
   \label{thm:thetaSection-linearIndependent}
   \lean{SpectralTriples.ThetaSections.thetaSection_linearIndependent}
   \leanok
   \uses{thm:thetaSection-translate}
-  The $k$ theta sections $\theta_{k,0}, \dots, \theta_{k,k-1}$ are linearly independent over
-  $\mathbb{C}$: they are eigenvectors of translation by $1/k$ with pairwise distinct
-  eigenvalues $\omega_k^{0}, \dots, \omega_k^{k-1}$ (the $k$ distinct $k$-th roots of unity),
-  hence independent.
+  The $k$ automorphic entire functions $\theta_{k,0}, \dots, \theta_{k,k-1}$ are linearly
+  independent over $\mathbb{C}$: they are eigenvectors of translation by $1/k$ with pairwise
+  distinct eigenvalues $\omega_k^{0}, \dots, \omega_k^{k-1}$ (the $k$ distinct $k$-th roots of
+  unity),
+  hence independent.  After bundling them into \texttt{holSection}, this supplies the
+  function-theoretic lower bound $\dim H^0(L_k)\geq k$; no operator kernel is involved.
 \end{theorem}
 
 \section{The Fourier-coefficient recursion: an exact dimension count}
 \label{sec:fourier-holomorphic}
 
-\textbf{Status: complete (M3a, M3b).} This section completes the dimension count begun in
-Section~\ref{sec:theta-sections} (M2) by an entirely algebraic route, with \emph{no index
-theorem and no $L^2$ analysis}: the upper bound $\dim H^0(L_k) \leq k$ (M3a) and the
-cokernel vanishing $\dim H^1(L_k) = 0$ (M3b). Both rest on a single new analytic lemma not in
-Mathlib — the \emph{contour shift} — from which a Fourier-coefficient recursion is derived
-algebraically. See \texttt{SpectralTriples/docs/INDEX\_PAIRING.md} for the full roadmap; the
-remaining gap (M3c/M4: the $L^2$-to-holomorphic bridge and the unitary equivalence to the
-magnetic model of Section~\ref{sec:magnetic-dirac}) is the genuinely analytic frontier and is
-not addressed here.
+\textbf{Status: complete (function-theoretic M3a and M3b).} This section completes the
+dimension count begun in Section~\ref{sec:theta-sections} (M2) by an entirely algebraic route,
+with \emph{no index theorem and no $L^2$ analysis}: the upper bound
+$\dim H^0(L_k) \leq k$ (M3a), an explicit theta-section basis and coordinate equivalence
+$H^0(L_k)\simeq\mathbb C^k$, and the vanishing $H^0(L_{-k})=0$ (M3b).  Classical Serre
+duality identifies the latter with $H^1(L_k)=0$, but that duality and the operator-cokernel
+interpretation are not formalized.  These formal results rest on the contour shift,
+Fourier-coefficient recursion, and the explicit theta family. See
+\texttt{SpectralTriples/docs/INDEX\_PAIRING.md} for the remaining $L^2$ operator bridge.
 
 \begin{theorem}[Contour shift]
   \label{thm:periodIntegral-eq-of-periodic}
@@ -842,13 +904,29 @@ not addressed here.
   with no index theorem and no $L^2$ analysis.
 \end{theorem}
 
+\begin{theorem}[The theta sections form a basis]
+  \label{thm:thetaHolSectionBasis}
+  \lean{SpectralTriples.thetaHolSectionBasis,
+        SpectralTriples.thetaHolSectionBasis_apply,
+        SpectralTriples.thetaHolSectionEquiv}
+  \leanok
+  \uses{thm:holSection-finrank-eq, thm:thetaSection-linearIndependent}
+  For $k>0$, the $k$ explicit theta sections form a basis of $H^0(L_k)$, and evaluation of
+  that basis at $a\in\operatorname{Fin}(k)$ recovers the bundled theta section
+  $\theta_{k,a}$.  Its coordinate map gives a linear equivalence
+  $H^0(L_k)\simeq (\operatorname{Fin}(k)\to\mathbb C)$.  This completes the explicit
+  function-space description; it does not yet equip the sections with the geometric $L^2$
+  structure or realize them as a Dirac kernel.
+\end{theorem}
+
 \begin{definition}[Holomorphic sections of the degree-$(-k)$ line bundle]
   \label{def:holSectionNeg}
   \lean{SpectralTriples.holSectionNeg}
   \leanok
-  $H^0(L_{-k})$: the same definition as $H^0(L_k)$ (Definition~\ref{def:holSection}) but with
-  the opposite-sign automorphy factor $f(z+i) = e^{\pi i k(2z+i)} f(z)$. By Serre duality this
-  represents $H^1(L_k)$, the cokernel of the degree-$k$ Dirac operator.
+  $H^0(L_{-k})$: the same function-space definition as $H^0(L_k)$
+  (Definition~\ref{def:holSection}) but with the opposite-sign automorphy factor
+  $f(z+i) = e^{\pi i k(2z+i)} f(z)$.  Its classical identification with $H^1(L_k)$ uses
+  Serre duality, which is not part of the Lean statement.
 \end{definition}
 
 \begin{lemma}[Parseval decay of Fourier coefficients]
@@ -856,39 +934,38 @@ not addressed here.
   \lean{SpectralTriples.holCoeff_tendsto_atTop_zero}
   \leanok
   \uses{def:holCoeff}
-  For any entire $1$-periodic $f$, the Fourier coefficients $a_m \to 0$ as $m \to \infty$ (and
-  as $m \to -\infty$): a consequence of $\ell^2$-summability of $|a_m|^2$ (Parseval, via the
-  $L^2$ lift to the circle).
+  For any entire $1$-periodic $f$, the Fourier coefficients $a_m \to 0$ as
+  $m \to +\infty$: a consequence of $\ell^2$-summability of $|a_m|^2$ (Parseval, via the
+  $L^2$ lift to the circle). This is the direction asserted by the Lean theorem.
 \end{lemma}
 
-\begin{theorem}[The cokernel vanishes: $\dim H^0(L_{-k}) = 0$]
+\begin{theorem}[Negative-degree holomorphic sections vanish]
   \label{thm:holSectionNeg-eq-bot}
   \lean{SpectralTriples.holSectionNeg_eq_bot, SpectralTriples.holSectionNeg_finrank_eq_zero}
   \leanok
   \uses{def:holSectionNeg, lem:holCoeff-recursion, lem:holCoeff-tendsto-atTop-zero,
         thm:eq-zero-of-holCoeff-eq-zero}
-  $H^0(L_{-k}) = 0$ for $k > 0$ (equivalently $\dim H^1(L_k) = 0$, the cokernel-vanishing half
-  of $\operatorname{index} = k$, via Serre duality $h^1(L_k) = h^0(L_k^{-1})$). The
-  opposite-sign automorphy gives the opposite-sign recursion $a_{m+k} = e^{\pi(2m+k)} a_m$,
-  whose growth factor has modulus $> 1$; this clashes with the Parseval decay of
+  $H^0(L_{-k}) = 0$ for $k > 0$. The opposite-sign automorphy gives the recursion
+  $a_{m+k} = e^{\pi(2m+k)} a_m$,
+  whose factors eventually force growth along every forward $k$-step residue progression;
+  this clashes with the Parseval decay of
   Lemma~\ref{lem:holCoeff-tendsto-atTop-zero} unless every coefficient is already $0$, and then
-  Theorem~\ref{thm:eq-zero-of-holCoeff-eq-zero} gives $f = 0$.
+  Theorem~\ref{thm:eq-zero-of-holCoeff-eq-zero} gives $f = 0$.  No statement about a geometric
+  Dirac cokernel is formalized here.
 \end{theorem}
 
 \section{The Hermite functions: Gaussian-weighted orthogonality}
 \label{sec:hermite-l2}
 
-\textbf{Status: partial (orthogonality only).} This section is the foundation of \emph{Route
-B} for the M3c/M1/M4 operator bridge of Section~\ref{sec:fourier-holomorphic} (see
-\texttt{SpectralTriples/docs/INDEX\_PAIRING.md}): the recommended next step there is to build
-the Hermite \emph{functions} $h_n(x) = c_n \cdot H_n(x) \cdot e^{-x^2/2}$ as an orthonormal
-basis of $L^2(\mathbb{R})$, the gating lemma for the Landau/Hermite decomposition that
-identifies the geometric magnetic Dirac operator with the already-formalized model
-(Section~\ref{sec:magnetic-dirac}). Mathlib has the probabilists' Hermite \emph{polynomials}
-and the Rodrigues identity, but neither the Gaussian-weighted orthogonality integral nor the
-$L^2$ basis. This section proves the orthogonality integral; the normalization constants $c_n$
-and the completeness of $\{h_n\}$ in $L^2(\mathbb{R})$ (needed for the \texttt{HilbertBasis})
-remain to be built.
+\textbf{Status: partial (orthonormality formalized; completeness open).}  For the
+probabilists' Hermite polynomials, the normalized $L^2$ functions are
+\[
+  h_n(x)=\bigl(n!\sqrt{2\pi}\bigr)^{-1/2}H_n(x)e^{-x^2/4}.
+\]
+The exponent is $-x^2/4$, because squaring $h_n$ produces the $e^{-x^2/2}$ weight in the
+polynomial orthogonality theorem.  The code now constructs these functions in $L^2(\mathbb R)$
+and proves they are orthonormal.  Proving their span is dense, and hence obtaining a
+\texttt{HilbertBasis}, remains the next analytic node.
 
 \begin{lemma}[Hermite derivative identity]
   \label{lem:derivative-hermite}
@@ -936,4 +1013,69 @@ remain to be built.
   \uses{thm:hermite-integral-eq-zero-of-ne, thm:hermite-integral-self}
   $\int_{\mathbb{R}} H_m(x) H_n(x) e^{-x^2/2}\,dx = n! \sqrt{2\pi} \cdot \delta_{mn}$, combining
   the off-diagonal and diagonal cases.
+\end{theorem}
+
+\begin{definition}[Normalized probabilists' Hermite function]
+  \label{def:hermiteFunction}
+  \lean{Polynomial.hermiteFunction}
+  \leanok
+  \uses{thm:hermite-orthogonality}
+  The normalized function is
+  \[
+    h_n(x)=\bigl(n!\sqrt{2\pi}\bigr)^{-1/2}H_n(x)e^{-x^2/4}.
+  \]
+\end{definition}
+
+\begin{definition}[Hermite function as an $L^2$ vector]
+  \label{def:hermiteFunctionL2}
+  \lean{Polynomial.hermiteFunctionL2}
+  \leanok
+  \uses{def:hermiteFunction, lem:integrable-aeval-mul-gaussian}
+  Each $h_n$ is square-integrable and therefore defines a vector in scalar-valued
+  $L^2(\mathbb R)$ over either $\mathbb R$ or $\mathbb C$.
+\end{definition}
+
+\begin{theorem}[The normalized Hermite functions are orthonormal]
+  \label{thm:orthonormal-hermiteFunctionL2}
+  \lean{Polynomial.orthonormal_hermiteFunctionL2}
+  \leanok
+  \uses{def:hermiteFunctionL2, thm:hermite-orthogonality}
+  The family $(h_n)_{n\in\mathbb N}$ is orthonormal in $L^2(\mathbb R)$.
+\end{theorem}
+
+\begin{theorem}[Completeness of the Hermite functions (planned)]
+  \label{thm:hermite-completeness}
+  \uses{thm:orthonormal-hermiteFunctionL2}
+  The closed linear span of $(h_n)_{n\in\mathbb N}$ is all of $L^2(\mathbb R)$, so the
+  orthonormal family packages as a \texttt{HilbertBasis}.  This density statement is not yet
+  formalized.
+\end{theorem}
+
+\section{Planned geometric operator bridge}
+\label{sec:planned-operator-bridge}
+
+The basis of Theorem~\ref{thm:thetaHolSectionBasis} completes the holomorphic
+automorphic-function calculation.  What remains is analytic rather than a further dimension
+count: construct the geometric $L^2$ spaces and closed chiral operator, identify the theta
+basis with its zero modes, and connect that operator to the Landau-level model.
+
+\begin{definition}[The $L^2$ line-bundle Dirac operator (planned)]
+  \label{def:line-bundle-dirac-L2}
+  \uses{def:holSection, thm:thetaHolSectionBasis, def:holSectionNeg,
+        def:compact-resolvent-spectral-triple}
+  Construct the weighted Hilbert spaces $L^2(T^2;S^\pm\otimes L_k)$ of quasi-periodic
+  sections and the closed, densely defined twisted chiral operator
+  $D^+_{L_k}\colon\dom(D^+_{L_k})\to L^2(T^2;S^-\otimes L_k)$.  No such space or operator is
+  currently present in Lean.
+\end{definition}
+
+\begin{theorem}[Weighted Landau lowering bridge (planned)]
+  \label{thm:weighted-landau-lowering}
+  \uses{def:line-bundle-dirac-L2, thm:hermite-completeness, def:magneticDirac,
+        thm:isFredholm-magneticPhase}
+  Diagonalize $D^+_{L_k}$ as the unbounded weighted lowering operator
+  $a_ke_{n+1,j}=\sqrt{n+1}\,e_{n,j}$.  Prove that its phase is the bounded backward shift
+  $F_k$ of Definition~\ref{def:magneticDirac}; the unbounded operator $D^+_{L_k}$ itself is not
+  unitarily equivalent to $F_k$.  This bridge will transport the already-formalized kernel,
+  cokernel, and index of the phase model to the geometric operator.
 \end{theorem}

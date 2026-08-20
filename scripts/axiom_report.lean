@@ -24,6 +24,12 @@ open LinearPMap
 #print axioms IsOddSpectralTriple.dense_domain_dirac
 #print axioms IsOddSpectralTriple.isClosed_dirac
 #print axioms IsOddSpectralTriple.exists_comm_bound
+#print axioms IsOddSpectralTriple.domainRepresentation
+#print axioms IsOddSpectralTriple.commutatorOnDomain
+#print axioms IsOddSpectralTriple.exists_commutator_bound
+#print axioms IsOddSpectralTriple.boundedCommutator
+#print axioms IsOddSpectralTriple.boundedCommutator_apply
+#print axioms IsOddSpectralTriple.boundedCommutator_unique
 #print axioms IsEvenSpectralTriple.grading_sq
 #print axioms IsEvenSpectralTriple.grading_commute
 #print axioms IsEvenSpectralTriple.grading_conj_dirac
@@ -36,18 +42,18 @@ open LinearPMap
 #print axioms LinearPMap.resolvent
 #print axioms LinearPMap.range_resolvent
 
--- FinitelySummable.lean — self-adjoint resolvent estimates + the structure.
+-- CompactResolvent.lean — self-adjoint resolvent estimates + the compact-resolvent structure.
 #print axioms IsSelfAdjoint.norm_resolvent_apply_ge
 #print axioms IsSelfAdjoint.injective_resolvent_apply
 #print axioms IsSelfAdjoint.dense_range_resolvent_apply
-#print axioms IsFinitelySummableSpectralTriple
+#print axioms IsCompactResolventSpectralTriple
 
--- FinitelySummable.lean (continued) — the basic self-adjointness criterion (Im z ≠ 0 ⇒ z ∈ ρ(D)).
+-- CompactResolvent.lean (continued) — the basic criterion (Im z ≠ 0 ⇒ z ∈ ρ(D)).
 #print axioms IsSelfAdjoint.isClosed_range_subDirac
 #print axioms IsSelfAdjoint.mem_resolventSet
 #print axioms IsOddSpectralTriple.mem_resolventSet
-#print axioms IsOddSpectralTriple.toIsFinitelySummableSpectralTriple
-#print axioms IsFinitelySummableSpectralTriple.resolvent_mem
+#print axioms IsOddSpectralTriple.toIsCompactResolventSpectralTriple
+#print axioms IsCompactResolventSpectralTriple.resolvent_mem
 
 -- Fredholm.lean — a minimal, self-contained notion of Fredholm linear map.
 #print axioms SpectralTriples.Fredholm.IsFredholm
@@ -64,19 +70,28 @@ open LinearPMap
 #print axioms Submodule.finiteDimensional_quotient_of_finiteDimensional_orthogonal
 #print axioms SpectralTriples.Fredholm.isFredholm_one_sub
 
--- Index.lean — the graded-kernel index of an even spectral triple.
+-- Index.lean — the graded-kernel invariant of an even spectral triple.
 #print axioms SpectralTriples.Dkernel
-#print axioms SpectralTriples.index
+#print axioms SpectralTriples.gradedKernelIndex
 #print axioms SpectralTriples.finiteDimensional_Dkernel
 #print axioms SpectralTriples.grading_mem_Dkernel
-#print axioms IsEvenSpectralTriple.index
+#print axioms IsEvenSpectralTriple.gradedKernelIndex
 
 -- FourierHolomorphic.lean — the contour shift (M3a foundation: holomorphic period-integral).
 #print axioms SpectralTriples.periodIntegral_eq_of_periodic
+#print axioms SpectralTriples.holSection
+#print axioms SpectralTriples.holCoeff
+#print axioms SpectralTriples.holCoeff_recursion
+#print axioms SpectralTriples.eq_zero_of_holCoeff_eq_zero
 
 -- FourierHolomorphic.lean (continued) — M3a upper bound.
 #print axioms SpectralTriples.holSection_finrank_le
 #print axioms SpectralTriples.holSection_finrank_eq
+#print axioms SpectralTriples.thetaHolSectionBasis
+#print axioms SpectralTriples.thetaHolSectionBasis_apply
+#print axioms SpectralTriples.thetaHolSectionEquiv
+#print axioms SpectralTriples.holSectionNeg
+#print axioms SpectralTriples.holCoeff_tendsto_atTop_zero
 #print axioms SpectralTriples.holSectionNeg_eq_bot
 #print axioms SpectralTriples.holSectionNeg_finrank_eq_zero
 
@@ -86,14 +101,21 @@ open LinearPMap
 #print axioms Polynomial.hermite_integral_eq_zero_of_ne
 #print axioms Polynomial.hermite_integral_self
 #print axioms Polynomial.hermite_orthogonality
+#print axioms Polynomial.hermiteFunction
+#print axioms Polynomial.memLp_hermiteFunction
+#print axioms Polynomial.hermiteFunctionL2
+#print axioms Polynomial.inner_hermiteFunctionL2
+#print axioms Polynomial.orthonormal_hermiteFunctionL2
 
 -- DiagonalOperator.lean — block-diagonal operators on ℓ² and the compactness criterion.
 #print axioms lpDiag.diagL
 #print axioms lpDiag.norm_diagL_le
 #print axioms lpDiag.isCompactOperator_diagL_of_support_finite
 #print axioms lpDiag.isCompactOperator_diagL
+#print axioms lpDiag.diracDirac
+#print axioms lpDiag.diracDirac_isSelfAdjoint
 
--- Examples/Circle.lean — the concrete S¹ Dirac spectral triple (odd, finitely summable).
+-- Examples/Circle.lean — the concrete odd S¹ Dirac spectral triple with compact resolvent.
 #print axioms SpectralTriples.Circle.diracDirac
 #print axioms SpectralTriples.Circle.diracDirac_isSelfAdjoint
 #print axioms SpectralTriples.Circle.mem_resolventSet_I
@@ -101,9 +123,9 @@ open LinearPMap
 #print axioms SpectralTriples.Circle.algebra
 #print axioms SpectralTriples.Circle.rep
 #print axioms SpectralTriples.Circle.isOddSpectralTriple
-#print axioms SpectralTriples.Circle.isFinitelySummableSpectralTriple
+#print axioms SpectralTriples.Circle.isCompactResolventSpectralTriple
 
--- Examples/Torus.lean — the concrete T² Dirac spectral triple (even, finitely summable).
+-- Examples/Torus.lean — the concrete even T² Dirac spectral triple with compact resolvent.
 #print axioms SpectralTriples.Torus.diracDirac
 #print axioms SpectralTriples.Torus.diracDirac_isSelfAdjoint
 #print axioms SpectralTriples.Torus.mem_resolventSet_I
@@ -116,24 +138,29 @@ open LinearPMap
 #print axioms SpectralTriples.Torus.rep
 #print axioms SpectralTriples.Torus.isOddSpectralTriple
 #print axioms SpectralTriples.Torus.isEvenSpectralTriple
-#print axioms SpectralTriples.Torus.isFinitelySummableSpectralTriple
-#print axioms SpectralTriples.Torus.index_eq_zero
+#print axioms SpectralTriples.Torus.isCompactResolventSpectralTriple
+#print axioms SpectralTriples.Torus.gradedKernelIndex_eq_zero
 
 -- Examples/Shift.lean — the unilateral shift on ℓ²(ℕ): a Fredholm operator of index −1.
 #print axioms SpectralTriples.Shift.shift
+#print axioms SpectralTriples.Shift.isFredholm_shift
 #print axioms SpectralTriples.Shift.fredholmIndex_shift
 
--- Examples/MagneticDirac.lean — flux-k magnetic Dirac model: index = k, with magnetic translations.
-#print axioms SpectralTriples.MagneticDirac.magneticDirac
-#print axioms SpectralTriples.MagneticDirac.magneticDirac_ker_finrank
-#print axioms SpectralTriples.MagneticDirac.fredholmIndex_magneticDirac
+-- Examples/MagneticDirac.lean — bounded flux-k phase model: index = k, with translations.
+#print axioms SpectralTriples.MagneticDirac.magneticPhase
+#print axioms SpectralTriples.MagneticDirac.magneticPhase_ker_finrank
+#print axioms SpectralTriples.MagneticDirac.isFredholm_magneticPhase
+#print axioms SpectralTriples.MagneticDirac.fredholmIndex_magneticPhase
+#print axioms SpectralTriples.MagneticDirac.magClock
+#print axioms SpectralTriples.MagneticDirac.magShift
 #print axioms SpectralTriples.MagneticDirac.magneticTranslation_weyl
 #print axioms SpectralTriples.MagneticDirac.magClock_comm_dirac
 #print axioms SpectralTriples.MagneticDirac.magShift_comm_dirac
 
--- Examples/ThetaSections.lean — M2: k independent theta zero modes of the flux-k Dirac (dim ker ≥ k).
+-- Examples/ThetaSections.lean — M2: k independent holomorphic automorphic theta functions.
 #print axioms SpectralTriples.ThetaSections.thetaSection
 #print axioms SpectralTriples.ThetaSections.differentiable_thetaSection
+#print axioms SpectralTriples.ThetaSections.thetaSection_periodic
 #print axioms SpectralTriples.ThetaSections.thetaSection_quasiPeriodic
 #print axioms SpectralTriples.ThetaSections.thetaSection_translate
 #print axioms SpectralTriples.ThetaSections.thetaSection_linearIndependent

@@ -6,7 +6,7 @@ Authors: Jon Bannon, Michael R. Douglas
 
 module
 
-public import SpectralTriples.FinitelySummable
+public import SpectralTriples.CompactResolvent
 public import SpectralTriples.Index
 public import SpectralTriples.DiagonalOperator
 public import Mathlib.Algebra.Star.Subalgebra
@@ -39,7 +39,7 @@ eigenvalues to **self-adjoint 2×2 blocks** on the spinor fibre.
 All steps are complete: the Hilbert space, the block-diagonal Dirac operator, its
 **self-adjointness** (hence `i ∈ ρ(D)`), **compact resolvent**, the **grading** `γ = σ₃`, the
 **representation** of the trigonometric-polynomial algebra `ℂ[ℤ²]` by Fourier shifts, and the
-**assembly** as an even, finitely-summable spectral triple.
+**assembly** as an even spectral triple with compact resolvent.
 
 1. **Hilbert space** `H = ℓ²(ℤ²; ℂ²)` — done.
 2. **Dirac block** `diracBlock (m,n) : ℂ² →L[ℂ] ℂ²`, the self-adjoint matrix above; then the
@@ -62,8 +62,8 @@ All steps are complete: the Hilbert space, the block-diagonal Dirac operator, it
    `H¹` domain and has bounded commutator `[D, W g] = -(σ·g) W g`; these properties propagate to
    all of `algebra` by `StarAlgebra.adjoin_induction`.
 7. **Assemble** — done: `isOddSpectralTriple`, `isEvenSpectralTriple` (the grading commutes with
-   the scalar-on-fibres shifts), and via `toIsFinitelySummableSpectralTriple` the finitely
-   summable triple `isFinitelySummableSpectralTriple` at `i`.
+   the scalar-on-fibres shifts), and via `toIsCompactResolventSpectralTriple` the
+   compact-resolvent witness `isCompactResolventSpectralTriple` at `i`.
 -/
 
 @[expose] public section
@@ -891,11 +891,15 @@ theorem isEvenSpectralTriple : IsEvenSpectralTriple algebra diracDirac rep gradi
   grading_dom := grading_mem_diracDomain
   grading_anticomm := grading_anticomm
 
-/-- The torus spectral triple has compact resolvent at `i`, hence is finitely summable in the
-basic compact-resolvent sense used in this development. -/
-theorem isFinitelySummableSpectralTriple :
-    IsFinitelySummableSpectralTriple algebra diracDirac rep :=
-  isOddSpectralTriple.toIsFinitelySummableSpectralTriple (by simp) isCompactOperator_resolvent_I
+/-- The torus spectral triple has compact resolvent at `i`. -/
+theorem isCompactResolventSpectralTriple :
+    IsCompactResolventSpectralTriple algebra diracDirac rep :=
+  isOddSpectralTriple.toIsCompactResolventSpectralTriple (by simp)
+    isCompactOperator_resolvent_I
+
+/-- Compatibility alias for the former, overly strong name. -/
+@[deprecated isCompactResolventSpectralTriple (since := "2026-08-20")]
+abbrev isFinitelySummableSpectralTriple := isCompactResolventSpectralTriple
 
 /-- The zero Fourier-mode Dirac block vanishes. -/
 private lemma diracBlock_zero : diracBlock (0 : ℤ × ℤ) = 0 := by
@@ -1155,10 +1159,15 @@ private lemma finrank_negative_gradedKernel :
   exact finrank_span_singleton minusKernelVector_ne_zero
 
 /-- The flat Dirac spectral triple on the two-torus has vanishing graded kernel index. -/
-theorem index_eq_zero : isEvenSpectralTriple.index = 0 := by
-  change SpectralTriples.index diracDirac grading = 0
-  unfold SpectralTriples.index
+theorem gradedKernelIndex_eq_zero : isEvenSpectralTriple.gradedKernelIndex = 0 := by
+  change SpectralTriples.gradedKernelIndex diracDirac grading = 0
+  unfold SpectralTriples.gradedKernelIndex
   rw [finrank_positive_gradedKernel, finrank_negative_gradedKernel]
   norm_num
+
+/-- Compatibility alias for the former name. -/
+@[deprecated gradedKernelIndex_eq_zero (since := "2026-08-20")]
+theorem index_eq_zero : isEvenSpectralTriple.gradedKernelIndex = 0 :=
+  gradedKernelIndex_eq_zero
 
 end SpectralTriples.Torus

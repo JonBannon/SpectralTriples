@@ -14,17 +14,18 @@ public import Mathlib.Topology.Algebra.InfiniteSum.Order
 
 /-! # Theta sections on the square torus
 
-This file proves the lower-bound half of the square-torus flux-`k` Landau-level computation:
-the `k` explicit degree-`k` theta sections are linearly independent.  Equivalently, these
-sections give `dim ker D+ >= k` for the degree-`k` line bundle on
-`ℂ / (ℤ + iℤ)`.
+This file proves a function-theoretic lower bound for the square-torus degree-`k` line bundle:
+the `k` explicit holomorphic automorphic theta functions are linearly independent.
 
 The standard theta sections are built from Mathlib's two-variable `jacobiTheta₂` at
 `τ = k * i`.  They satisfy the same degree-`k` automorphy factors and diagonalize translation
 by `1 / k`; the distinct `k`th roots of unity then give linear independence.
 
-The matching upper bound `dim ker D+ <= k` and the coker-vanishing/completeness part are
-deferred; see `docs/INDEX_PAIRING.md`.
+Together with `FourierHolomorphic.lean`, this gives the exact function-space count
+`finrank (holSection k) = k` and vanishing of the negative-degree section space. Identifying
+these spaces with the kernel and cokernel of a geometric chiral Dirac operator still requires
+the unformalized weighted `L²` operator and regularity/duality bridge; see
+`docs/INDEX_PAIRING.md`.
 -/
 
 @[expose] public section

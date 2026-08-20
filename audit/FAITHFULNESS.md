@@ -1,145 +1,164 @@
-# FAITHFULNESS — the informal ↔ formal correspondence
+# FAITHFULNESS — informal ↔ formal correspondence
 
-A certificate that the Lean formalization *faithfully transcribes* the spectral-triple
-definitions and their first consequences. For each object we give the informal content,
-its exact Lean form, and the literature reference; for each statement, the informal claim
-and the Lean theorem.
+This map records what the Lean declarations actually say and separates proved formal content
+from classical interpretations that still need a bridge. It is the validation layer of the
+project: kernel checking answers “is the proof valid?”, while this file asks “does the formal
+statement mean what the prose says?”
 
-This is the **faithfulness** layer of *validation* — *"do the formal statements mean what
-the mathematics means?"* (note `proved ≠ faithful`). The adjacent concerns live elsewhere:
-**verification** — *"are the proofs valid relative to explicit assumptions?"* — is the
-kernel check (`lake build`) plus the axiom certificate in
-[`axiom-report.txt`](axiom-report.txt); axiom soundness review (none needed yet — no
-project axioms) would live in `AXIOM_AUDIT.md`.
+Verification is provided by `lake build` and the generated
+[`axiom-report.txt`](axiom-report.txt). “Axiom-clean” below means that the tracked declaration
+uses only `propext`, `Classical.choice`, and `Quot.sound`, with no `sorryAx` or project axiom.
 
-**Status legend:** ✓ = proved and `lake build` succeeds; **axiom-clean** =
-`#print axioms` is `[propext, Classical.choice, Quot.sound]` only (no `sorryAx`,
-no project axioms), machine-checked in [`axiom-report.txt`](axiom-report.txt) (CI-diffed).
-References: Connes, *Noncommutative Geometry* (1994), Ch. VI; Gracia-Bondía–Várilly–Figueroa
-(GBF), *Elements of NCG* (2001), Ch. 9–11; Higson–Roe, *Analytic K-Homology* (2000).
+## Core spectral-triple data
 
-Carrier throughout: a complex (or real) Hilbert space and a `*`-algebra,
-`{A H 𝕜} [RCLike 𝕜] [Semiring A] [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H]`
-`[InnerProductSpace 𝕜 H] [CompleteSpace H]`, Dirac operator `D : H →ₗ.[𝕜] H`, and
-representation `π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
+The carrier is a real or complex Hilbert space `H`, an algebra `A`, an unbounded
+`LinearPMap D : H →ₗ.[𝕜] H`, and a representation
+`π : A →⋆ₐ[𝕜] (H →L[𝕜] H)`.
 
----
-
-## Primary objects
-
-| Object | Informal content | Reference | Lean |
+| Informal object / claim | Lean declaration | Source | Status |
 |---|---|---|---|
-| Odd spectral triple | self-adjoint `D`; `π a` preserves `dom D`; `[D, π a]` bounded | Connes Ch. VI; GBF §9 | `IsOddSpectralTriple` — `Basic.lean:28` |
-| Even (Z₂-graded) triple | odd triple + grading `γ`: self-adjoint, involutive (`γ² = 1`), `[γ, π a] = 0`, `γ D + D γ = 0` | Connes Ch. VI | `IsEvenSpectralTriple` — `Basic.lean:37` |
-| Resolvent set | `{ z : z·1 − D bijective on dom D }` | standard | `LinearPMap.resolventSet` — `Resolvent.lean:117` |
-| Resolvent | `(z·1 − D)⁻¹` as an everywhere-defined `LinearMap`, for `z ∈ ρ(D)` | standard | `LinearPMap.resolvent` — `Resolvent.lean:122` |
-| Finitely summable triple | odd triple whose `D` has **compact resolvent** at some `z` | Connes Ch. VI | `IsFinitelySummableSpectralTriple` — `FinitelySummable.lean:101` |
+| Odd spectral-triple **core**: self-adjoint `D`, domain invariance, bounded commutators | `IsOddSpectralTriple` | `Basic.lean` | ✓ axiom-clean |
+| Even core: odd core plus self-adjoint involutive grading commuting with `π` and anticommuting with `D` | `IsEvenSpectralTriple` | `Basic.lean` | ✓ axiom-clean |
+| `dom D` is dense | `IsOddSpectralTriple.dense_domain_dirac` | `Basic.lean` | ✓ axiom-clean |
+| `D` is closed | `IsOddSpectralTriple.isClosed_dirac` | `Basic.lean` | ✓ axiom-clean |
+| algebraic domain commutator `[D,π(a)]` | `domainRepresentation`, `commutatorOnDomain` | `Basic.lean` | ✓ axiom-clean |
+| homogeneous norm bound on the domain commutator | `IsOddSpectralTriple.exists_commutator_bound` | `Basic.lean` | ✓ axiom-clean |
+| unique bounded extension to all of `H`, agreeing on `dom D` | `boundedCommutator`, `boundedCommutator_apply`, `boundedCommutator_unique` | `Basic.lean` | ✓ axiom-clean |
+| grading commutes with `π(a)` | `IsEvenSpectralTriple.grading_commute` | `Basic.lean` | ✓ axiom-clean |
+| `γDγ = -D` on `dom D` | `IsEvenSpectralTriple.grading_conj_dirac` | `Basic.lean` | ✓ axiom-clean |
+| self-adjoint involution is unitary iff `γ² = 1` | `IsEvenSpectralTriple.mem_unitary_iff_sq_eq_one` | `Basic.lean` | ✓ axiom-clean |
+| every vector decomposes into `±1` grading eigenvectors | `IsEvenSpectralTriple.exists_grading_eigen_decomp` | `Basic.lean` | ✓ axiom-clean |
 
-## Headline statements
+**Terminology boundary.** Standard definitions also require compact resolvent. The two `Basic`
+predicates intentionally isolate the reusable core axioms; they are not by themselves complete
+spectral triples in that standard sense. Compact resolvent is added below. Genuine finite or
+`p`-summability, which requires Schatten/trace decay, is not yet formalized.
 
-| Claim | Lean | Status |
-|---|---|---|
-| `dom D` is dense | `IsOddSpectralTriple.dense_domain_dirac` — `Basic.lean:54` | ✓ axiom-clean |
-| `D` is a closed operator | `IsOddSpectralTriple.isClosed_dirac` — `Basic.lean:58` | ✓ axiom-clean |
-| `[D, π a]` is bounded by a finite real `C` on the unit ball | `IsOddSpectralTriple.exists_comm_bound` — `Basic.lean:65` | ✓ axiom-clean |
-| `γ² = 1` (defining field of the even triple) | `IsEvenSpectralTriple.grading_sq` — `Basic.lean:42` | ✓ axiom-clean |
-| `γ` commutes with `π a` | `IsEvenSpectralTriple.grading_commute` — `Basic.lean:89` | ✓ axiom-clean |
-| `γ D γ = −D` on `dom D` | `IsEvenSpectralTriple.grading_conj_dirac` — `Basic.lean:95` | ✓ axiom-clean |
-| self-adjoint unitary involution ⇔ `γ² = 1` | `IsEvenSpectralTriple.mem_unitary_iff_sq_eq_one` — `Basic.lean:103` | ✓ axiom-clean |
-| every vector decomposes into `±1`-eigenvectors of `γ` | `IsEvenSpectralTriple.exists_grading_eigen_decomp` — `Basic.lean:109` | ✓ axiom-clean |
-| `range (resolvent z) = dom D` | `LinearPMap.range_resolvent` — `Resolvent.lean:132` | ✓ axiom-clean |
-| `|Im z|·‖x‖ ≤ ‖z·x − D x‖` for self-adjoint `D` | `IsSelfAdjoint.norm_resolvent_apply_ge` — `FinitelySummable.lean:43` | ✓ axiom-clean |
-| `z·1 − D` injective on `dom D` when `Im z ≠ 0` | `IsSelfAdjoint.injective_resolvent_apply` — `FinitelySummable.lean:82` | ✓ axiom-clean |
-| range of `z·1 − D` is dense | `IsSelfAdjoint.dense_range_resolvent_apply` — `FinitelySummable.lean:155` | ✓ axiom-clean |
-| range of `z·1 − D` is closed | `IsSelfAdjoint.isClosed_range_subDirac` — `FinitelySummable.lean:191` | ✓ axiom-clean |
-| **basic criterion:** `Im z ≠ 0 ⇒ z ∈ ρ(D)` (`z·1 − D` bijective) | `IsSelfAdjoint.mem_resolventSet` — `FinitelySummable.lean:231` | ✓ axiom-clean |
-| odd triple: `Im z ≠ 0 ⇒ z ∈ ρ(D)` (so `i ∈ ρ(D)`) | `IsOddSpectralTriple.mem_resolventSet` — `FinitelySummable.lean:265` | ✓ axiom-clean |
-| finitely summable triple from odd + compact resolvent (no `resolvent_mem` needed) | `IsOddSpectralTriple.toIsFinitelySummableSpectralTriple` — `FinitelySummable.lean:301` | ✓ axiom-clean |
+## Resolvent and compact resolvent
 
-> The basic-criterion lemmas moved from a former `SelfAdjoint.lean` into
-> `FinitelySummable.lean` when PR #4 hard-coded `i` into the finitely-summable definition;
-> the file `SelfAdjoint.lean` no longer exists.
-
-## Reusable analytic infrastructure
-
-| Object / Claim | Informal content | Lean | Status |
+| Informal object / claim | Lean declaration | Source | Status |
 |---|---|---|---|
-| Block-diagonal operator on `ℓ²` | `(diagL T) a = (i ↦ Tᵢ aᵢ)` for a uniformly bounded block family | `lpDiag.diagL` — `DiagonalOperator.lean:70` | ✓ axiom-clean |
-| its operator-norm bound | `‖diagL T‖ ≤ C` when `‖Tᵢ‖ ≤ C` | `lpDiag.norm_diagL_le` — `DiagonalOperator.lean:98` | ✓ axiom-clean |
-| **compactness criterion** | block norms `→ 0` (cofinite) + finite-dim fibres ⇒ `diagL T` compact (finite-rank truncations converge in operator norm) | `lpDiag.isCompactOperator_diagL` — `DiagonalOperator.lean:186` | ✓ axiom-clean |
-| **unbounded block-diagonal Dirac operator** | given symmetric blocks `B i`, the operator on its maximal `ℓ²` domain is self-adjoint (shared by the `S¹`/`T²` examples below) | `lpDiag.diracDirac_isSelfAdjoint` — `DiagonalOperator.lean:340` | ✓ axiom-clean |
+| resolvent set `{z | z·1 - D is bijective}` | `LinearPMap.resolventSet` | `Resolvent.lean` | ✓ axiom-clean |
+| algebraic inverse on the resolvent set | `LinearPMap.resolvent` | `Resolvent.lean` | ✓ axiom-clean |
+| `range (resolvent z) = dom D` | `LinearPMap.range_resolvent` | `Resolvent.lean` | ✓ axiom-clean |
+| `|Im z|‖x‖ ≤ ‖(z-D)x‖` for self-adjoint `D` | `IsSelfAdjoint.norm_resolvent_apply_ge` | `CompactResolvent.lean` | ✓ axiom-clean |
+| `z-D` is injective off the real axis | `IsSelfAdjoint.injective_resolvent_apply` | `CompactResolvent.lean` | ✓ axiom-clean |
+| range of `z-D` is dense and closed | `dense_range_resolvent_apply`, `isClosed_range_subDirac` | `CompactResolvent.lean` | ✓ axiom-clean |
+| off-real points lie in `ρ(D)` | `IsSelfAdjoint.mem_resolventSet` | `CompactResolvent.lean` | ✓ axiom-clean |
+| spectral-triple core plus compact resolvent at `i` | `IsCompactResolventSpectralTriple` | `CompactResolvent.lean` | ✓ axiom-clean |
+| smart constructor from an odd core and compactness | `IsOddSpectralTriple.toIsCompactResolventSpectralTriple` | `CompactResolvent.lean` | ✓ axiom-clean |
 
-## Index of an even spectral triple (Phase 2 foundations)
+The fixed point is `RCLike.I`. Over `ℂ`, self-adjointness supplies `i ∈ ρ(D)`. Over `ℝ`,
+`RCLike.I = 0`, so the structure explicitly requires `0 ∈ ρ(D)` and the smart constructor’s
+off-real hypothesis is unavailable. This layer is therefore primarily useful over `ℂ` until the
+resolvent point is parameterized.
 
-The **(super)index** `dim (ker D)⁺ − dim (ker D)⁻`, the Fredholm index of the chiral operator
-`D⁺ : H⁺ → H⁻`. By Atiyah–Singer / McKean–Singer this computes `∫ Â(M)·ch(E)`; for `T²` coupled
-to a degree-`k` line bundle it is `k`. Reference: Connes Ch. IV/VI; Higson–Roe Ch. 10.
+## Fredholm infrastructure
 
-| Object / Claim | Lean | Status |
-|---|---|---|
-| `ker D` as a subspace of `H` | `SpectralTriples.Dkernel` — `Index.lean:51` | ✓ axiom-clean |
-| graded-kernel index `dim(ker D)⁺ − dim(ker D)⁻` | `SpectralTriples.index` — `Index.lean:67` | ✓ axiom-clean |
-| **`ker D` is finite-dimensional under a compact resolvent** (so the index is genuine — the Fredholm property) | `SpectralTriples.finiteDimensional_Dkernel` — `Index.lean:75` | ✓ axiom-clean |
-| `γ` preserves `ker D` (kernel is `Z₂`-graded) | `SpectralTriples.grading_mem_Dkernel` — `Index.lean:115` | ✓ axiom-clean |
-| index of an even spectral triple | `IsEvenSpectralTriple.index` — `Index.lean:127` | ✓ axiom-clean |
+| Informal object / claim | Lean declaration | Source | Status |
+|---|---|---|---|
+| linear map with finite kernel, closed range, finite cokernel | `SpectralTriples.Fredholm.IsFredholm` | `Fredholm.lean` | ✓ axiom-clean |
+| `dim ker - dim coker` | `SpectralTriples.Fredholm.index` | `Fredholm.lean` | ✓ axiom-clean |
+| bijections are Fredholm of index zero | `isFredholm_of_bijective`, `index_of_bijective` | `Fredholm.lean` | ✓ axiom-clean |
+| compact operators admit finite-rank norm approximants | `IsCompactOperator.exists_finiteRank_norm_sub_lt` | `CompactOperators.lean` | ✓ axiom-clean |
+| adjoint of a compact operator is compact | `IsCompactOperator.adjoint` | `CompactOperators.lean` | ✓ axiom-clean |
+| `1-K` is Fredholm for compact `K` | `SpectralTriples.Fredholm.isFredholm_one_sub` | `CompactOperators.lean` | ✓ axiom-clean |
 
-*Faithfulness note.* `index D γ` is `(finrank (ker D ⊓ H⁺) : ℤ) − finrank (ker D ⊓ H⁻)` with
-`H^± = eigenspace γ (±1)`. Each `finrank` is the Mathlib `Module.finrank` (which is `0` on
-infinite-dimensional spaces); `finiteDimensional_Dkernel` is what guarantees the two ranks count
-genuine dimensions, via `ker D ⊆` the `i⁻¹`-eigenspace of the compact resolvent (finite-dim by
-Riesz, `ContinuousLinearMap.finite_dimensional_eigenspace`).
+The project proves the structural Fredholm statement for `1-K`; it does not yet prove the
+additional classical assertion that this operator has index zero.
 
-## Concrete example: the Dirac spectral triple of the 2-torus `T²`
+## Graded kernel
 
-A worked, fully assembled **even, finitely-summable** spectral triple, on the Fourier side
-`H = ℓ²(ℤ²; ℂ²)`, `D₍ₘ,ₙ₎ = 2π(σ₁ m + σ₂ n)`, chirality `γ = σ₃`, algebra = the Fourier
-image of the trigonometric polynomials `ℂ[ℤ²]` (the dense `*`-subalgebra of `C(T²)`).
-Reference: Connes Ch. VI; GBF §9–12 (canonical triple of a spin manifold, here `T²`).
+| Informal object / claim | Lean declaration | Source | Status |
+|---|---|---|---|
+| unbounded kernel as a subspace of `H` | `SpectralTriples.Dkernel` | `Index.lean` | ✓ axiom-clean |
+| difference of the two graded kernel dimensions | `SpectralTriples.gradedKernelIndex` | `Index.lean` | ✓ axiom-clean |
+| compact resolvent makes the full kernel finite-dimensional | `SpectralTriples.finiteDimensional_Dkernel` | `Index.lean` | ✓ axiom-clean |
+| grading preserves the kernel | `SpectralTriples.grading_mem_Dkernel` | `Index.lean` | ✓ axiom-clean |
+| invariant attached to an even core | `IsEvenSpectralTriple.gradedKernelIndex` | `Index.lean` | ✓ axiom-clean |
 
-| Object / Claim | Lean | Status |
-|---|---|---|
-| Dirac operator `D` (block-diagonal, unbounded) | `SpectralTriples.Torus.diracDirac` — `Examples/Torus.lean:120` | ✓ axiom-clean |
-| `D` self-adjoint | `SpectralTriples.Torus.diracDirac_isSelfAdjoint` — `Examples/Torus.lean:128` | ✓ axiom-clean |
-| `i ∈ ρ(D)` | `SpectralTriples.Torus.mem_resolventSet_I` — `Examples/Torus.lean:133` | ✓ axiom-clean |
-| `(D − i·1)⁻¹` is compact | `SpectralTriples.Torus.isCompactOperator_resolvent_I` — `Examples/Torus.lean:411` | ✓ axiom-clean |
-| grading `γ = σ₃` (CLM) | `SpectralTriples.Torus.grading` — `Examples/Torus.lean:494` | ✓ axiom-clean |
-| `γ` self-adjoint | `SpectralTriples.Torus.isSelfAdjoint_grading` — `Examples/Torus.lean:510` | ✓ axiom-clean |
-| `γ² = 1` | `SpectralTriples.Torus.grading_mul_self` — `Examples/Torus.lean:514` | ✓ axiom-clean |
-| `D γ = −γ D` on `dom D` | `SpectralTriples.Torus.grading_anticomm` — `Examples/Torus.lean:533` | ✓ axiom-clean |
-| algebra `ℂ[ℤ²]` (shift `*`-subalgebra) | `SpectralTriples.Torus.algebra` — `Examples/Torus.lean:773` | ✓ axiom-clean |
-| representation (inclusion `StarAlgHom`) | `SpectralTriples.Torus.rep` — `Examples/Torus.lean:778` | ✓ axiom-clean |
-| **`(A, H, D)` is an odd spectral triple** | `SpectralTriples.Torus.isOddSpectralTriple` — `Examples/Torus.lean:833` | ✓ axiom-clean |
-| **`(A, H, D, γ)` is an even spectral triple** | `SpectralTriples.Torus.isEvenSpectralTriple` — `Examples/Torus.lean:886` | ✓ axiom-clean |
-| **finitely summable at `i`** | `SpectralTriples.Torus.isFinitelySummableSpectralTriple` — `Examples/Torus.lean:896` | ✓ axiom-clean |
-| **index `= 0`** (`Â(T²)·rk`; `ker D = ℂ²` at the zero mode, split `1+1` by `γ`) | `SpectralTriples.Torus.index_eq_zero` — `Examples/Torus.lean:1158` | ✓ axiom-clean |
+**Important boundary.** Lean has not yet defined the chiral restriction `D⁺`, proved its range
+closed or cokernel finite-dimensional, or proved
+`Fredholm.index D⁺ = gradedKernelIndex D γ`. Thus the formal invariant is not yet a formal
+Fredholm index, even though that equality is the classical target.
 
-*Faithfulness note for the example.* The chosen algebra is the trigonometric polynomials
-`ℂ[ℤ²]` (Fourier dual of `C(T²)`), represented by the coordinate shift unitaries — the
-standard *smooth/pre-`C*`* algebra of the noncommutative-geometry torus, not the full `C(T²)`.
-This is the genuine spectral triple of `T²` at the level of its dense smooth subalgebra; the
-bounded commutator `[D, π a]` is exact (`[D, Wg] = −(σ·g) Wg`, the Clifford action of `g`).
+## Reusable diagonal-operator infrastructure
 
-## Faithfulness divergences (encoding choices, reviewer attention)
+| Informal object / claim | Lean declaration | Source | Status |
+|---|---|---|---|
+| uniformly bounded block-diagonal operator on `ℓ²` | `lpDiag.diagL` | `DiagonalOperator.lean` | ✓ axiom-clean |
+| its operator-norm bound | `lpDiag.norm_diagL_le` | `DiagonalOperator.lean` | ✓ axiom-clean |
+| finite-support block diagonals are compact | `lpDiag.isCompactOperator_diagL_of_support_finite` | `DiagonalOperator.lean` | ✓ axiom-clean |
+| block norms tending to zero imply compactness | `lpDiag.isCompactOperator_diagL` | `DiagonalOperator.lean` | ✓ axiom-clean |
+| maximal-domain unbounded block diagonal | `lpDiag.diracDirac` | `DiagonalOperator.lean` | ✓ axiom-clean |
+| symmetric finite-dimensional blocks give a self-adjoint operator | `lpDiag.diracDirac_isSelfAdjoint` | `DiagonalOperator.lean` | ✓ axiom-clean |
 
-1. **Bounded-commutator axiom.** `IsOddSpectralTriple.comm` is stated as
-   `⨆ x ∈ closedBall 0 1, ‖π a (D x) − D (π a x)‖ₑ < ∞` (an `ℝ≥0∞` supremum), rather than
-   "`[D, π a]` extends to a bounded operator." The genuine finite real bound is recovered
-   as `exists_comm_bound`. *Equivalent* to the literature statement on `dom D`; the `ℝ≥0∞`
-   form is chosen so the field is a clean `Prop` without carrying the extension as data.
-2. **Self-adjointness.** Encoded as Mathlib's `IsSelfAdjoint D` (`D† = D`) for the
-   `LinearPMap` `D`, which already entails dense domain and closedness (used directly by
-   `dense_domain_dirac` / `isClosed_dirac`). Matches the literature's "self-adjoint (hence
-   densely defined and closed)."
-3. **Resolvent set for non-closed `D`.** `resolventSet` is defined via bijectivity of
-   `z·1 − D` as a `LinearPMap`; for non-closed `D` this can be nonempty where the
-   conventional definition is empty. Documented in the `Resolvent.lean` docstring; harmless
-   because spectral-triple `D` is closed.
-4. **Grading bundling.** `IsEvenSpectralTriple` takes `γ` as a structure *parameter* (with
-   self-adjointness and `γ² = 1` as fields), not a bundled data field — consistent with the
-   project's predicate-style convention (see `PLAN.md`).
+## Concrete examples
 
----
+| Example / claim | Lean declaration | Source | Status |
+|---|---|---|---|
+| odd circle core | `SpectralTriples.Circle.isOddSpectralTriple` | `Examples/Circle.lean` | ✓ axiom-clean |
+| circle compact resolvent | `Circle.isCompactResolventSpectralTriple` | `Examples/Circle.lean` | ✓ axiom-clean |
+| even flat-torus core | `Torus.isEvenSpectralTriple` | `Examples/Torus.lean` | ✓ axiom-clean |
+| torus compact resolvent | `Torus.isCompactResolventSpectralTriple` | `Examples/Torus.lean` | ✓ axiom-clean |
+| flat-torus graded-kernel invariant is zero | `Torus.gradedKernelIndex_eq_zero` | `Examples/Torus.lean` | ✓ axiom-clean |
+| unilateral shift is Fredholm | `Shift.isFredholm_shift` | `Examples/Shift.lean` | ✓ axiom-clean |
+| unilateral-shift index is `-1` | `Shift.fredholmIndex_shift` | `Examples/Shift.lean` | ✓ axiom-clean |
+| bounded flux-`k` phase model | `MagneticDirac.magneticPhase` | `Examples/MagneticDirac.lean` | ✓ axiom-clean |
+| phase model is Fredholm | `MagneticDirac.isFredholm_magneticPhase` | `Examples/MagneticDirac.lean` | ✓ axiom-clean |
+| phase-model index is `k` | `MagneticDirac.fredholmIndex_magneticPhase` | `Examples/MagneticDirac.lean` | ✓ axiom-clean |
+| clock/shift Weyl relation and commutation with the phase | `magneticTranslation_weyl`, `magClock_comm_dirac`, `magShift_comm_dirac` | `Examples/MagneticDirac.lean` | ✓ axiom-clean |
 
-*Keep the headline list in sync with `scripts/axiom_report.lean` and the README "Current
-status" table. The "axiom-clean" claims are machine-checked once `axiom-report.txt` is
-generated by the kernel and CI-diffed.*
+The magnetic phase is a bounded unweighted backward shift. The geometric Landau lowering
+operator has `√(n+1)` weights and is unbounded, so no unitary equivalence between them is claimed.
+The future bridge should identify the backward shift with the weighted operator’s polar phase,
+or prove directly that they have the same kernel, cokernel, and index.
+
+## Theta/Fourier function theory
+
+| Function-theoretic claim | Lean declaration | Source | Status |
+|---|---|---|---|
+| explicit holomorphic automorphic theta functions | `ThetaSections.thetaSection`, `differentiable_thetaSection` | `Examples/ThetaSections.lean` | ✓ axiom-clean |
+| lattice automorphy and translation eigenvalues | `thetaSection_periodic`, `thetaSection_quasiPeriodic`, `thetaSection_translate` | `Examples/ThetaSections.lean` | ✓ axiom-clean |
+| the `k` theta functions are linearly independent | `thetaSection_linearIndependent` | `Examples/ThetaSections.lean` | ✓ axiom-clean |
+| contour shift for entire periodic functions | `periodIntegral_eq_of_periodic` | `FourierHolomorphic.lean` | ✓ axiom-clean |
+| Fourier recursion determines a section from `k` coefficients | `holCoeff_recursion`, `holSection_finrank_le` | `FourierHolomorphic.lean` | ✓ axiom-clean |
+| exact positive-degree section count `finrank = k` | `holSection_finrank_eq` | `FourierHolomorphic.lean` | ✓ axiom-clean |
+| the explicit theta family is a basis, with coordinate equivalence to `Fin k → ℂ` | `thetaHolSectionBasis`, `thetaHolSectionEquiv` | `FourierHolomorphic.lean` | ✓ axiom-clean |
+| negative-degree section space is zero | `holSectionNeg_eq_bot`, `holSectionNeg_finrank_eq_zero` | `FourierHolomorphic.lean` | ✓ axiom-clean |
+
+These are spaces of entire functions satisfying automorphy relations. No geometric
+`L²(L_k)`, twisted `∂̄`, elliptic regularity, Serre duality, or operator kernel/cokernel
+identification is formalized, so the table deliberately makes no operator-index claim.
+
+## Hermite analysis
+
+| Analytic claim | Lean declaration | Source | Status |
+|---|---|---|---|
+| `H'ₙ₊₁ = (n+1)Hₙ` | `Polynomial.derivative_hermite` | `HermiteL2.lean` | ✓ axiom-clean |
+| polynomial times `e^{-x²/2}` is integrable | `Polynomial.integrable_aeval_mul_gaussian` | `HermiteL2.lean` | ✓ axiom-clean |
+| weighted Hermite orthogonality and diagonal norm | `hermite_integral_eq_zero_of_ne`, `hermite_integral_self`, `hermite_orthogonality` | `HermiteL2.lean` | ✓ axiom-clean |
+| normalized function `Hₙe^{-x²/4}/√(n!√(2π))` lies in `L²` | `hermiteFunctionL2` | `HermiteL2.lean` | ✓ axiom-clean |
+| normalized family is orthonormal over `ℝ` or `ℂ` | `orthonormal_hermiteFunctionL2` | `HermiteL2.lean` | ✓ axiom-clean |
+
+Completeness of this family—needed to construct a `HilbertBasis`—is still open.
+
+## Reviewer-attention divergences
+
+1. `IsOddSpectralTriple` / `IsEvenSpectralTriple` are core predicates without compact
+   resolvent. `IsCompactResolventSpectralTriple` supplies that missing standard axiom.
+2. Finite/`p`-summability is not formalized. The deprecated former name for the
+   compact-resolvent structure must not be interpreted as a Schatten condition.
+3. The commutator field is encoded as a finite `ℝ≥0∞` supremum on the unit ball of `dom D`.
+   `boundedCommutator` now derives the literature-style continuous extension to all of `H`,
+   with domain agreement and uniqueness proved by `boundedCommutator_apply` and
+   `boundedCommutator_unique`.
+4. `LinearPMap.resolventSet` uses algebraic bijectivity. For non-closed operators this can
+   differ from the conventional definition, but spectral-triple `D` is closed.
+5. `gradedKernelIndex` is not yet connected in Lean to a chiral Fredholm operator.
+6. The theta/Fourier results are function-theoretic, and the magnetic result is a bounded
+   phase model; the geometric operator bridge remains future work.
+
+Keep this file, the README status table, the blueprint’s `\lean` declarations, and
+[`scripts/axiom_report.lean`](../scripts/axiom_report.lean) synchronized whenever a headline
+declaration changes.

@@ -6,19 +6,25 @@ Authors: Jon Bannon, Michael R. Douglas
 
 module
 
-public import SpectralTriples.Examples.Shift
+public import SpectralTriples.Fredholm
+public import Mathlib.Analysis.InnerProductSpace.l2Space
+public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 public import Mathlib.Analysis.SpecialFunctions.Complex.Log
 
-/-! # A magnetic Dirac model with flux `k`
+/-! # A bounded magnetic phase model with flux `k`
 
-This file formalizes the Landau-level / magnetic-translation model of the flux-`k` Dirac
-operator on the two-torus after reduction to `ℓ²(ℕ) ⊗ ℂᵏ`.  The unitary equivalence between
-this lowest-Landau-level-adapted model and the geometric PDE on the torus is not formalized here;
-that analytic comparison is deferred.
+This file formalizes a bounded Landau-level / magnetic-translation **phase model** on
+`ℓ²(ℕ) ⊗ ℂᵏ`. The historical implementation name is `magneticDirac`; the accurate public name
+is `magneticPhase`.
 
-In this model the chiral magnetic Dirac operator is the backward shift on the Landau-level index,
-tensored with the `k`-dimensional guiding-center degeneracy.  Its kernel is the lowest Landau
-level, identified with `Fin k → ℂ`, and its cokernel is trivial, so the Fredholm index is `k`.
+The model is the unweighted backward shift on the Landau-level index, tensored with the
+`k`-dimensional guiding-center degeneracy. Its kernel is the lowest Landau level, identified
+with `Fin k → ℂ`, and its cokernel is trivial, so its Fredholm index is `k`.
+
+The geometric chiral magnetic Dirac (oscillator lowering) operator instead has `√(n+1)` weights
+and is unbounded. It therefore cannot be unitarily equivalent to this bounded shift. The intended
+future bridge is to construct that weighted operator and identify this shift with its polar phase
+(or prove directly that the two operators have the same kernel, cokernel, and index).
 The magnetic translations act on the `Fin k` factor by clock and cyclic shift operators satisfying
 the finite Weyl relation `Ĉ Ŝ = omega Ŝ Ĉ`, certifying that the `ℂᵏ` factor is the flux-`k`
 degeneracy.
@@ -27,8 +33,6 @@ degeneracy.
 @[expose] public section
 
 open scoped ENNReal NNReal
-
-open SpectralTriples.Shift
 
 namespace SpectralTriples.MagneticDirac
 
@@ -106,11 +110,16 @@ noncomputable def magneticDiracLinear (k : ℕ) : H k →ₗ[ℂ] H k where
     change magneticDiracAux (c • x) (n, j) = (c • (magneticDiracAux x : Idx k → ℂ)) (n, j)
     simp [magneticDiracAux_apply, lp.coeFn_smul]
 
-/-- The flux-`k` magnetic Dirac model: the backward shift on the Landau-level index. -/
+/-- Historical name for the bounded backward-shift phase model on the Landau-level index. -/
 noncomputable def magneticDirac (k : ℕ) : H k →L[ℂ] H k :=
   (magneticDiracLinear k).mkContinuous 1 fun x => by
     change ‖magneticDiracAux x‖ ≤ 1 * ‖x‖
     simpa [one_mul] using magneticDiracAux_norm_le x
+
+/-- The mathematically accurate public name for the bounded backward-shift model. It is the
+phase model expected from the polar decomposition of the unbounded, `√(n+1)`-weighted Landau
+lowering operator; it is not itself that geometric magnetic Dirac operator. -/
+noncomputable abbrev magneticPhase := magneticDirac
 
 /-- Coordinate formula for the flux-`k` magnetic Dirac model. -/
 @[simp] theorem magneticDirac_apply {k : ℕ} (x : H k) (n : ℕ) (j : Fin k) :
@@ -149,7 +158,7 @@ lemma lowestLevel_mem_ker {k : ℕ} (v : Fin k → ℂ) :
   simp
 
 /-- The kernel of the magnetic Dirac model is the lowest Landau level `ℂᵏ`. -/
-noncomputable def magneticDiracKerEquiv (k : ℕ) [NeZero k] :
+noncomputable def magneticDiracKerEquiv (k : ℕ) :
     LinearMap.ker (magneticDirac k : H k →ₗ[ℂ] H k) ≃ₗ[ℂ] (Fin k → ℂ) where
   toFun x := fun j => (x : H k) (0, j)
   invFun v := ⟨lowestLevel v, lowestLevel_mem_ker v⟩
@@ -188,13 +197,22 @@ noncomputable def magneticDiracKerEquiv (k : ℕ) [NeZero k] :
     change lowestLevelSeq v (0, j) = v j
     simp [lowestLevelSeq]
 
-/-- The kernel of the magnetic Dirac model has dimension `k`. -/
-theorem magneticDirac_ker_finrank (k : ℕ) [NeZero k] :
-    Module.finrank ℂ (LinearMap.ker (magneticDirac k : H k →ₗ[ℂ] H k)) = k := by
+/-- The kernel of the bounded magnetic phase has dimension `k`. -/
+theorem magneticPhase_ker_finrank (k : ℕ) :
+    Module.finrank ℂ (LinearMap.ker (magneticPhase k : H k →ₗ[ℂ] H k)) = k := by
   calc
-    Module.finrank ℂ (LinearMap.ker (magneticDirac k : H k →ₗ[ℂ] H k))
+    Module.finrank ℂ (LinearMap.ker (magneticPhase k : H k →ₗ[ℂ] H k))
         = Module.finrank ℂ (Fin k → ℂ) := (magneticDiracKerEquiv k).finrank_eq
     _ = k := Module.finrank_fin_fun ℂ
+
+/-- The kernel of the bounded magnetic phase is the lowest Landau level `ℂᵏ`. -/
+noncomputable abbrev magneticPhaseKerEquiv := magneticDiracKerEquiv
+
+/-- Compatibility theorem using the historical model name. -/
+@[deprecated magneticPhase_ker_finrank (since := "2026-08-20")]
+theorem magneticDirac_ker_finrank (k : ℕ) :
+    Module.finrank ℂ (LinearMap.ker (magneticDirac k : H k →ₗ[ℂ] H k)) = k :=
+  magneticPhase_ker_finrank k
 
 /-- The magnetic Dirac operator sends the `(m+1,j)` basis vector to the `(m,j)` basis vector. -/
 theorem magneticDirac_single_succ {k : ℕ} (m : ℕ) (j : Fin k) :
@@ -291,6 +309,11 @@ theorem range_magneticDirac_eq_top (k : ℕ) :
   rcases i with ⟨n, j⟩
   simp [magneticDirac_apply]
 
+/-- The bounded magnetic phase is surjective. -/
+theorem range_magneticPhase_eq_top (k : ℕ) :
+    LinearMap.range (magneticPhase k : H k →ₗ[ℂ] H k) = ⊤ :=
+  range_magneticDirac_eq_top k
+
 /-- The quotient cokernel of the magnetic Dirac operator has dimension `0`. -/
 theorem magneticDirac_coker_finrank (k : ℕ) :
     Module.finrank ℂ (H k ⧸ LinearMap.range (magneticDirac k : H k →ₗ[ℂ] H k)) = 0 := by
@@ -299,12 +322,35 @@ theorem magneticDirac_coker_finrank (k : ℕ) :
     Submodule.Quotient.subsingleton_iff.mpr rfl
   exact Module.finrank_zero_of_subsingleton
 
-/-- The flux-`k` magnetic Dirac model has Fredholm index `k`. -/
-theorem fredholmIndex_magneticDirac (k : ℕ) [NeZero k] :
-    SpectralTriples.Fredholm.index (magneticDirac k : H k →ₗ[ℂ] H k) = (k : ℤ) := by
+/-- The bounded magnetic phase has trivial cokernel. -/
+theorem magneticPhase_coker_finrank (k : ℕ) :
+    Module.finrank ℂ (H k ⧸ LinearMap.range (magneticPhase k : H k →ₗ[ℂ] H k)) = 0 :=
+  magneticDirac_coker_finrank k
+
+/-- The bounded magnetic phase model is Fredholm: its kernel is the `k`-dimensional lowest
+level and it is surjective. -/
+theorem isFredholm_magneticPhase (k : ℕ) :
+    SpectralTriples.Fredholm.IsFredholm (magneticPhase k : H k →ₗ[ℂ] H k) := by
+  refine ⟨?_, ?_, ?_⟩
+  · exact FiniteDimensional.of_injective (magneticPhaseKerEquiv k).toLinearMap
+      (magneticPhaseKerEquiv k).injective
+  · rw [range_magneticPhase_eq_top]
+    exact isClosed_univ
+  · rw [range_magneticPhase_eq_top]
+    infer_instance
+
+/-- The bounded magnetic phase model has Fredholm index `k`. -/
+theorem fredholmIndex_magneticPhase (k : ℕ) :
+    SpectralTriples.Fredholm.index (magneticPhase k : H k →ₗ[ℂ] H k) = (k : ℤ) := by
   unfold SpectralTriples.Fredholm.index
-  rw [magneticDirac_ker_finrank, magneticDirac_coker_finrank]
+  rw [magneticPhase_ker_finrank, magneticPhase_coker_finrank]
   norm_num
+
+/-- Compatibility theorem using the historical model name. -/
+@[deprecated fredholmIndex_magneticPhase (since := "2026-08-20")]
+theorem fredholmIndex_magneticDirac (k : ℕ) :
+    SpectralTriples.Fredholm.index (magneticDirac k : H k →ₗ[ℂ] H k) = (k : ℤ) :=
+  fredholmIndex_magneticPhase k
 
 /-- A primitive `k`-th root of unity used in the magnetic clock operator. -/
 noncomputable def omega (k : ℕ) : ℂ :=

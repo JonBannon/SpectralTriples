@@ -7,16 +7,23 @@ Authors: Jon Bannon, Michael R. Douglas
 module
 
 public import Mathlib.Analysis.InnerProductSpace.LinearPMap
+public import Mathlib.Analysis.Normed.Operator.Extend
 public import Mathlib.Order.CompletePartialOrder
 
-/-! # Spectral triples
+/-! # Core axioms for odd and even spectral triples
 
-In this file we formalize spectral triples.
+This file packages the self-adjointness, domain-invariance, bounded-commutator, and grading
+axioms. The predicates deliberately do **not** include compact resolvent; the standard
+spectral-triple definition is completed by `IsCompactResolventSpectralTriple` in
+`CompactResolvent.lean`. Thus `IsOddSpectralTriple` and `IsEvenSpectralTriple` should be read
+as reusable spectral-triple cores, not as a claim that compactness or `p`-summability holds.
 
 ## Main definitions
 
-* OddSpectralTriple
-* EvenSpectralTriple
+* `IsOddSpectralTriple`
+* `IsEvenSpectralTriple`
+* `IsOddSpectralTriple.boundedCommutator`: the canonical bounded extension of the domain
+  commutator.
 
 -/
 
@@ -25,6 +32,9 @@ In this file we formalize spectral triples.
 open LinearPMap StarAlgebra ENNReal
 
 open ContinuousLinearMap LinearMap in
+/-- The core odd spectral-triple axioms: self-adjoint `D`, invariance of `dom D` under the
+representation, and a finite unit-ball bound for each commutator. Compact resolvent is supplied
+separately by `IsCompactResolventSpectralTriple`. -/
 structure IsOddSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiring A]
     [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     (D : H →ₗ.[𝕜] H) (π : StarAlgHom 𝕜 A (H →L[𝕜] H)) where
@@ -34,6 +44,8 @@ structure IsOddSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiri
     ‖(π a) (D x) - (D ⟨(π a x), dom_comp a x⟩)‖ₑ) < ∞
 
 open ContinuousLinearMap LinearMap in
+/-- The core even spectral-triple axioms: an odd core together with a self-adjoint involutive
+grading commuting with the representation and anticommuting with `D`. -/
 structure IsEvenSpectralTriple (A : Type*) {H 𝕜 : Type*} [RCLike 𝕜] [Semiring A]
     [StarRing A] [Algebra 𝕜 A] [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
     (D : H →ₗ.[𝕜] H) (π : StarAlgHom 𝕜 A (H →L[𝕜] H)) (γ : H →L[𝕜] H)
@@ -58,10 +70,31 @@ theorem dense_domain_dirac (hT : IsOddSpectralTriple A D π) : Dense (D.domain :
 theorem isClosed_dirac (hT : IsOddSpectralTriple A D π) : D.IsClosed :=
   hT.self_adjoint.isClosed
 
+/-- The representation restricted to the invariant Dirac domain. -/
+noncomputable def domainRepresentation (hT : IsOddSpectralTriple A D π) (a : A) :
+    D.domain →ₗ[𝕜] D.domain where
+  toFun x := ⟨π a x, hT.dom_comp a x⟩
+  map_add' x y := by
+    apply Subtype.ext
+    exact map_add (π a) (x : H) (y : H)
+  map_smul' c x := by
+    apply Subtype.ext
+    exact map_smul (π a) c (x : H)
+
+/-- The conventional algebraic commutator `[D, π(a)]` on `dom D`. It becomes an everywhere-defined
+continuous linear map through `boundedCommutator`. -/
+noncomputable def commutatorOnDomain (hT : IsOddSpectralTriple A D π) (a : A) :
+    D.domain →ₗ[𝕜] H :=
+  D.toFun.comp (hT.domainRepresentation a) - (π a).toLinearMap.comp D.toFun
+
+@[simp] theorem commutatorOnDomain_apply (hT : IsOddSpectralTriple A D π) (a : A)
+    (x : D.domain) :
+    hT.commutatorOnDomain a x = D ⟨π a x, hT.dom_comp a x⟩ - π a (D x) :=
+  rfl
+
 open ContinuousLinearMap LinearMap in
-/-- The commutator `[D, π a]`, while only assumed to extend to a bounded operator via an
-`ℝ≥0∞`-valued supremum, is in fact bounded on the closed unit ball of `D.domain` by a finite
-real constant. -/
+/-- The structure field writes the negative commutator `[π(a), D]`; its finite `ℝ≥0∞`
+supremum gives the same unit-ball bound for the conventional `[D, π(a)]`. -/
 theorem exists_comm_bound (hT : IsOddSpectralTriple A D π) (a : A) :
     ∃ C : ℝ, ∀ x : D.domain, ‖(x : H)‖ ≤ 1 →
       ‖π a (D x) - D ⟨π a x, hT.dom_comp a x⟩‖ ≤ C := by
@@ -76,6 +109,74 @@ theorem exists_comm_bound (hT : IsOddSpectralTriple A D π) (a : A) :
   rw [← ofReal_norm, ← ENNReal.ofReal_toReal hne,
     ENNReal.ofReal_le_ofReal_iff ENNReal.toReal_nonneg] at h1
   exact h1
+
+/-- The unit-ball axiom gives the homogeneous bound needed to extend the commutator from the
+dense Dirac domain. -/
+theorem exists_commutator_bound (hT : IsOddSpectralTriple A D π) (a : A) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ x : D.domain,
+      ‖hT.commutatorOnDomain a x‖ ≤ C * ‖(x : H)‖ := by
+  obtain ⟨C, hC⟩ := hT.exists_comm_bound a
+  let C' := max C 0
+  refine ⟨C', le_max_right C 0, fun x => ?_⟩
+  by_cases hx : x = 0
+  · subst x
+    simp [commutatorOnDomain]
+  have hxcoe : (x : H) ≠ 0 := fun h => hx (Subtype.ext h)
+  have hxnorm : ‖(x : H)‖ ≠ 0 := norm_ne_zero_iff.mpr hxcoe
+  let y : D.domain := (‖(x : H)‖⁻¹ : 𝕜) • x
+  have hy : ‖(y : H)‖ ≤ 1 := by
+    change ‖(‖(x : H)‖⁻¹ : 𝕜) • (x : H)‖ ≤ 1
+    calc
+      ‖(‖(x : H)‖⁻¹ : 𝕜) • (x : H)‖ = ‖(x : H)‖⁻¹ * ‖(x : H)‖ := by
+        rw [norm_smul, norm_inv, RCLike.norm_ofReal,
+          abs_of_nonneg (norm_nonneg _)]
+      _ = 1 := inv_mul_cancel₀ hxnorm
+      _ ≤ 1 := le_rfl
+  have hscaled : ‖(x : H)‖⁻¹ * ‖hT.commutatorOnDomain a x‖ ≤ C' := by
+    have hunit := hC y hy
+    have hunit' : ‖hT.commutatorOnDomain a y‖ ≤ C := by
+      simpa only [commutatorOnDomain_apply, norm_sub_rev] using hunit
+    calc
+      ‖(x : H)‖⁻¹ * ‖hT.commutatorOnDomain a x‖ =
+          ‖hT.commutatorOnDomain a y‖ := by
+        rw [show y = (‖(x : H)‖⁻¹ : 𝕜) • x from rfl,
+          LinearMap.map_smul, norm_smul, norm_inv, RCLike.norm_ofReal,
+          abs_of_nonneg (norm_nonneg _)]
+      _ ≤ C := hunit'
+      _ ≤ C' := le_max_left C 0
+  calc
+    ‖hT.commutatorOnDomain a x‖ =
+        ‖(x : H)‖ * (‖(x : H)‖⁻¹ * ‖hT.commutatorOnDomain a x‖) := by
+      symm
+      rw [← mul_assoc, mul_inv_cancel₀ hxnorm, one_mul]
+    _ ≤ ‖(x : H)‖ * C' :=
+      mul_le_mul_of_nonneg_left hscaled (norm_nonneg _)
+    _ = C' * ‖(x : H)‖ := mul_comm _ _
+
+/-- The bounded extension of `[D, π(a)]` from the dense Dirac domain to all of `H`. -/
+noncomputable def boundedCommutator (hT : IsOddSpectralTriple A D π) (a : A) : H →L[𝕜] H :=
+  (hT.commutatorOnDomain a).extendOfNorm D.domain.subtype
+
+/-- On `dom D`, the bounded extension agrees with the algebraic commutator. -/
+theorem boundedCommutator_apply (hT : IsOddSpectralTriple A D π) (a : A) (x : D.domain) :
+    hT.boundedCommutator a (x : H) =
+      D ⟨π a x, hT.dom_comp a x⟩ - π a (D x) := by
+  obtain ⟨C, _hCnonneg, hC⟩ := hT.exists_commutator_bound a
+  change (hT.commutatorOnDomain a).extendOfNorm D.domain.subtype
+      (D.domain.subtype x) = hT.commutatorOnDomain a x
+  exact LinearMap.extendOfNorm_eq hT.dense_domain_dirac.denseRange_val ⟨C, hC⟩ x
+
+/-- The bounded commutator is the unique continuous linear extension of the domain
+commutator. -/
+theorem boundedCommutator_unique (hT : IsOddSpectralTriple A D π) (a : A)
+    (T : H →L[𝕜] H)
+    (hT_apply : ∀ x : D.domain,
+      T (x : H) = D ⟨π a x, hT.dom_comp a x⟩ - π a (D x)) :
+    hT.boundedCommutator a = T := by
+  obtain ⟨C, _hCnonneg, hC⟩ := hT.exists_commutator_bound a
+  apply LinearMap.extendOfNorm_unique hT.dense_domain_dirac.denseRange_val C hC
+  ext x
+  exact hT_apply x
 
 end IsOddSpectralTriple
 

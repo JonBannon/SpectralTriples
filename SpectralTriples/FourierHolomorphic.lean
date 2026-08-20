@@ -11,6 +11,8 @@ public import Mathlib.Analysis.Analytic.IsolatedZeros
 public import Mathlib.Analysis.Fourier.AddCircle
 public import Mathlib.Analysis.SpecificLimits.Basic
 public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
+public import Mathlib.LinearAlgebra.Finsupp.Pi
 public import SpectralTriples.Examples.ThetaSections
 
 /-! # Fourier coefficients of holomorphic periodic functions: the contour shift
@@ -36,7 +38,7 @@ intrinsic Fourier coefficient `a_m = ∫₀¹ f(x+iy) e^{-2πim(x+iy)} dx` is we
 
 namespace SpectralTriples
 
-open Complex intervalIntegral
+open Complex intervalIntegral Module
 open MeasureTheory Filter
 open scoped Topology
 
@@ -464,6 +466,25 @@ theorem holSection_finrank_eq (k : ℕ) [NeZero k] :
     k = Module.finrank ℂ (Submodule.span ℂ (Set.range (thetaHolSection k))) := hspan.symm
     _ ≤ Module.finrank ℂ (holSection k) := Submodule.finrank_le _
 
+/-- The explicit theta sections form a basis of the degree-`k` holomorphic automorphic-function
+space. This packages linear independence together with `holSection_finrank_eq`. -/
+noncomputable def thetaHolSectionBasis (k : ℕ) [NeZero k] :
+    Basis (Fin k) ℂ (holSection k) := by
+  letI : FiniteDimensional ℂ (holSection k) :=
+    FiniteDimensional.of_injective (coeffMap k) (coeffMap_injective k)
+  exact basisOfLinearIndependentOfCardEqFinrank' (thetaHolSection k)
+    (thetaHolSection_linearIndependent k) (by simp [holSection_finrank_eq k])
+
+@[simp] theorem thetaHolSectionBasis_apply (k : ℕ) [NeZero k] (a : Fin k) :
+    thetaHolSectionBasis k a = thetaHolSection k a := by
+  unfold thetaHolSectionBasis
+  simp
+
+/-- Coordinates in the explicit theta-section basis, presented as a function on `Fin k`. -/
+noncomputable def thetaHolSectionEquiv (k : ℕ) [NeZero k] :
+    holSection k ≃ₗ[ℂ] (Fin k → ℂ) :=
+  (thetaHolSectionBasis k).repr ≪≫ₗ Finsupp.linearEquivFunOnFinite ℂ ℂ (Fin k)
+
 /-- Holomorphic sections of the degree-`-k` line bundle on the square torus. The sign of the
 `i`-period automorphy is the conjugate/negative-degree sign relative to `holSection`. -/
 def holSectionNeg (k : ℕ) : Submodule ℂ (ℂ → ℂ) where
@@ -710,10 +731,10 @@ lemma holCoeffNeg_eq_zero {f : ℂ → ℂ} {k : ℕ} [NeZero k] (hf : f ∈ hol
   have hb0 := hback N hbN_zero
   simpa [b] using hb0
 
-/-- The negative-degree line bundle has no nonzero holomorphic sections:
-`H^0(L_{-k}) = 0` for `k > 0`. By Serre duality this is the vanishing
-`H^1(L_k) = 0`, equivalently the cokernel-vanishing half of `index = k`; the
-duality identification itself is not formalized here. The proof is the clash
+/-- The negative-degree automorphic holomorphic-function space is trivial:
+`H^0(L_{-k}) = 0` for `k > 0`. Classically, Serre duality identifies this with
+`H^1(L_k) = 0`; neither that duality nor an operator-cokernel identification is formalized
+here. The proof is the clash
 between Parseval/Riemann-Lebesgue coefficient decay and the negative-degree
 automorphy growth recursion. -/
 theorem holSectionNeg_eq_bot (k : ℕ) [NeZero k] : holSectionNeg k = ⊥ := by
@@ -722,8 +743,8 @@ theorem holSectionNeg_eq_bot (k : ℕ) [NeZero k] : holSectionNeg k = ⊥ := by
   apply eq_zero_of_holCoeff_eq_zero hf.1 hf.2.1
   exact holCoeffNeg_eq_zero hf
 
-/-- The space of holomorphic sections of the degree-`-k` line bundle has dimension zero for
-`k > 0`; this is the cokernel-vanishing half of the index computation. -/
+/-- The space of holomorphic automorphic functions of degree `-k` has dimension zero for
+`k > 0`. -/
 theorem holSectionNeg_finrank_eq_zero (k : ℕ) [NeZero k] :
     Module.finrank ℂ (holSectionNeg k) = 0 := by
   rw [holSectionNeg_eq_bot k]

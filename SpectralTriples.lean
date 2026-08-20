@@ -1,6 +1,6 @@
 import SpectralTriples.Basic
 import SpectralTriples.Resolvent
-import SpectralTriples.FinitelySummable
+import SpectralTriples.CompactResolvent
 import SpectralTriples.FourierHolomorphic
 import SpectralTriples.HermiteL2
 import SpectralTriples.Fredholm

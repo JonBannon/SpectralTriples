@@ -16,10 +16,9 @@ public import Mathlib.Topology.Algebra.Module.Basic
 A minimal, self-contained notion of Fredholm linear map, scoped to exactly what the index
 pairing of Chapter~2 of the blueprint needs.
 
-There is ongoing work towards a general theory of Fredholm operators on topological vector
-spaces in Mathlib (`leanprover-community/mathlib4#39274`), but as of this writing that branch
-is unmerged, depends on other unmerged PRs, and contains unfinished (`sorry`) proofs, so it is
-not yet usable here. The definitions below are deliberately minimal — stated for plain linear
+Mathlib has ongoing work towards a general theory of Fredholm operators on topological vector
+spaces (`leanprover-community/mathlib4#39274`), but the API is not available in the version
+pinned by this repository. The definitions below are deliberately minimal — stated for plain linear
 maps `E →ₗ[𝕜] F` rather than continuous linear maps, so that they apply uniformly to bounded
 operators (via `ContinuousLinearMap.toLinearMap`) and to the restriction of an unbounded
 operator to its domain (via `LinearPMap.toFun`), as needed for chiral Dirac operators. The
@@ -55,7 +54,7 @@ structure IsFredholm (f : E →ₗ[𝕜] F) : Prop where
 /-- The **Fredholm index** of a linear map `f : E →ₗ[𝕜] F`: the integer
 `dim (ker f) - dim (F ⧸ range f)`. When `f` is not Fredholm and the relevant spaces are
 infinite-dimensional, `Module.finrank` returns the junk value `0`, so `index f` silently
-defaults accordingly — the same convention used by `SpectralTriples.index`. -/
+defaults accordingly — the same convention used by `SpectralTriples.gradedKernelIndex`. -/
 noncomputable def index (f : E →ₗ[𝕜] F) : ℤ :=
   (Module.finrank 𝕜 (LinearMap.ker f) : ℤ) - (Module.finrank 𝕜 (F ⧸ LinearMap.range f) : ℤ)
 

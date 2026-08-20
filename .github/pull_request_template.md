@@ -1,4 +1,4 @@
-<!-- Describe the change in 1–3 sentences. -->
+<!-- Describe the mathematical and implementation change in 1–3 sentences. -->
 
 ## Summary
 
@@ -6,31 +6,43 @@
 
 ## Checklist
 
-**Build & correctness**
-- [ ] `lake build SpectralTriples` is clean (no errors, no warnings).
-- [ ] No new `sorry` and no new `axiom` (search the diff).
-- [ ] New/changed headline declarations are axiom-clean: `#print axioms` shows only
-      `propext`, `Classical.choice`, `Quot.sound`.
+See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the complete verification and
+synchronization policy.
 
-**Assurance sync** — *do this whenever a tracked declaration is added, renamed, moved, or removed:*
-- [ ] `scripts/axiom_report.lean` lists every new/renamed headline declaration (and drops removed ones).
-- [ ] Regenerated the golden trace: `lake env lean scripts/axiom_report.lean > audit/axiom-report.txt`
-      (committed in **this** PR, so the CI `axiom-report` diff passes).
-- [ ] [`audit/FAITHFULNESS.md`](../audit/FAITHFULNESS.md) updated: a row for each new headline
-      object/statement, with the **correct `file:line`**; fixed any references to files this PR
-      moved/deleted.
-- [ ] README "Current status" table reflects new files / examples.
+**Build and correctness**
 
-**Definition changes** — *if this PR changes a definition (signature, fields, file location):*
-- [ ] Updated every downstream user (examples, dependent lemmas) in the same PR.
-- [ ] Updated the relevant "Faithfulness divergences" notes if the encoding changed.
+- [ ] `lake build SpectralTriples` succeeds without project warnings.
+- [ ] The change introduces no `sorry`/`admit` and no unreviewed project `axiom`.
+- [ ] New or changed public statements use mathematically conservative names
+      (compact resolvent vs. summability, graded-kernel invariant vs. chiral
+      Fredholm index, bounded magnetic phase vs. geometric Dirac operator).
 
-**Axioms** — *if this PR introduces a project `axiom`:*
-- [ ] Docstring with statement + reference + proof-strategy (per `~/.claude/CLAUDE.md`).
-- [ ] Row added to `AXIOM_AUDIT.md` with rating + sources; counts updated in README.
-- [ ] Vetting record under `audit/vetting/` before anything downstream relies on it.
+**Blueprint and assurance**
 
-<!-- The two lapses this checklist exists to prevent: (1) a moved/renamed decl leaving a
-stale `file:line` in FAITHFULNESS.md or a stale entry in axiom_report.lean; (2) a new headline
-result (e.g. an example triple) not being added to the golden axiom trace, so CI never
-machine-checks its axiom-cleanliness. -->
+- [ ] `python3 scripts/check_axiom_coverage.py` passes.
+- [ ] Every added/renamed blueprint headline is present in
+      `scripts/axiom_report.lean`; removed names have been dropped.
+- [ ] `lake env lean scripts/axiom_report.lean > audit/axiom-report.txt` was run
+      and the generated diff was reviewed and committed.
+- [ ] The blueprint text and dependencies reflect the exact Lean statements.
+- [ ] `audit/FAITHFULNESS.md` was updated when an informal/formal statement,
+      encoding choice, or literature correspondence changed.
+
+**Status and downstream synchronization**
+
+- [ ] New modules are imported by `SpectralTriples.lean` and downstream users
+      compile.
+- [ ] `README.md`, `PLAN.md`, and `formalization.yaml` reflect any status,
+      terminology, or roadmap change.
+- [ ] Compatibility aliases and deprecations are documented when a public name
+      changed.
+
+**Project axioms** — complete only if this PR intentionally introduces one
+
+- [ ] The declaration has a docstring with its precise statement, source, and
+      discharge strategy, following [`AXIOM_AUDIT.md`](../AXIOM_AUDIT.md).
+- [ ] A row and count update were added to `AXIOM_AUDIT.md`.
+- [ ] A vetting record was added under `audit/vetting/` before downstream use,
+      and vetting strictness was raised to at least `L2`.
+
+<!-- Keep code, blueprint, assurance artifacts, and status prose in one PR. -->

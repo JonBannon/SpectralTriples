@@ -6,30 +6,30 @@ Authors: Jon Bannon, Michael R. Douglas
 
 module
 
-public import SpectralTriples.FinitelySummable
+public import SpectralTriples.CompactResolvent
 public import Mathlib.Analysis.InnerProductSpace.Spectrum
 
-/-! # The index of an even spectral triple
+/-! # The graded-kernel invariant of an even spectral triple
 
 For an **even** spectral triple the grading `γ` splits the kernel of the Dirac operator
-`D` into its `±1`-eigenspaces, `ker D = (ker D)⁺ ⊕ (ker D)⁻`, and the **(super)index**
+`D` into its `±1`-eigenspaces, `ker D = (ker D)⁺ ⊕ (ker D)⁻`, and the
+**graded-kernel invariant**
 
-  `index D γ = dim (ker D)⁺ − dim (ker D)⁻`
+  `gradedKernelIndex D γ = dim (ker D)⁺ − dim (ker D)⁻`
 
-is the Fredholm index of the chiral operator `D⁺ : H⁺ → H⁻`. This is the integer that the
-Atiyah–Singer / McKean–Singer theory computes as `∫ Â(M) · ch(E)`; for the torus coupled to a
-degree-`k` line bundle it equals `k`.
+is the value that is classically identified with the Fredholm index of the chiral operator
+`D⁺ : H⁺ → H⁻` once that operator is constructed and proved Fredholm.
 
 This file builds the **foundations**: the graded kernel, the index as an integer, and the
-well-definedness theorem — that the kernel is finite-dimensional whenever `D` has compact
-resolvent (so the two dimensions, and hence the index, are genuine). The point is that the
-**compact resolvent makes `D⁺` Fredholm**: `ker D` embeds into a nonzero-eigenvalue eigenspace
-of the (compact) resolvent, which is finite-dimensional by Riesz theory.
+finite-dimensionality theorem — that the kernel is finite-dimensional whenever `D` has compact
+resolvent, so both displayed dimensions are genuine. It does **not** yet define `D⁺`, prove its
+range closed or its cokernel finite-dimensional, or prove equality with `Fredholm.index`; those
+are the next chiral-operator layer.
 
 ## Main definitions
 
 * `SpectralTriples.Dkernel D` — `ker D`, as a subspace of `H`.
-* `SpectralTriples.index D γ` — the graded-kernel index, an integer.
+* `SpectralTriples.gradedKernelIndex D γ` — the graded-kernel invariant, an integer.
 
 ## Main results
 
@@ -64,14 +64,16 @@ theorem mem_Dkernel_iff (D : H →ₗ.[𝕜] H) {x : H} :
 `+1`- and `−1`-graded parts of `ker D`. (Each `finrank` is `0` when the corresponding space is
 infinite-dimensional; `finiteDimensional_Dkernel` guarantees finiteness under a compact
 resolvent.) -/
-noncomputable def index (D : H →ₗ.[𝕜] H) (γ : H →L[𝕜] H) : ℤ :=
+noncomputable def gradedKernelIndex (D : H →ₗ.[𝕜] H) (γ : H →L[𝕜] H) : ℤ :=
   (finrank 𝕜 (Dkernel D ⊓ eigenspace (γ : Module.End 𝕜 H) 1 :) : ℤ)
     - (finrank 𝕜 (Dkernel D ⊓ eigenspace (γ : Module.End 𝕜 H) (-1) :) : ℤ)
 
-/-- **The kernel of a Dirac operator with compact resolvent is finite-dimensional.** This is the
-Fredholm property: for `x ∈ ker D`, the resolvent `R = (i·1 − D)⁻¹` satisfies `R x = i⁻¹ • x`, so
+/-- **The kernel of a Dirac operator with compact resolvent is finite-dimensional.** This is one
+finiteness ingredient in a later Fredholm theorem: for `x ∈ ker D`, the resolvent
+`R = (i·1 − D)⁻¹` satisfies `R x = i⁻¹ • x`, so
 `ker D` embeds into the `i⁻¹`-eigenspace of the compact operator `R`, which is finite-dimensional
-by Riesz theory. Consequently `index D γ` is a difference of genuine (finite) dimensions. -/
+by Riesz theory. Consequently `gradedKernelIndex D γ` is a difference of genuine finite
+dimensions. This theorem alone does not establish Fredholmness of a chiral restriction. -/
 theorem finiteDimensional_Dkernel {D : H →ₗ.[𝕜] H} (hD : IsSelfAdjoint D)
     (hI : RCLike.im (RCLike.I : 𝕜) ≠ 0)
     (hc : IsCompactOperator (D.resolvent RCLike.I)) :
@@ -109,9 +111,9 @@ theorem finiteDimensional_Dkernel {D : H →ₗ.[𝕜] H} (hD : IsSelfAdjoint D)
 variable {A : Type*} [Semiring A] [StarRing A] [Algebra 𝕜 A]
     {D : H →ₗ.[𝕜] H} {π : StarAlgHom 𝕜 A (H →L[𝕜] H)} {γ : H →L[𝕜] H}
 
-/-- The grading of an even spectral triple preserves the kernel of `D`: if `D x = 0` then
-`D (γ x) = -γ (D x) = 0`. Hence `ker D` is `γ`-invariant, and splits into its `±1`-graded parts
-whose dimensions enter `index`. -/
+/-- The grading of an even spectral-triple core preserves the kernel of `D`: if `D x = 0` then
+`D (γ x) = -γ (D x) = 0`. Hence `ker D` is `γ`-invariant; its intersections with the two
+grading eigenspaces enter `gradedKernelIndex`. -/
 theorem grading_mem_Dkernel (hT : IsEvenSpectralTriple A D π γ) {x : H}
     (hx : x ∈ Dkernel D) : γ x ∈ Dkernel D := by
   rw [mem_Dkernel_iff] at hx ⊢
@@ -121,10 +123,23 @@ theorem grading_mem_Dkernel (hT : IsEvenSpectralTriple A D π γ) {x : H}
   rw [hx0, _root_.map_zero, neg_zero] at h
   exact h
 
-/-- The **index** of an even spectral triple `(A, H, D, γ)`: the graded-kernel index of its
-Dirac operator. Combined with `finiteDimensional_Dkernel` (under a compact resolvent), this is a
-genuine integer — the Fredholm index of `D⁺`. -/
-noncomputable def _root_.IsEvenSpectralTriple.index (_hT : IsEvenSpectralTriple A D π γ) : ℤ :=
-  SpectralTriples.index D γ
+/-- The graded-kernel invariant of an even spectral-triple core `(A, H, D, γ)`. Under a compact
+resolvent, `finiteDimensional_Dkernel` shows its two ranks are genuine finite dimensions. No
+equality with a chiral Fredholm index is asserted here. -/
+noncomputable def _root_.IsEvenSpectralTriple.gradedKernelIndex
+    (_hT : IsEvenSpectralTriple A D π γ) : ℤ :=
+  SpectralTriples.gradedKernelIndex D γ
+
+/-- Compatibility alias for the former name. No equality with a chiral Fredholm index is proved
+yet, so new code should use `gradedKernelIndex`. -/
+@[deprecated gradedKernelIndex (since := "2026-08-20")]
+noncomputable abbrev index (D : H →ₗ.[𝕜] H) (γ : H →L[𝕜] H) : ℤ :=
+  gradedKernelIndex D γ
+
+/-- Compatibility alias for `IsEvenSpectralTriple.gradedKernelIndex`. -/
+@[deprecated IsEvenSpectralTriple.gradedKernelIndex (since := "2026-08-20")]
+noncomputable abbrev _root_.IsEvenSpectralTriple.index
+    (hT : IsEvenSpectralTriple A D π γ) : ℤ :=
+  hT.gradedKernelIndex
 
 end SpectralTriples

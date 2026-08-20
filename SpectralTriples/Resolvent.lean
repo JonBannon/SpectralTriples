@@ -13,8 +13,8 @@ public import Mathlib.LinearAlgebra.LinearPMap
 This file adapts a portion of mathlib4 PR #29624
 (`https://github.com/leanprover-community/mathlib4/pull/29624`), specialized to
 endomorphisms `f : E →ₗ.[R] E`, to define the resolvent set and resolvent of a
-`LinearPMap`. This is the algebraic groundwork needed to define finitely summable
-spectral triples, whose Dirac operator is required to have a compact resolvent.
+`LinearPMap`. This is the algebraic groundwork for the compact-resolvent axiom of a
+spectral triple. Quantitative finite (`p`-)summability requires additional decay data.
 
 ## Main definitions
 

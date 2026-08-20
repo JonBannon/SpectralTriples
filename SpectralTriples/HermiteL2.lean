@@ -9,16 +9,20 @@ module
 public import Mathlib.RingTheory.Polynomial.Hermite.Gaussian
 public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
 public import Mathlib.MeasureTheory.Integral.IntegralEqImproper
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.Analysis.InnerProductSpace.Orthonormal
+public import Mathlib.Topology.Algebra.Polynomial
 
 /-! # The Hermite functions and the weighted `L²` inner product
 
 Foundations for **Route B** of the `T²` operator-index bridge
 (`docs/INDEX_PAIRING.md`): the Landau/Hermite decomposition needs the Hermite
-functions `hₙ(x) = cₙ · Hₙ(x) · e^{-x²/2}` to form an orthonormal basis of
+functions `hₙ(x) = cₙ · Hₙ(x) · e^{-x²/4}` to form an orthonormal basis of
 `L²(ℝ)`. Mathlib has the probabilists' Hermite *polynomials* `Polynomial.hermite`
 and the Rodrigues identity `deriv_gaussian_eq_hermite_mul_gaussian`, but neither
 the Gaussian-weighted **orthogonality** nor the `L²` basis. This file builds the
-orthogonality layer.
+weighted polynomial theorem and packages the correctly normalized functions as an
+orthonormal family in real or complex `L²(ℝ)`. Completeness remains open.
 
 The load-bearing fact is the Gaussian-weighted orthogonality
 `∫ Hₘ(x) Hₙ(x) e^{-x²/2} dx = n! √(2π) · δₘₙ`. The proof avoids `n`-fold
@@ -36,6 +40,10 @@ diagonal value comes from the derivative identity `Hₙ' = n · Hₙ₋₁`.
 * `Polynomial.hermite_integral_eq_zero_of_ne` / `hermite_integral_self`: the
   off-diagonal vanishing and the diagonal value `n!·√(2π)`.
 * `Polynomial.hermite_orthogonality`: `∫ Hₘ Hₙ e^{-x²/2} = n!·√(2π)·δₘₙ`.
+* `Polynomial.hermiteFunctionL2`: the normalized function
+  `Hₙ(x)e^{-x²/4} / √(n!√(2π))` in scalar-valued `L²(ℝ)`.
+* `Polynomial.orthonormal_hermiteFunctionL2`: these functions are orthonormal over any
+  `RCLike` scalar field (in particular `ℝ` and `ℂ`).
 -/
 
 @[expose] public section
@@ -262,5 +270,127 @@ theorem hermite_orthogonality (m n : Nat) :
   · subst m
     simp [hermite_integral_self]
   · simp [hmn, hermite_integral_eq_zero_of_ne hmn]
+
+/-! ### Normalized Hermite functions in `L²(ℝ)` -/
+
+/-- The squared `L²` norm of the unnormalized probabilists' Hermite function
+`Hₙ(x) exp(-x²/4)`. -/
+def hermiteNormSq (n : ℕ) : ℝ :=
+  (n.factorial : ℝ) * Real.sqrt (2 * Real.pi)
+
+/-- The normalization factor `1 / √(n! √(2π))` for the probabilists' Hermite function. -/
+def hermiteNormalization (n : ℕ) : ℝ :=
+  (Real.sqrt (hermiteNormSq n))⁻¹
+
+lemma hermiteNormSq_pos (n : ℕ) : 0 < hermiteNormSq n := by
+  unfold hermiteNormSq
+  positivity
+
+lemma hermiteNormalization_sq_mul (n : ℕ) :
+    hermiteNormalization n * hermiteNormalization n * hermiteNormSq n = 1 := by
+  have hsqrt : Real.sqrt (hermiteNormSq n) ≠ 0 := by
+    exact ne_of_gt (Real.sqrt_pos.2 (hermiteNormSq_pos n))
+  rw [hermiteNormalization]
+  field_simp
+  nlinarith [Real.sq_sqrt (hermiteNormSq_pos n).le]
+
+/-- The normalized probabilists' Hermite function
+`Hₙ(x) exp(-x²/4) / √(n! √(2π))`.
+
+The exponent is `-x²/4`, not `-x²/2`: squaring this function produces the
+`exp(-x²/2)` weight in `hermite_orthogonality`. -/
+def hermiteFunction (n : ℕ) (x : ℝ) : ℝ :=
+  hermiteNormalization n * aeval x (hermite n) * Real.exp (-(x ^ 2 / 4))
+
+theorem continuous_hermiteFunction (n : ℕ) : Continuous (hermiteFunction n) := by
+  unfold hermiteFunction
+  fun_prop
+
+/-- Each normalized Hermite function is square-integrable. -/
+theorem memLp_hermiteFunction (n : ℕ) :
+    MemLp (hermiteFunction n) 2 (volume : Measure ℝ) := by
+  rw [memLp_two_iff_integrable_sq (continuous_hermiteFunction n).aestronglyMeasurable]
+  have h := (integrable_aeval_mul_gaussian (hermite n * hermite n)).const_mul
+    (hermiteNormalization n ^ 2)
+  convert h using 1
+  ext x
+  simp only [hermiteFunction, map_mul, pow_two]
+  ring_nf
+  rw [← Real.exp_nat_mul]
+  congr 1
+  ring_nf
+
+/-- Integral orthonormality of the normalized Hermite functions. -/
+theorem integral_hermiteFunction_mul (m n : ℕ) :
+    (∫ x : ℝ, hermiteFunction m x * hermiteFunction n x) =
+      if m = n then 1 else 0 := by
+  calc
+    (∫ x : ℝ, hermiteFunction m x * hermiteFunction n x) =
+        hermiteNormalization m * hermiteNormalization n *
+          ∫ x : ℝ, aeval x (hermite m) * aeval x (hermite n) *
+            Real.exp (-(x ^ 2 / 2)) := by
+      rw [← integral_const_mul]
+      congr with x
+      unfold hermiteFunction
+      have hexp :
+          Real.exp (-(x ^ 2 / 4)) * Real.exp (-(x ^ 2 / 4)) =
+            Real.exp (-(x ^ 2 / 2)) := by
+        rw [← Real.exp_add]
+        congr 1
+        ring_nf
+      rw [show
+        hermiteNormalization m * aeval x (hermite m) * Real.exp (-(x ^ 2 / 4)) *
+            (hermiteNormalization n * aeval x (hermite n) * Real.exp (-(x ^ 2 / 4))) =
+          hermiteNormalization m * hermiteNormalization n *
+            (aeval x (hermite m) * aeval x (hermite n) *
+              (Real.exp (-(x ^ 2 / 4)) * Real.exp (-(x ^ 2 / 4)))) by ring]
+      rw [hexp]
+    _ = hermiteNormalization m * hermiteNormalization n *
+        (if m = n then (n.factorial : ℝ) * Real.sqrt (2 * Real.pi) else 0) := by
+      rw [hermite_orthogonality]
+    _ = if m = n then 1 else 0 := by
+      by_cases hmn : m = n
+      · subst m
+        simpa [hermiteNormSq] using hermiteNormalization_sq_mul n
+      · simp [hmn]
+
+/-- The normalized Hermite function as a vector in scalar-valued `L²(ℝ)`. -/
+def hermiteFunctionL2 (𝕜 : Type*) [RCLike 𝕜] (n : ℕ) :
+    Lp 𝕜 2 (volume : Measure ℝ) := by
+  let h : MemLp (fun x => (hermiteFunction n x : 𝕜)) 2 (volume : Measure ℝ) :=
+    (memLp_hermiteFunction n).ofReal
+  exact h.toLp (fun x => (hermiteFunction n x : 𝕜))
+
+theorem inner_hermiteFunctionL2 (𝕜 : Type*) [RCLike 𝕜] (m n : ℕ) :
+    inner 𝕜 (hermiteFunctionL2 𝕜 m) (hermiteFunctionL2 𝕜 n) =
+      if m = n then 1 else 0 := by
+  rw [MeasureTheory.L2.inner_def]
+  calc
+    (∫ x : ℝ, inner 𝕜 ((hermiteFunctionL2 𝕜 m) x) ((hermiteFunctionL2 𝕜 n) x)) =
+        ∫ x : ℝ, ((hermiteFunction m x * hermiteFunction n x : ℝ) : 𝕜) := by
+      apply integral_congr_ae
+      have hm : (hermiteFunctionL2 𝕜 m : ℝ → 𝕜) =ᵐ[volume]
+          fun x => (hermiteFunction m x : 𝕜) := by
+        unfold hermiteFunctionL2
+        exact MemLp.coeFn_toLp _
+      have hn : (hermiteFunctionL2 𝕜 n : ℝ → 𝕜) =ᵐ[volume]
+          fun x => (hermiteFunction n x : 𝕜) := by
+        unfold hermiteFunctionL2
+        exact MemLp.coeFn_toLp _
+      filter_upwards [hm, hn] with x hmx hnx
+      rw [hmx, hnx, RCLike.inner_apply]
+      simp [mul_comm]
+    _ = ((∫ x : ℝ, hermiteFunction m x * hermiteFunction n x : ℝ) : 𝕜) := by
+      rw [integral_ofReal]
+    _ = if m = n then 1 else 0 := by
+      rw [integral_hermiteFunction_mul]
+      split <;> simp
+
+/-- The normalized Hermite functions form an orthonormal family in `L²(ℝ)` over any real or
+complex scalar field. Completeness, needed to package this as a `HilbertBasis`, remains open. -/
+theorem orthonormal_hermiteFunctionL2 (𝕜 : Type*) [RCLike 𝕜] :
+    Orthonormal 𝕜 (hermiteFunctionL2 𝕜) := by
+  rw [orthonormal_iff_ite]
+  exact inner_hermiteFunctionL2 𝕜
 
 end Polynomial

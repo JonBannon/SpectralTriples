@@ -1,8 +1,7 @@
 # formalization.yaml — https://github.com/mathlib-initiative/formalization.yaml (v0.3)
-# Describes the `main` branch state. Forward-chaining: formalizing the spectral-triple
-# corpus bottom-up from Mathlib; sorry-free and axiom-free (standard-3 only).
-# Machine facts (axioms/sorries) are kernel-checked via scripts/axiom_report.lean ->
-# audit/axiom-report.txt (CI-diffed); do not hand-edit counts.
+# Describes the main-branch state. Machine facts about the tracked public
+# declarations are checked by scripts/axiom_report.lean and CI-diffed against
+# audit/axiom-report.txt; do not hand-edit that generated report.
 version: "v0.3"
 
 project:
@@ -16,41 +15,49 @@ sources:
     id: "ISBN:978-0-12-185860-5"
     type: "textbook"
     license: "proprietary"
-    note: "Academic Press (1994), Ch. VI; the spectral-triple (K-cycle) definition, grading, and index pairing."
+    note: "Academic Press (1994), Ch. VI; spectral triples, grading, compact resolvent, and the index pairing."
   - title: "Elements of Noncommutative Geometry"
     authors: ["José M. Gracia-Bondía", "Joseph C. Várilly", "Héctor Figueroa"]
     id: "ISBN:978-0-8176-4124-5"
     type: "textbook"
     license: "proprietary"
-    note: "Birkhäuser (2001), Ch. 9-11; Dirac operator, canonical triple, bounded transform F = D(1+D²)^{-1/2}."
+    note: "Birkhäuser (2001), Ch. 9-11; Dirac operators, canonical triples, and the bounded transform."
   - title: "Analytic K-Homology"
     authors: ["Nigel Higson", "John Roe"]
     id: "ISBN:978-0-19-851176-5"
     type: "textbook"
     license: "proprietary"
-    note: "Oxford (2000), Ch. 8, 10; Fredholm modules and the index pairing (bounded picture)."
+    note: "Oxford (2000), Ch. 8, 10; Fredholm modules and the index pairing."
   - title: "mathlib4 PR #29624 (resolvent of a LinearPMap)"
     authors: ["Moritz Doll"]
     id: "https://github.com/leanprover-community/mathlib4/pull/29624"
     type: "formalization"
     license: "Apache-2.0"
-    note: "Unmerged; adapted (specialized to endomorphisms) as SpectralTriples/Resolvent.lean."
+    note: "Adapted, specialized to endomorphisms, in SpectralTriples/Resolvent.lean."
 
 status:
   scope: >
-    A Lean 4 / Mathlib formalization of spectral triples (noncommutative geometry),
-    encoded with the unbounded Dirac operator as the spine (D : H →ₗ.[𝕜] H, a
-    LinearPMap). Done: odd and even (Z₂-graded) spectral triples and their basic
-    API (dense and closed domain, the real commutator bound, γ² = 1, the ±1
-    eigenspace decomposition); the resolvent set / resolvent of a LinearPMap; and
-    finitely-summable triples (compact resolvent) with the self-adjoint resolvent
-    estimates |Im z|·‖x‖ ≤ ‖(z−D)x‖ and injectivity of z−D off the real axis.
-    Planned (see PLAN.md): close the basic self-adjointness criterion
-    (Im z ≠ 0 ⇒ z ∈ ρ(D)); then the Fredholm index pairing in a bounded
-    Fredholm-module layer (Phase 2).
+    A Lean 4 / Mathlib formalization of spectral triples with an unbounded
+    LinearPMap Dirac operator as the spine. Formalized: odd and even
+    spectral-triple cores, their grading/domain API, and the derived bounded
+    commutator extension; LinearPMap resolvents;
+    the complete self-adjoint off-real-axis resolvent criterion; a separate
+    compact-resolvent predicate (not finite or p-summability); minimal Fredholm
+    operator infrastructure, including Fredholmness of 1-K for compact K;
+    finite-dimensionality of the Dirac kernel and the graded-kernel invariant;
+    circle and flat-torus compact-resolvent examples; explicit Fredholm
+    witnesses for the unilateral shift and the bounded flux-k magnetic phase;
+    the exact function-theoretic count and an explicit basis of positive-degree
+    theta sections, plus vanishing of the negative-degree holomorphic space;
+    and a normalized orthonormal Hermite family in real or complex L²(ℝ). Not
+    yet formalized:
+    completeness of the Hermite family, the weighted geometric L² line-bundle
+    operator, its equivalence with the magnetic phase, a chiral Dirac operator
+    with a proved Fredholm-index comparison, or the general K₀ projection
+    pairing.
   sorry_count: 0
   sorry_in_definitions: 0
-  axioms: []   # standard-3 only (propext, Classical.choice, Quot.sound); no project axioms.
+  axioms: []   # No project axioms; tracked results use the standard three only.
   main_results:
     - name: "IsOddSpectralTriple"
       file: "SpectralTriples/Basic.lean"
@@ -62,25 +69,94 @@ status:
       sorry_count: 0
       axioms: []
       literature_dependencies: ["Connes 1994 Ch. VI"]
-    - name: "IsFinitelySummableSpectralTriple"
-      file: "SpectralTriples/FinitelySummable.lean"
+    - name: "IsOddSpectralTriple.boundedCommutator"
+      file: "SpectralTriples/Basic.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Connes 1994 Ch. VI (bounded commutators)"]
+    - name: "IsSelfAdjoint.mem_resolventSet"
+      file: "SpectralTriples/CompactResolvent.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["standard self-adjoint operator theory"]
+    - name: "IsCompactResolventSpectralTriple"
+      file: "SpectralTriples/CompactResolvent.lean"
       sorry_count: 0
       axioms: []
       literature_dependencies: ["Connes 1994 Ch. VI (compact resolvent)"]
+    - name: "SpectralTriples.Fredholm.isFredholm_one_sub"
+      file: "SpectralTriples/CompactOperators.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Riesz-Schauder theory"]
+    - name: "SpectralTriples.finiteDimensional_Dkernel"
+      file: "SpectralTriples/Index.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["compact-operator eigenspace theory"]
+    - name: "SpectralTriples.gradedKernelIndex"
+      file: "SpectralTriples/Index.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Connes 1994 Ch. VI", "Higson-Roe 2000 Ch. 10"]
+    - name: "SpectralTriples.Circle.isCompactResolventSpectralTriple"
+      file: "SpectralTriples/Examples/Circle.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["canonical Dirac triple of S¹"]
+    - name: "SpectralTriples.Torus.isCompactResolventSpectralTriple"
+      file: "SpectralTriples/Examples/Torus.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["canonical flat Dirac triple of T²"]
+    - name: "SpectralTriples.Shift.isFredholm_shift"
+      file: "SpectralTriples/Examples/Shift.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["classical unilateral-shift index computation"]
+    - name: "SpectralTriples.MagneticDirac.isFredholm_magneticPhase"
+      file: "SpectralTriples/Examples/MagneticDirac.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Landau-level phase model"]
+    - name: "SpectralTriples.holSection_finrank_eq"
+      file: "SpectralTriples/FourierHolomorphic.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Fourier recursion for theta sections"]
+    - name: "SpectralTriples.thetaHolSectionBasis"
+      file: "SpectralTriples/FourierHolomorphic.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["Fourier recursion for theta sections"]
+    - name: "SpectralTriples.holSectionNeg_eq_bot"
+      file: "SpectralTriples/FourierHolomorphic.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["negative-degree holomorphic-section vanishing"]
+    - name: "Polynomial.orthonormal_hermiteFunctionL2"
+      file: "SpectralTriples/HermiteL2.lean"
+      sorry_count: 0
+      axioms: []
+      literature_dependencies: ["classical Hermite orthogonality"]
 
 automation:
   ai_authorship: >
-    Portions of the API and the project documentation were drafted with AI
-    assistance (Claude) under author review; all Lean is kernel-checked.
+    Portions of the API, proofs, and project documentation were drafted with AI
+    assistance under author review; all Lean results are kernel-checked.
 
 fidelity:
   divergences:
-    - "Bounded-commutator axiom is encoded as an ℝ≥0∞ supremum over the unit ball being < ∞ (IsOddSpectralTriple.comm), with the genuine finite real bound recovered as IsOddSpectralTriple.exists_comm_bound; the literature states it directly as a bounded operator on H."
-    - "Self-adjointness of D uses Mathlib's IsSelfAdjoint on LinearPMap (D† = D), which packages dense domain and closedness."
-    - "resolventSet uses bijectivity of z•1 − D as a LinearPMap on D.domain; for non-closed D this differs from the conventional (empty) resolvent set — see the Resolvent.lean docstring."
+    - "The bounded-commutator field writes the negative commutator [π(a),D] as an ℝ≥0∞ unit-ball supremum. Norm symmetry gives the conventional [D,π(a)]; IsOddSpectralTriple.exists_commutator_bound derives its homogeneous estimate, boundedCommutator packages its continuous extension on all of H, and boundedCommutator_unique proves uniqueness."
+    - "Self-adjointness uses Mathlib's IsSelfAdjoint on LinearPMap (D† = D), which packages dense domain and closedness."
+    - "LinearPMap.resolventSet uses bijectivity of z•1-D on D.domain; for a non-closed D this can differ from the conventional resolvent set. Spectral-triple D is closed."
+    - "IsCompactResolventSpectralTriple records compact resolvent only. The former IsFinitelySummableSpectralTriple name is a deprecated compatibility alias; no Schatten or p-summability conclusion is claimed."
+    - "gradedKernelIndex is presently a graded-kernel dimension difference. Equality with the Fredholm index of a chiral restriction has not been formalized."
+    - "MagneticDirac.magneticPhase is a bounded Landau-level shift model, not the unbounded geometric twisted Dirac operator on T²."
+    - "The normalized Hermite functions are proved orthonormal in L²(ℝ), but completeness and HilbertBasis packaging remain open."
 
 review:
-  status: "in-progress; pre-review (author + AI), awaiting collaborator review (J. Bannon)"
+  status: "in progress; author and AI pre-review complete for tracked results, independent collaborator review pending"
 
 acknowledgements: >
   Resolvent groundwork adapted from Moritz Doll's mathlib4 PR #29624.

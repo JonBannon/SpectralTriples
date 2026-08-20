@@ -207,6 +207,20 @@ theorem isClosed_range_shift :
     exact le_of_eq (shiftAux_norm (x - y)).symm
   exact hanti.isClosed_range shift.uniformContinuous
 
+/-- The unilateral shift is Fredholm: its kernel is trivial, its range is closed, and its
+cokernel is one-dimensional. -/
+theorem isFredholm_shift :
+    SpectralTriples.Fredholm.IsFredholm (shift : H →ₗ[ℂ] H) := by
+  haveI horthfd : FiniteDimensional ℂ ((LinearMap.range (shift : H →ₗ[ℂ] H))ᗮ) := by
+    rw [range_shift_orthogonal]
+    infer_instance
+  refine ⟨?_, isClosed_range_shift, ?_⟩
+  · rw [shift_ker_eq_bot]
+    infer_instance
+  · haveI : CompleteSpace (LinearMap.range (shift : H →ₗ[ℂ] H)) :=
+      isClosed_range_shift.completeSpace_coe
+    exact Submodule.finiteDimensional_quotient_of_finiteDimensional_orthogonal _
+
 /-- The forward unilateral shift on `ℓ²(ℕ)` is Fredholm of index `-1`. -/
 theorem fredholmIndex_shift :
     SpectralTriples.Fredholm.index (shift : H →ₗ[ℂ] H) = -1 := by
